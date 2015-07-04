@@ -1,10 +1,9 @@
+// license:BSD-3-Clause
+// copyright-holders:R. Belmont
 /***************************************************************************
 
     TOC parser for CHD compression frontend
     Handles CDRDAO .toc, CDRWIN .cue, Nero .nrg, and Sega GDROM .gdi
-
-    Copyright Nicola Salmoria and the MAME Team.
-    Visit http://mamedev.org for licensing and usage restrictions.
 
 ***************************************************************************/
 

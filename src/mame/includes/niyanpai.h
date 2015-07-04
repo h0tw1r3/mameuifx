@@ -1,3 +1,5 @@
+// license:BSD-3-Clause
+// copyright-holders:Takahiro Nogi
 #include "sound/dac.h"
 #include "machine/tmp68301.h"
 #define VRAM_MAX    3

@@ -1,4 +1,7 @@
-function maintargetosdoptions(_target)
+-- license:BSD-3-Clause
+-- copyright-holders:MAMEdev Team
+
+function maintargetosdoptions(_target,_subtarget)
 end
 
 

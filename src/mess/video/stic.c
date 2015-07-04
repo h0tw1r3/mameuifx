@@ -1,10 +1,9 @@
+// license:BSD-3-Clause
+// copyright-holders:Nathan Woods,Frank Palazzolo
 /**********************************************************************
 
  General Instruments AY-3-8900-1 a.k.a. Standard Television Interface Chip
  (STIC) emulation for Mattel Intellivision
-
- Copyright MESS Team.
- Visit http://mamedev.org for licensing and usage restrictions.
 
  *********************************************************************/
 

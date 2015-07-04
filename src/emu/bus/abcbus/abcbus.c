@@ -4,9 +4,6 @@
 
     Luxor ABC (Databoard 4680) Bus emulation
 
-    Copyright MESS Team.
-    Visit http://mamedev.org for licensing and usage restrictions.
-
 **********************************************************************/
 
 #include "abcbus.h"
@@ -107,6 +104,7 @@ SLOT_INTERFACE_START( abc80_cards )
 	SLOT_INTERFACE("abcexp", ABC_EXPANSION_UNIT)
 	SLOT_INTERFACE("16k", ABC80_16KB_RAM_CARD)
 	SLOT_INTERFACE("slow", LUXOR_55_10828)
+	SLOT_INTERFACE("abc830", ABC830)
 SLOT_INTERFACE_END
 
 

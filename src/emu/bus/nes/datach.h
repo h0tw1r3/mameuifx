@@ -1,3 +1,5 @@
+// license:BSD-3-Clause
+// copyright-holders:Fabio Priuli
 #ifndef __NES_DATACH_H
 #define __NES_DATACH_H
 

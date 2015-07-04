@@ -1,3 +1,5 @@
+// license:BSD-3-Clause
+// copyright-holders:David Haywood, Luca Elia, Sebastien Volpe
 /* Kaneko 'Toybox' protection
 
  the following chips have been seen

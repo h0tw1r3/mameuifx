@@ -1,11 +1,10 @@
+// license:BSD-3-Clause
+// copyright-holders:Couriersud
 /*****************************************************************************
 
     resnet.h
 
     Compute weights for resistors networks.
-
-    Copyright Nicola Salmoria and the MAME Team.
-    Visit http://mamedev.org for licensing and usage restrictions.
 
 *****************************************************************************/
 

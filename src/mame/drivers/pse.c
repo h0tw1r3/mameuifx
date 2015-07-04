@@ -1,3 +1,5 @@
+// license:BSD-3-Clause
+// copyright-holders:Fabio Priuli,Dave Widel, gregf
 /***************************************************************************
 
  Project Support Engineering Games

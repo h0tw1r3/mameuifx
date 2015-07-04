@@ -1,11 +1,11 @@
+-- license:BSD-3-Clause
+-- copyright-holders:MAMEdev Team
+
 ---------------------------------------------------------------------------
 --
 --   bus.lua
 --
 --   Rules for building bus cores
---
---   Copyright Nicola Salmoria and the MAME Team.
---   Visit http://mamedev.org for licensing and usage restrictions.
 --
 ---------------------------------------------------------------------------
 
@@ -2113,6 +2113,8 @@ if (BUSES["CPC"]~=null) then
 		MAME_DIR .. "src/emu/bus/cpc/playcity.h",
 		MAME_DIR .. "src/emu/bus/cpc/smartwatch.c",
 		MAME_DIR .. "src/emu/bus/cpc/smartwatch.h",
+		MAME_DIR .. "src/emu/bus/cpc/brunword4.c",
+		MAME_DIR .. "src/emu/bus/cpc/brunword4.h",
 	}
 end
 
@@ -2410,5 +2412,57 @@ if (BUSES["PSX_CONTROLLER"]~=null) then
 		MAME_DIR .. "src/emu/bus/psx/multitap.h",
 		MAME_DIR .. "src/emu/bus/psx/memcard.c",
 		MAME_DIR .. "src/emu/bus/psx/memcard.h",
+	}
+end
+
+---------------------------------------------------
+--
+--@src/emu/bus/nasbus/nasbus.h,BUSES += NASBUS
+---------------------------------------------------
+
+if (BUSES["NASBUS"]~=null) then
+	files {
+		MAME_DIR .. "src/emu/bus/nasbus/nasbus.c",
+		MAME_DIR .. "src/emu/bus/nasbus/nasbus.h",
+		MAME_DIR .. "src/emu/bus/nasbus/cards.c",
+		MAME_DIR .. "src/emu/bus/nasbus/cards.h",
+		MAME_DIR .. "src/emu/bus/nasbus/avc.c",
+		MAME_DIR .. "src/emu/bus/nasbus/avc.h",
+		MAME_DIR .. "src/emu/bus/nasbus/floppy.c",
+		MAME_DIR .. "src/emu/bus/nasbus/floppy.h",
+	}
+end
+
+---------------------------------------------------
+--
+--@src/emu/bus/cgenie/expansion.h,BUSES += CGENIE_EXPANSION
+---------------------------------------------------
+
+if (BUSES["CGENIE_EXPANSION"]~=null) then
+	files {
+		MAME_DIR .. "src/emu/bus/cgenie/expansion/expansion.c",
+		MAME_DIR .. "src/emu/bus/cgenie/expansion/expansion.h",
+		MAME_DIR .. "src/emu/bus/cgenie/expansion/carts.c",
+		MAME_DIR .. "src/emu/bus/cgenie/expansion/carts.h",
+		MAME_DIR .. "src/emu/bus/cgenie/expansion/floppy.c",
+		MAME_DIR .. "src/emu/bus/cgenie/expansion/floppy.h",
+	}
+end
+
+---------------------------------------------------
+--
+--@src/emu/bus/cgenie/parallel.h,BUSES += CGENIE_PARALLEL
+---------------------------------------------------
+
+if (BUSES["CGENIE_PARALLEL"]~=null) then
+	files {
+		MAME_DIR .. "src/emu/bus/cgenie/parallel/parallel.c",
+		MAME_DIR .. "src/emu/bus/cgenie/parallel/parallel.h",
+		MAME_DIR .. "src/emu/bus/cgenie/parallel/carts.c",
+		MAME_DIR .. "src/emu/bus/cgenie/parallel/carts.h",
+		MAME_DIR .. "src/emu/bus/cgenie/parallel/joystick.c",
+		MAME_DIR .. "src/emu/bus/cgenie/parallel/joystick.h",
+		MAME_DIR .. "src/emu/bus/cgenie/parallel/printer.c",
+		MAME_DIR .. "src/emu/bus/cgenie/parallel/printer.h",
 	}
 end

@@ -1,3 +1,5 @@
+// license:???
+// copyright-holders:Roberto Fresca, Peter Ferrie
 /**********************************************************************************
 
   Fun World / TAB / Impera

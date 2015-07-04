@@ -1,7 +1,10 @@
+-- license:BSD-3-Clause
+-- copyright-holders:MAMEdev Team
+
 dofile("modules.lua")
 
 
-function maintargetosdoptions(_target)
+function maintargetosdoptions(_target,_subtarget)
 	osdmodulestargetconf()
 
 	configuration { "mingw*-gcc" }

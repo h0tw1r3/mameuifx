@@ -1,10 +1,12 @@
+-- license:BSD-3-Clause
+-- copyright-holders:MAMEdev Team
+
 files {
 	MAME_DIR .. "src/emu/netlist/nl_config.h",
 	MAME_DIR .. "src/emu/netlist/nl_dice_compat.h",
 	MAME_DIR .. "src/emu/netlist/nl_lists.h",
 	MAME_DIR .. "src/emu/netlist/nl_time.h",
 	MAME_DIR .. "src/emu/netlist/nl_util.h",
-	MAME_DIR .. "src/emu/netlist/plists.h",
 	MAME_DIR .. "src/emu/netlist/nl_base.c",
 	MAME_DIR .. "src/emu/netlist/nl_base.h",
 	MAME_DIR .. "src/emu/netlist/nl_parser.c",
@@ -13,10 +15,16 @@ files {
 	MAME_DIR .. "src/emu/netlist/nl_setup.h",
 	MAME_DIR .. "src/emu/netlist/nl_factory.c",
 	MAME_DIR .. "src/emu/netlist/nl_factory.h",
-	MAME_DIR .. "src/emu/netlist/pstring.c",
-	MAME_DIR .. "src/emu/netlist/pstring.h",
+	MAME_DIR .. "src/emu/netlist/pconfig.h",
+	MAME_DIR .. "src/emu/netlist/palloc.c",
+	MAME_DIR .. "src/emu/netlist/palloc.h",
+	MAME_DIR .. "src/emu/netlist/plists.h",
+	MAME_DIR .. "src/emu/netlist/pparser.c",
+	MAME_DIR .. "src/emu/netlist/pparser.h",
 	MAME_DIR .. "src/emu/netlist/pstate.c",
 	MAME_DIR .. "src/emu/netlist/pstate.h",
+	MAME_DIR .. "src/emu/netlist/pstring.c",
+	MAME_DIR .. "src/emu/netlist/pstring.h",
 	MAME_DIR .. "src/emu/netlist/analog/nld_bjt.c",
 	MAME_DIR .. "src/emu/netlist/analog/nld_bjt.h",
 	MAME_DIR .. "src/emu/netlist/analog/nld_fourterm.c",
@@ -113,5 +121,6 @@ files {
 	MAME_DIR .. "src/emu/netlist/devices/nld_system.h",
 	MAME_DIR .. "src/emu/netlist/devices/nld_cmos.h",
 	MAME_DIR .. "src/emu/netlist/devices/nld_signal.h",
+	MAME_DIR .. "src/emu/netlist/devices/nld_truthtable.c",
 	MAME_DIR .. "src/emu/netlist/devices/nld_truthtable.h",
 }

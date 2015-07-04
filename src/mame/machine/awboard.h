@@ -1,3 +1,5 @@
+// license:BSD-3-Clause
+// copyright-holders:Olivier Galibert
 #ifndef _AWBOARD_H_
 #define _AWBOARD_H_
 

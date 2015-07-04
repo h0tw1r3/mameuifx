@@ -1,3 +1,5 @@
+// license:BSD-3-Clause
+// copyright-holders:Fabio Priuli
 #ifndef __INTV_ECS_H
 #define __INTV_ECS_H
 

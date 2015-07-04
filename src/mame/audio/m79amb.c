@@ -1,3 +1,5 @@
+// license:BSD-3-Clause
+// copyright-holders:Derrick Renaud
 /************************************************************************
  * m79amb Sound System Analog emulation
  * Nov 2008, Derrick Renaud

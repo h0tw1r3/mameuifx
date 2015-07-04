@@ -1,3 +1,5 @@
+// license:BSD-3-Clause
+// copyright-holders:Olivier Galibert
 #ifndef PASTI_DSK_H_
 #define PASTI_DSK_H_
 

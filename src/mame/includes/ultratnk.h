@@ -1,3 +1,5 @@
+// license:BSD-3-Clause
+// copyright-holders:Phil Stroffolino, Stefan Jokisch
 /*************************************************************************
 
     Atari Ultra Tank hardware

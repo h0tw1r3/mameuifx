@@ -1,3 +1,5 @@
+// license:BSD-3-Clause
+// copyright-holders:Michael Soderstrom, Marc LaFontaine, Aaron Giles
 /*************************************************************************
 
     Driver for early Williams games

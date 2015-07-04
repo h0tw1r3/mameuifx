@@ -1,3 +1,5 @@
+// license:BSD-3-Clause
+// copyright-holders:Steven Frew, Phil Stroffolino, Paul Leaman
 /******************************************************************************************
 
     Bionic Commando

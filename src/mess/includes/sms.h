@@ -1,3 +1,5 @@
+// license:BSD-3-Clause
+// copyright-holders:Wilbert Pol, Charles MacDonald,Mathis Rosenhauer,Brad Oliver,Michael Luong,Fabio Priuli,Enik Land
 /*****************************************************************************
  *
  * includes/sms.h
@@ -182,6 +184,7 @@ public:
 	DECLARE_WRITE_LINE_MEMBER(sms_pause_callback);
 	DECLARE_WRITE_LINE_MEMBER(sms_ctrl1_th_input);
 	DECLARE_WRITE_LINE_MEMBER(sms_ctrl2_th_input);
+	DECLARE_WRITE_LINE_MEMBER(gg_ext_th_input);
 	DECLARE_READ32_MEMBER(sms_pixel_color);
 
 	DECLARE_DRIVER_INIT(sg1000m3);

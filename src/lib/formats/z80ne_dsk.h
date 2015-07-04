@@ -1,3 +1,5 @@
+// license:???
+// copyright-holders:Roberto Lavarone
 /*********************************************************************
 
     formats/z80ne_dsk.h

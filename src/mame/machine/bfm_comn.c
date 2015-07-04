@@ -1,3 +1,5 @@
+// license:BSD-3-Clause
+// copyright-holders:David Haywood
 /* Bellfruit Common Hardware / Functions */
 #include "emu.h"
 

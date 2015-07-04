@@ -1,3 +1,5 @@
+// license:LGPL-2.1+
+// copyright-holders:Jarek Burczynski, Tomasz Slanina
 #include "sound/msm5232.h"
 
 class bigevglf_state : public driver_device

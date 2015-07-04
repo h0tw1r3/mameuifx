@@ -1,3 +1,5 @@
+// license:???
+// copyright-holders:Roberto Fresca, Peter Ferrie
 class funworld_state : public driver_device
 {
 public:

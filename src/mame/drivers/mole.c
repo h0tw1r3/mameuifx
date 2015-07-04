@@ -1,3 +1,5 @@
+// license:BSD-3-Clause
+// copyright-holders:Jason Nelson, Phil Stroffolino
 /*****************************************************************************
 
    MOLE ATTACK by Yachiyo Electronics Co.,LTD. 1982

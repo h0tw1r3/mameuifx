@@ -1,3 +1,5 @@
+// license:BSD-3-Clause
+// copyright-holders:Nicola Salmoria
 #ifndef _TC0360PRI_H_
 #define _TC0360PRI_H_
 

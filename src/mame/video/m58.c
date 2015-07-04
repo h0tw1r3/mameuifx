@@ -1,3 +1,5 @@
+// license:BSD-3-Clause
+// copyright-holders:Lee Taylor, John Clegg
 /***************************************************************************
 
     Irem M58 hardware

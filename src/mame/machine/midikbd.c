@@ -1,3 +1,5 @@
+// license:BSD-3-Clause
+// copyright-holders:Carl
 #include "machine/midikbd.h"
 
 const device_type MIDI_KBD = &device_creator<midi_keyboard_device>;

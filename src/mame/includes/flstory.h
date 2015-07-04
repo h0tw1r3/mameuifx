@@ -1,3 +1,5 @@
+// license:BSD-3-Clause
+// copyright-holders:Nicola Salmoria
 #include "sound/msm5232.h"
 
 class flstory_state : public driver_device

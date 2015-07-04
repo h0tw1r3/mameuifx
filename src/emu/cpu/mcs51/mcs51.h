@@ -1,3 +1,5 @@
+// license:???
+// copyright-holders:Steve Ellenoff, Manuel Abadia, Couriersud
 /*****************************************************************************
  *
  *   mcs51.h

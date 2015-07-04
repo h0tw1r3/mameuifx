@@ -1,3 +1,5 @@
+// license:BSD-3-Clause
+// copyright-holders:Andrew Gardner
 #ifndef __DSP56K_INSTRUCTION_H__
 #define __DSP56K_INSTRUCTION_H__
 
@@ -42,7 +44,7 @@ public:
 											const UINT16 word1,
 											bool shifted=false);
 
-	const bool valid() const { return m_valid; }
+	bool valid() const { return m_valid; }
 
 	const reg_id& source() const { return m_source; }
 	const reg_id& destination() const { return m_destination; }

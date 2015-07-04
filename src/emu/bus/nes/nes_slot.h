@@ -1,3 +1,5 @@
+// license:BSD-3-Clause
+// copyright-holders:Fabio Priuli
 #ifndef __NES_SLOT_H__
 #define __NES_SLOT_H__
 

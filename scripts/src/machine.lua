@@ -1,11 +1,11 @@
+-- license:BSD-3-Clause
+-- copyright-holders:MAMEdev Team
+
 ---------------------------------------------------------------------------
 --
 --   machine.lua
 --
 --   Rules for building machine cores
---
---   Copyright Nicola Salmoria and the MAME Team.
---   Visit http://mamedev.org for licensing and usage restrictions.
 --
 ----------------------------------------------------------------------------
 
@@ -2067,6 +2067,18 @@ if (MACHINES["TMP68301"]~=null) then
 	files {
 		MAME_DIR .. "src/emu/machine/tmp68301.c",
 		MAME_DIR .. "src/emu/machine/tmp68301.h",
+	}
+end
+
+---------------------------------------------------
+--
+--@src/emu/machine/tms1024.h,MACHINES += TMS1024
+---------------------------------------------------
+
+if (MACHINES["TMS1024"]~=null) then
+	files {
+		MAME_DIR .. "src/emu/machine/tms1024.c",
+		MAME_DIR .. "src/emu/machine/tms1024.h",
 	}
 end
 

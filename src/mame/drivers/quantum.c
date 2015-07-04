@@ -1,3 +1,5 @@
+// license:BSD-3-Clause
+// copyright-holders:Paul Forgey, Hedley Rainnie, Aaron Giles, Couriersud
 /***************************************************************************
 
     Atari Quantum hardware

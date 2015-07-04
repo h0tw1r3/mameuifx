@@ -1,3 +1,5 @@
+// license:BSD-3-Clause
+// copyright-holders:Zsolt Vasvari
 #include "sound/sn76496.h"
 
 class spcforce_state : public driver_device

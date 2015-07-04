@@ -1,3 +1,5 @@
+// license:???
+// copyright-holders:Steve Ellenoff, Manuel Abadia, Couriersud
 /*****************************************************************************
  *
  *   i8051.c

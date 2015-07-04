@@ -1,3 +1,5 @@
+// license:BSD-3-Clause
+// copyright-holders:Steve Ellenoff, Brad Oliver
 class tagteam_state : public driver_device
 {
 public:

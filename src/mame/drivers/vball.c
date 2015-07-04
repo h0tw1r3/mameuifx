@@ -1,3 +1,5 @@
+// license:???
+// copyright-holders:Paul Hampson
 /**********************************************************************************************************************
  Championship VBall
  Driver by Paul "TBBle" Hampson

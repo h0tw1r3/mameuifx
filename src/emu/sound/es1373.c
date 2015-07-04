@@ -1,3 +1,5 @@
+// license:BSD-3-Clause
+// copyright-holders:Ted Green
 #include "es1373.h"
 
 #define LOG_ES            (0)

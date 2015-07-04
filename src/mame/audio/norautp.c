@@ -1,3 +1,5 @@
+// license:BSD-3-Clause
+// copyright-holders:Derrick Renaud, Roberto Fresca
 /************************************************************************
  * Noraut/Kimble/Kramer Poker Sound System Analog emulation
  * Sept 2009, Derrick Renaud & Roberto Fresca.
