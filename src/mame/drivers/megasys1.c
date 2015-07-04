@@ -175,6 +175,27 @@ TIMER_DEVICE_CALLBACK_MEMBER(megasys1_state::megasys1A_scanline)
 		m_maincpu->set_input_line(3, HOLD_LINE);
 }
 
+TIMER_DEVICE_CALLBACK_MEMBER(megasys1_state::megasys1A_scanline_kazan)
+{
+	int scanline = param;
+
+	if(scanline == 240)		// vblank clear all lines
+	{
+		m_maincpu->set_input_line(3, CLEAR_LINE);
+		m_maincpu->set_input_line(2, CLEAR_LINE);
+		m_maincpu->set_input_line(1, CLEAR_LINE);
+	}
+	
+	if(scanline == 0)
+		m_maincpu->set_input_line(1, ASSERT_LINE);
+
+	if(scanline == 160)		// completely a guess
+		m_maincpu->set_input_line(2, ASSERT_LINE);
+
+	if(scanline == 192)		// completely a guess 
+		m_maincpu->set_input_line(3, ASSERT_LINE);
+}
+
 static ADDRESS_MAP_START( megasys1A_map, AS_PROGRAM, 16, megasys1_state )
 	ADDRESS_MAP_GLOBAL_MASK(0xfffff)
 	AM_RANGE(0x000000, 0x05ffff) AM_ROM
@@ -1503,6 +1524,13 @@ MACHINE_CONFIG_END
 
 static MACHINE_CONFIG_DERIVED( system_A_hachoo, system_A )
 	MCFG_MACHINE_RESET_OVERRIDE(megasys1_state,megasys1_hachoo)
+MACHINE_CONFIG_END
+
+static MACHINE_CONFIG_DERIVED( system_A_kazan, system_A )
+
+	/* basic machine hardware */
+	MCFG_TIMER_MODIFY("scantimer")
+	MCFG_TIMER_DRIVER_CALLBACK(megasys1_state, megasys1A_scanline_kazan)
 MACHINE_CONFIG_END
 
 static MACHINE_CONFIG_DERIVED( system_B, system_A )
@@ -3946,7 +3974,7 @@ DRIVER_INIT_MEMBER(megasys1_state,iganinju)
 	m_maincpu->space(AS_PROGRAM).install_read_handler(0x00000, 0x3ffff, read16_delegate(FUNC(megasys1_state::iganinju_mcu_hs_r),this));
 	m_maincpu->space(AS_PROGRAM).install_write_handler(0x2f000, 0x2f009, write16_delegate(FUNC(megasys1_state::iganinju_mcu_hs_w),this));
 
-	//m_rom_maincpu[0x00006e/2] = 0x0420; // the only game that does
+	m_rom_maincpu[0x00006e/2] = 0x0420; // the only game that does
 										// not like lev 3 interrupts
 }
 
@@ -4136,8 +4164,8 @@ GAME( 1988, p47je,    p47,      system_A,          p47,      driver_device,  0, 
 GAME( 1988, kickoff,  0,        system_A,          kickoff,  driver_device,  0,        ROT0,   "Jaleco", "Kick Off (Japan)", 0 )
 GAME( 1988, tshingen, 0,        system_A,          tshingen, megasys1_state, phantasm, ROT0,   "Jaleco", "Shingen Samurai-Fighter (Japan, English)", GAME_IMPERFECT_GRAPHICS )
 GAME( 1988, tshingena,tshingen, system_A,          tshingen, megasys1_state, phantasm, ROT0,   "Jaleco", "Takeda Shingen (Japan, Japanese)", GAME_IMPERFECT_GRAPHICS )
-GAME( 1988, kazan,    0,        system_A,          kazan,    megasys1_state, iganinju, ROT0,   "Jaleco", "Ninja Kazan (World)", 0 )
-GAME( 1988, iganinju, kazan,    system_A,          kazan,    megasys1_state, iganinju, ROT0,   "Jaleco", "Iga Ninjyutsuden (Japan)", 0 )
+GAME( 1988, kazan,    0,        system_A_kazan,    kazan,    megasys1_state, iganinju, ROT0,   "Jaleco", "Ninja Kazan (World)", 0 )
+GAME( 1988, iganinju, kazan,    system_A_kazan,    kazan,    megasys1_state, iganinju, ROT0,   "Jaleco", "Iga Ninjyutsuden (Japan)", 0 )
 GAME( 1989, astyanax, 0,        system_A,          astyanax, megasys1_state, astyanax, ROT0,   "Jaleco", "The Astyanax", 0 )
 GAME( 1989, lordofk,  astyanax, system_A,          astyanax, megasys1_state, astyanax, ROT0,   "Jaleco", "The Lord of King (Japan)", 0 )
 GAME( 1989, hachoo,   0,        system_A_hachoo,   hachoo,   megasys1_state, astyanax, ROT0,   "Jaleco", "Hachoo!", 0 )

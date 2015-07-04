@@ -164,12 +164,14 @@ extern const ICONDATA g_iconData[] =
 
 static BOOL FilterAvailable(int driver_index)
 {
-	if (GetDisplayNoRomsGames())
+	if ((strcmp(driver_list::driver(driver_index).name, "pongf") == 0)
+		|| (strcmp(driver_list::driver(driver_index).name, "pongd") == 0)
+		|| (strcmp(driver_list::driver(driver_index).name, "breakout") == 0))
 	{
-		if ((strcmp(driver_list::driver(driver_index).name, "pongf") == 0)
-			|| (strcmp(driver_list::driver(driver_index).name, "pongd") == 0)
-			|| (strcmp(driver_list::driver(driver_index).name, "breakout") == 0))
+		if (GetDisplayNoRomsGames())
 			return TRUE;
+		else
+			return FALSE;
 	}
 	
 	return IsAuditResultYes(GetRomAuditResults(driver_index));

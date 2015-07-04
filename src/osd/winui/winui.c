@@ -4744,9 +4744,6 @@ BOOL CommonFileDialog(common_file_dialog_proc cfd, char *filename, int filetype)
 	case FILETYPE_CHEAT_FILES :
 		of.lpstrFilter   = TEXT("cheats (*.7z,*.zip)\0*.7z;*.zip;\0");
 		break;
-	case FILETYPE_JOYMAP_FILES :
-		of.lpstrFilter   = TEXT("maps (*.txt)\0*.txt;\0");
-		break;
 	case FILETYPE_DEBUGSCRIPT_FILES :
 		of.lpstrFilter   = TEXT("scripts (*.txt)\0*.txt;\0");
 		break;
@@ -4835,9 +4832,6 @@ BOOL CommonFileDialog(common_file_dialog_proc cfd, char *filename, int filetype)
 		break;
 	case FILETYPE_CHEAT_FILES :
 		of.lpstrDefExt = TEXT("7z");
-		break;
-	case FILETYPE_JOYMAP_FILES :
-		of.lpstrDefExt = TEXT("txt");
 		break;
 	case FILETYPE_DEBUGSCRIPT_FILES :
 		of.lpstrDefExt = TEXT("txt");

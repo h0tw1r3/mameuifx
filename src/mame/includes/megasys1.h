@@ -146,6 +146,7 @@ public:
 	void screen_eof_megasys1(screen_device &screen, bool state);
 	INTERRUPT_GEN_MEMBER(megasys1D_irq);
 	TIMER_DEVICE_CALLBACK_MEMBER(megasys1A_scanline);
+	TIMER_DEVICE_CALLBACK_MEMBER(megasys1A_scanline_kazan);
 	TIMER_DEVICE_CALLBACK_MEMBER(megasys1B_scanline);
 	inline void scrollram_w(offs_t offset, UINT16 data, UINT16 mem_mask, int which);
 	void create_tilemaps();

@@ -54,7 +54,7 @@ function maintargetosdoptions(_target,_subtarget)
 		MAME_DIR .. "src/osd/winui/mameui.rc",
 	}
 	dependency {
-		{ "$(OBJDIR)/mameui.res" ,  GEN_DIR  .. "/resource/" .. "arcadevers.rc", true  },
+		{ "$(OBJDIR)/mameui.res" ,  GEN_DIR  .. "/resource/" .. "mamevers.rc", true  },
 	}
 end
 
@@ -110,7 +110,7 @@ end
 
 project ("osd_" .. _OPTIONS["osd"])
 	uuid (os.uuid("osd_" .. _OPTIONS["osd"]))
-	kind "StaticLib"
+	kind (LIBTYPE)
 
 	dofile("winui_cfg.lua")
 	osdmodulesbuild()
@@ -196,7 +196,7 @@ project ("osd_" .. _OPTIONS["osd"])
 
 project ("ocore_" .. _OPTIONS["osd"])
 	uuid (os.uuid("ocore_" .. _OPTIONS["osd"]))
-	kind "StaticLib"
+	kind (LIBTYPE)
 
 	options {
 		"ForceCPP",

@@ -188,6 +188,7 @@ struct osd_video_config
 	// OpenGL options
 	int                 glsl;
 	int                 glsl_filter;        // glsl filtering, >0 disables filter
+	int					glsl_sync;			// enable usage of glFinish() to reduce bottleneck
 	char *              glsl_shader_mamebm[GLSL_SHADER_MAX]; // custom glsl shader set, mame bitmap
 	int                 glsl_shader_mamebm_num; // custom glsl shader set number, mame bitmap
 	char *              glsl_shader_scrn[GLSL_SHADER_MAX]; // custom glsl shader set, screen bitmap

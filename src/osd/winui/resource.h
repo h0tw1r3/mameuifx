@@ -366,7 +366,6 @@
 #define IDC_DEBUGSCRIPT                 1243
 #define IDC_SELECT_DEBUGSCRIPT          1244
 #define IDC_RESET_DEBUGSCRIPT           1245
-#define IDC_SELECT_JOYSTICKMAP          1246
 #define IDC_RESET_JOYSTICKMAP           1247
 #define IDC_JOYSTICKMAP                 1248
 #define IDC_SNAPSIZE                    1249
@@ -399,6 +398,7 @@
 #define IDC_SHADER3						1312
 #define IDC_SELECT_SHADER3				1313
 #define IDC_RESET_SHADER3				1314
+#define IDC_GLSLSYNC					1315
 #define IDC_PROP_SAVESTATE              1339
 #define IDC_DISPLAY_NO_ROMS		    	1340
 #define IDC_DISABLE_TRAY_ICON           1341

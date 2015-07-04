@@ -184,7 +184,7 @@ static BOOL SelectShader3(HWND hWnd);
 static BOOL ResetShader3(HWND hWnd);
 static BOOL SelectCheatFile(HWND hWnd);
 static BOOL ResetCheatFile(HWND hWnd);
-static BOOL SelectJoystickMap(HWND hWnd);
+static BOOL ChangeJoystickMap(HWND hWnd);
 static BOOL ResetJoystickMap(HWND hWnd);
 static BOOL SelectDebugscript(HWND hWnd);
 static BOOL ResetDebugscript(HWND hWnd);
@@ -1473,8 +1473,8 @@ INT_PTR CALLBACK GameOptionsProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lPar
 			changed = ResetCheatFile(hDlg);
 			break;
 
-		case IDC_SELECT_JOYSTICKMAP:
-			changed = SelectJoystickMap(hDlg);
+		case IDC_JOYSTICKMAP:
+			changed = ChangeJoystickMap(hDlg);
 			break;
 
 		case IDC_RESET_JOYSTICKMAP:
@@ -2005,11 +2005,8 @@ static void OptionsToProp(HWND hWnd, windows_options &o)
 	if (hCtrl) 
 	{
 		const char* joymap = o.value(OPTION_JOYSTICK_MAP);
-		
-		if (strcmp(joymap, "auto") == 0)
-			win_set_window_text_utf8(hCtrl, "Auto");
-		else
-			win_set_window_text_utf8(hCtrl, joymap);
+	
+		win_set_window_text_utf8(hCtrl, joymap);
 	}
 
 	hCtrl = GetDlgItem(hWnd, IDC_DEBUGSCRIPT);
@@ -2114,6 +2111,7 @@ static void SetPropEnabledControls(HWND hWnd)
 	EnableWindow(GetDlgItem(hWnd, IDC_GLSLTEXTURE), 	opengl);	
 	EnableWindow(GetDlgItem(hWnd, IDC_GLSLVBO), 		opengl);	
 	EnableWindow(GetDlgItem(hWnd, IDC_GLSLPBO), 		opengl);
+	EnableWindow(GetDlgItem(hWnd, IDC_GLSLSYNC), 		opengl);	
 	EnableWindow(GetDlgItem(hWnd, IDC_SELECT_SHADER1), 	opengl);	
 	EnableWindow(GetDlgItem(hWnd, IDC_RESET_SHADER1), 	opengl);	
 	EnableWindow(GetDlgItem(hWnd, IDC_SELECT_SHADER2), 	opengl);	
@@ -2612,6 +2610,7 @@ static void BuildDataMap(void)
 	datamap_add(properties_datamap, IDC_GLSLPBO,				DM_BOOL,	OSDOPTION_GL_PBO);
 	datamap_add(properties_datamap, IDC_GLSL,					DM_BOOL,	OSDOPTION_GL_GLSL);
 	datamap_add(properties_datamap, IDC_GLSLFILTER,				DM_BOOL,	OSDOPTION_GLSL_FILTER);
+	datamap_add(properties_datamap, IDC_GLSLSYNC,				DM_BOOL,	OSDOPTION_GLSL_SYNC);
 	datamap_add(properties_datamap, IDC_SHADER1,				DM_STRING,	OSDOPTION_SHADER_MAME "0");
 	datamap_add(properties_datamap, IDC_SHADER2,				DM_STRING,	OSDOPTION_SHADER_MAME "1");
 	datamap_add(properties_datamap, IDC_SHADER3,				DM_STRING,	OSDOPTION_SHADER_MAME "2");
@@ -3555,43 +3554,21 @@ static BOOL ResetCheatFile(HWND hWnd)
 	return changed;
 }
 
-static BOOL SelectJoystickMap(HWND hWnd)
+static BOOL ChangeJoystickMap(HWND hWnd)
 {
-	char filename[MAX_PATH];
 	BOOL changed = FALSE;
-	char buff[MAX_PATH];
-	int i, j = 0, k = 0, l = 0, h = 0;
-
-	*filename = 0;
+	char joymap[90];
 	
-	if (CommonFileDialog(GetOpenFileName, filename, FILETYPE_JOYMAP_FILES))
+	win_get_window_text_utf8(GetDlgItem(hWnd, IDC_JOYSTICKMAP), joymap, sizeof(joymap));
+
+	if (strcmp(joymap, pCurrentOpts.value(OPTION_JOYSTICK_MAP)))
 	{
-		for (i = 0; i < strlen(filename); i++)
-		{
-			if (filename[i] == '\\')
-				j = i;
-
-			if (filename[i] == '.')
-				k = i;
-		}
-		
-		for (i = j + 1; i < k; i++)
-		{
-			buff[l++] = filename[i];
-		}
-		
-		buff[l] = '\0';
-
-		if (strcmp(buff, pCurrentOpts.value(OPTION_JOYSTICK_MAP)))
-		{
-			std::string error_string;
-			pCurrentOpts.set_value(OPTION_JOYSTICK_MAP, buff, OPTION_PRIORITY_CMDLINE, error_string);
-			assert(error_string.empty());
-			win_set_window_text_utf8(GetDlgItem(hWnd, IDC_JOYSTICKMAP), buff);
-			changed = TRUE;
-		}
+		std::string error_string;
+		pCurrentOpts.set_value(OPTION_JOYSTICK_MAP, joymap, OPTION_PRIORITY_CMDLINE, error_string);
+		assert(error_string.empty());
+		changed = TRUE;
 	}
-	
+
 	return changed;
 }
 
@@ -3605,7 +3582,7 @@ static BOOL ResetJoystickMap(HWND hWnd)
 		std::string error_string;
 		pCurrentOpts.set_value(OPTION_JOYSTICK_MAP, new_value, OPTION_PRIORITY_CMDLINE, error_string);
 		assert(error_string.empty());
-		win_set_window_text_utf8(GetDlgItem(hWnd, IDC_JOYSTICKMAP), "Auto");
+		win_set_window_text_utf8(GetDlgItem(hWnd, IDC_JOYSTICKMAP), new_value);
 		changed = TRUE;
 	}
 	
@@ -3704,6 +3681,7 @@ static void DisableVisualStyles(HWND hDlg)
 	SetWindowTheme(GetDlgItem(hDlg, IDC_GLSLPBO), L" ", L" ");
 	SetWindowTheme(GetDlgItem(hDlg, IDC_GLSL), L" ", L" ");
 	SetWindowTheme(GetDlgItem(hDlg, IDC_GLSLFILTER), L" ", L" ");
+	SetWindowTheme(GetDlgItem(hDlg, IDC_GLSLSYNC), L" ", L" ");
 	SetWindowTheme(GetDlgItem(hDlg, IDC_SHADER1), L" ", L" ");
 	SetWindowTheme(GetDlgItem(hDlg, IDC_SHADER2), L" ", L" ");
 	SetWindowTheme(GetDlgItem(hDlg, IDC_SHADER3), L" ", L" ");

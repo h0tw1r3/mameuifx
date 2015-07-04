@@ -43,7 +43,6 @@ const options_entry emu_options::s_option_entries[] =
 	{ OPTION_CHEATPATH,                                  "cheat",     OPTION_STRING,     "path to cheat files" },
 	{ OPTION_CROSSHAIRPATH,                              "crosshair", OPTION_STRING,     "path to crosshair files" },
 	{ OPTION_HIGHPATH,                                   "dats",      OPTION_STRING,     "path to hiscore database" },
-	{ OPTION_GLSLPATH,                                   "glsl",      OPTION_STRING,     "path to glsl shader files" },
 
 	// output directory options
 	{ NULL,                                              NULL,        OPTION_HEADER,     "CORE OUTPUT DIRECTORY OPTIONS" },

@@ -373,17 +373,17 @@ ADDRESS_MAP_END
 static MACHINE_CONFIG_START( silvmil, silvmil_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, XTAL_12MHz)
+	MCFG_CPU_ADD("maincpu", M68000, XTAL_14_31818MHz)	// copied from gotcha board
 	MCFG_CPU_PROGRAM_MAP(silvmil_map)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", silvmil_state,  irq6_line_hold)
 
-	MCFG_CPU_ADD("audiocpu", Z80, XTAL_4_096MHz) // 4.096MHz or 3.579545MHz - Need to verify
+	MCFG_CPU_ADD("audiocpu", Z80, XTAL_12MHz/2) 	// copied from gotcha board
 	MCFG_CPU_PROGRAM_MAP(silvmil_sound_map)
 
 
 	/* video hardware */
 	MCFG_SCREEN_ADD("screen", RASTER)
-	MCFG_SCREEN_REFRESH_RATE(60)
+	MCFG_SCREEN_REFRESH_RATE(55)		// copied from gotcha board
 	MCFG_SCREEN_VBLANK_TIME(ATTOSECONDS_IN_USEC(0))
 	MCFG_SCREEN_SIZE(64*8, 64*8)
 	MCFG_SCREEN_VISIBLE_AREA(0, 40*8-1, 0, 30*8-1)
@@ -404,12 +404,12 @@ static MACHINE_CONFIG_START( silvmil, silvmil_state )
 
 	MCFG_SPEAKER_STANDARD_STEREO("lspeaker", "rspeaker")
 
-	MCFG_YM2151_ADD("ymsnd", XTAL_14_31818MHz/4)
+	MCFG_YM2151_ADD("ymsnd", XTAL_14_31818MHz/4)		// copied from gotcha board
 	MCFG_YM2151_IRQ_HANDLER(INPUTLINE("audiocpu", 0))
 	MCFG_SOUND_ROUTE(0, "lspeaker", 0.50)
 	MCFG_SOUND_ROUTE(1, "rspeaker", 0.50)
 
-	MCFG_OKIM6295_ADD("oki", XTAL_4_096MHz/4, OKIM6295_PIN7_HIGH) // Need to verify
+	MCFG_OKIM6295_ADD("oki", XTAL_4_096MHz/4, OKIM6295_PIN7_HIGH) 	// copied from gotcha board
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "lspeaker", 0.2)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "rspeaker", 0.2)
 MACHINE_CONFIG_END

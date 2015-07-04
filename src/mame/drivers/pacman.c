@@ -1350,6 +1350,36 @@ static ADDRESS_MAP_START( pengojpm_map, AS_PROGRAM, 8, pacman_state )
 	AM_RANGE(0xf000, 0xffff) AM_RAM
 ADDRESS_MAP_END
 
+/* For Dave Widel's hacks */
+static ADDRESS_MAP_START( widel_map, AS_PROGRAM, 8, pacman_state )
+	AM_RANGE(0x0000, 0x3fff) AM_ROM
+	AM_RANGE(0x4000, 0x43ff) AM_MIRROR(0x8000) AM_RAM_WRITE(pacman_videoram_w) AM_SHARE("videoram")
+	AM_RANGE(0x4400, 0x47ff) AM_MIRROR(0x8000) AM_RAM_WRITE(pacman_colorram_w) AM_SHARE("colorram")
+	AM_RANGE(0x4800, 0x4bff) AM_MIRROR(0x8000) AM_READ(pacman_read_nop)
+	AM_RANGE(0x4c00, 0x4fef) AM_RAM
+	AM_RANGE(0x4ff0, 0x4fff) AM_RAM AM_SHARE("spriteram")
+	AM_RANGE(0x5000, 0x5000) AM_WRITE(irq_mask_w)
+	AM_RANGE(0x5001, 0x5001) AM_DEVWRITE("namco", namco_device, pacman_sound_enable_w)
+	AM_RANGE(0x5002, 0x5002) AM_WRITENOP 	// mrmrspac
+	AM_RANGE(0x5003, 0x5003) AM_WRITE(pacman_flipscreen_w)
+	AM_RANGE(0x5004, 0x5005) AM_WRITE(pacman_leds_w)
+	AM_RANGE(0x5006, 0x5006) AM_WRITENOP 	// AM_WRITE(pacman_coin_lockout_global_w)
+	AM_RANGE(0x5007, 0x5007) AM_WRITE(pacman_coin_counter_w)
+	AM_RANGE(0x5040, 0x505f) AM_DEVWRITE("namco", namco_device, pacman_sound_w)
+	AM_RANGE(0x5060, 0x506f) AM_WRITEONLY AM_SHARE("spriteram2")
+	AM_RANGE(0x5070, 0x5080) AM_WRITENOP
+	AM_RANGE(0x50c0, 0x50c0) AM_WRITE(watchdog_reset_w)
+	AM_RANGE(0x5000, 0x5000) AM_READ_PORT("IN0")
+	AM_RANGE(0x5040, 0x5040) AM_READ_PORT("IN1")
+	AM_RANGE(0x5080, 0x5080) AM_READ_PORT("DSW1")
+	AM_RANGE(0x50c0, 0x50c0) AM_READ_PORT("DSW2")	/* DSW2 - not used */
+	AM_RANGE(0x5103, 0x5103) AM_WRITENOP			/* aa */
+	AM_RANGE(0x5c0e, 0x5c0e) AM_RAM					/* mrmrspac */
+	AM_RANGE(0x5fff, 0x5fff) AM_READNOP				/* aa */
+	AM_RANGE(0x8000, 0x9fff) AM_ROM					/* only really needed by mrmrspac */
+	AM_RANGE(0xd000, 0xd000) AM_RAM					/* mrmrspac */
+	AM_RANGE(0xf000, 0xffff) AM_RAM
+ADDRESS_MAP_END
 
 /*************************************
  *
@@ -3702,6 +3732,11 @@ static MACHINE_CONFIG_DERIVED( crushs, pacman )
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.75)
 MACHINE_CONFIG_END
 
+static MACHINE_CONFIG_DERIVED( widel, pacman )
+	MCFG_CPU_MODIFY("maincpu")
+	MCFG_CPU_PROGRAM_MAP(widel_map)
+	MCFG_WATCHDOG_VBLANK_INIT(0)
+MACHINE_CONFIG_END
 
 
 /*************************************
@@ -4635,6 +4670,29 @@ ROM_START( mspacman )
 	ROM_LOAD( "u5",           0x8000, 0x0800, CRC(f45fbbcd) SHA1(b26cc1c8ee18e9b1daa97956d2159b954703a0ec) )
 	ROM_LOAD( "u6",           0x9000, 0x1000, CRC(a90e7000) SHA1(e4df96f1db753533f7d770aa62ae1973349ea4cf) )
 	ROM_LOAD( "u7",           0xb000, 0x1000, CRC(c82cd714) SHA1(1d8ac7ad03db2dc4c8c18ade466e12032673f874) )
+
+	ROM_REGION( 0x2000, "gfx1", 0 )
+	ROM_LOAD( "5e",           0x0000, 0x1000, CRC(5c281d01) SHA1(5e8b472b615f12efca3fe792410c23619f067845) )
+	ROM_LOAD( "5f",           0x1000, 0x1000, CRC(615af909) SHA1(fd6a1dde780b39aea76bf1c4befa5882573c2ef4) )
+
+	ROM_REGION( 0x0120, "proms", 0 )
+	ROM_LOAD( "82s123.7f",    0x0000, 0x0020, CRC(2fc650bd) SHA1(8d0268dee78e47c712202b0ec4f1f51109b1f2a5) )
+	ROM_LOAD( "82s126.4a",    0x0020, 0x0100, CRC(3eb3a8e4) SHA1(19097b5f60d1030f8b82d9f1d3a241f93e5c75d6) )
+
+	ROM_REGION( 0x0200, "namco", 0 )    /* sound PROMs */
+	ROM_LOAD( "82s126.1m",    0x0000, 0x0100, CRC(a9cc86bf) SHA1(bbcec0570aeceb582ff8238a4bc8546a23430081) )
+	ROM_LOAD( "82s126.3m",    0x0100, 0x0100, CRC(77245b66) SHA1(0c4d0bee858b97632411c440bea6948a74759746) )    /* timing - not used */
+ROM_END
+
+
+ROM_START( mrmrspac )
+	ROM_REGION( 0x10000, "maincpu", 0 )
+	ROM_LOAD( "mrmrspac.1",   0x0000, 0x1000, CRC(02a86998) SHA1(649cfe5140eb63e42069ae9ad6c426837179fcbf) )
+	ROM_LOAD( "mrmrspac.2",   0x1000, 0x1000, CRC(8917172f) SHA1(7b09ab3b6f2a1b5d889a05295b42f70bafb5aa98) )
+	ROM_LOAD( "mrmrspac.3",   0x2000, 0x1000, CRC(6fd1444a) SHA1(64a98336eec75bb6ed90e77da18db8b71af562c1) )
+	ROM_LOAD( "mrmrspac.4",   0x3000, 0x1000, CRC(22f68a1f) SHA1(bd8d684f957ee33dace9eddcc923006036181787) )
+	ROM_LOAD( "boot5",        0x8000, 0x1000, CRC(8c3e6de6) SHA1(fed6e9a2b210b07e7189a18574f6b8c4ec5bb49b) )
+	ROM_LOAD( "mrmrspac.6",   0x9000, 0x1000, CRC(23580455) SHA1(836b815c7b1dd4deb1a1297556d0a5c126250c34) )
 
 	ROM_REGION( 0x2000, "gfx1", 0 )
 	ROM_LOAD( "5e",           0x0000, 0x1000, CRC(5c281d01) SHA1(5e8b472b615f12efca3fe792410c23619f067845) )
@@ -6875,6 +6933,7 @@ GAME( 1981, pacgal,   mspacman, woodpek,  mspacman, driver_device, 0,        ROT
 GAME( 1981, mspacpls, mspacman, woodpek,  mspacpls, driver_device, 0,        ROT90,  "hack", "Ms. Pac-Man Plus", GAME_SUPPORTS_SAVE )
 GAME( 1992, mschamp,  mspacman, mschamp,  mschamp,  pacman_state,  mschamp,  ROT90,  "hack", "Ms. Pacman Champion Edition / Zola-Puc Gal", GAME_SUPPORTS_SAVE ) /* Rayglo version */
 GAME( 1995, mschamps, mspacman, mschamp,  mschamp,  pacman_state,  mschamp,  ROT90,  "hack", "Ms. Pacman Champion Edition / Super Zola-Puc Gal", GAME_SUPPORTS_SAVE )
+GAME( 2003, mrmrspac, mspacman, widel,    mspacpls, driver_device, 0,        ROT90,  "David Widel", "Mr and Mrs Pacman (MR MRS PAC-MAN)[c]", GAME_SUPPORTS_SAVE )
 
 // These bootlegs have MADE IN GREECE clearly visible and etched into the PCBs. They were very common in Spain with several operators having their own versions.
 // Based on the PCBs and copyright dates shown they  were produced late 80s / early 90s. Usually they run a version of Ms. Pacman, but were sometimes converted back to regular Pac-Man

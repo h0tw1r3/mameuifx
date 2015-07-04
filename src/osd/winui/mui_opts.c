@@ -1230,13 +1230,13 @@ void SetHiDir(const char* path)
 
 const char* GetGLSLDir(void)
 {
-	return core_opts.value(OPTION_GLSLPATH);
+	return core_opts.value(OSDOPTION_GLSLPATH);
 }
 
 void SetGLSLDir(const char* path)
 {
 	std::string error_string;
-	core_opts.set_value(OPTION_GLSLPATH, path, OPTION_PRIORITY_CMDLINE, error_string);
+	core_opts.set_value(OSDOPTION_GLSLPATH, path, OPTION_PRIORITY_CMDLINE, error_string);
 	assert(error_string.empty());
 }
 
@@ -2264,7 +2264,7 @@ void SetDirectories(windows_options &opts)
 	opts.set_value(OPTION_DIFF_DIRECTORY, GetDiffDir(), OPTION_PRIORITY_CMDLINE, error_string);
 	opts.set_value(OPTION_VIDEO_DIRECTORY, GetVideoDir(), OPTION_PRIORITY_CMDLINE, error_string);
 	opts.set_value(OPTION_HIGHPATH, GetDatsDir(), OPTION_PRIORITY_CMDLINE, error_string);
-	opts.set_value(OPTION_GLSLPATH, GetGLSLDir(), OPTION_PRIORITY_CMDLINE, error_string);
+	opts.set_value(OSDOPTION_GLSLPATH, GetGLSLDir(), OPTION_PRIORITY_CMDLINE, error_string);
 	assert(error_string.empty());
 }
 

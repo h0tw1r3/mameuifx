@@ -1650,6 +1650,9 @@ int sdl_info_ogl::draw(const int update)
 
 	window().m_primlist->acquire_lock();
 
+	if (video_config.glsl_sync)
+		glFinish();		// reduces bottleneck but decrease performance
+
 	// now draw
 	for (prim = window().m_primlist->first(); prim != NULL; prim = prim->next())
 	{
@@ -1921,7 +1924,7 @@ static void drawogl_exit(void)
 	{
 		if ( NULL!=video_config.glsl_shader_mamebm[i])
 		{
-			free(video_config.glsl_shader_mamebm[i]);
+			osd_free(video_config.glsl_shader_mamebm[i]);
 			video_config.glsl_shader_mamebm[i] = NULL;
 		}
 	}
@@ -1929,7 +1932,7 @@ static void drawogl_exit(void)
 	{
 		if ( NULL!=video_config.glsl_shader_scrn[i])
 		{
-			free(video_config.glsl_shader_scrn[i]);
+			osd_free(video_config.glsl_shader_scrn[i]);
 			video_config.glsl_shader_scrn[i] = NULL;
 		}
 	}
