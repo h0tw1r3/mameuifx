@@ -456,7 +456,7 @@ project "portmidi"
 		MAME_DIR .. "3rdparty/portmidi/pm_common/pmutil.c",
 	}
 
-	if _OPTIONS["targetos"]=="windows" then
+	if _OPTIONS["targetos"]=="windows" or _OPTIONS["targetos"]=="winui" then
 		files {
 			MAME_DIR .. "3rdparty/portmidi/porttime/ptwinmm.c",
 			MAME_DIR .. "3rdparty/portmidi/pm_win/pmwin.c",

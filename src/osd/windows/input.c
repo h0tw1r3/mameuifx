@@ -198,6 +198,7 @@ static device_info *        lightgun_list;
 
 // joystick states
 static device_info *        joystick_list;
+static int					joystick_id[8];
 
 // default axis names
 static const TCHAR *const default_axis_name[] =
@@ -262,6 +263,7 @@ static void rawinput_mouse_poll(device_info *devinfo);
 static TCHAR *reg_query_string(HKEY key, const TCHAR *path);
 static const TCHAR *default_button_name(int which);
 static const TCHAR *default_pov_name(int which);
+static void assign_joystick_to_player(running_machine &machine, device_info *devinfo);
 
 
 
@@ -469,6 +471,49 @@ bool windows_osd_interface::input_init()
 
 	// decode the options
 	lightgun_shared_axis_mode = downcast<windows_options &>(machine().options()).dual_lightgun();
+
+	{
+		int used_id[8];
+		int i;
+
+		for (i = 0; i < 8; i++)
+			used_id[i] = -1;
+
+		for (i = 0; i < 8; i++)
+		{
+			char name[20];
+			int id;
+
+			sprintf(name, "joystick_id_%d", i + 1);
+			id = machine().options().int_value(name);
+
+			if (used_id[id] == -1)
+			{
+				joystick_id[i] =  id;
+				used_id[id] = i;
+			}
+			else
+			{
+				osd_printf_error("Invalid %s value: joystick #%d is used by player %d\n", name, id+1, (used_id[id])+1);
+				joystick_id[i] =  -1;
+			}
+		}
+
+		for (i = 0; i < 8; i++)
+		{
+			if (joystick_id[i] == -1)
+			{
+				int id;
+
+				for (id = 0; id < 8; id++)
+					if (used_id[id] == -1)
+						break;
+				joystick_id[i] = id;
+
+				osd_printf_info("Use joystick #%d for player %d\n", (joystick_id[i])+1, i+1);
+			}
+		}
+	}
 
 	// initialize RawInput and DirectInput (RawInput first so we can fall back)
 	rawinput_init(machine());
@@ -1133,6 +1178,30 @@ static void dinput_init(running_machine &machine)
 	result = IDirectInput_EnumDevices(dinput, didevtype_joystick, dinput_joystick_enum, &machine, DIEDFL_ATTACHEDONLY);
 	if (result != DI_OK)
 		fatalerror("DirectInput: Unable to enumerate joysticks (result=%08X)\n", (UINT32)result);
+
+	if (joystick_list != NULL)
+	{
+		int i;
+
+		for (i = 0; i < 8; i++)
+		{
+			device_info *devinfo = joystick_list;
+			int index = 0;
+
+			while (devinfo != NULL)
+			{
+				if (index == joystick_id[i])
+				{
+					osd_printf_info("Assign joystick %s to player %d\n", devinfo->name, i+1);
+					assign_joystick_to_player(machine, devinfo);
+					break;
+				}
+
+				index++;
+				devinfo = devinfo->next;
+			}
+		}
+	}
 }
 
 
@@ -1483,7 +1552,6 @@ static void dinput_mouse_poll(device_info *devinfo)
 static BOOL CALLBACK dinput_joystick_enum(LPCDIDEVICEINSTANCE instance, LPVOID ref)
 {
 	DWORD cooperative_level = DISCL_FOREGROUND | DISCL_NONEXCLUSIVE;
-	int axisnum, axiscount, povnum, butnum;
 	running_machine &machine = *(running_machine *)ref;
 	device_info *devinfo;
 	HRESULT result;
@@ -1516,6 +1584,14 @@ static BOOL CALLBACK dinput_joystick_enum(LPCDIDEVICEINSTANCE instance, LPVOID r
 	devinfo->dinput.caps.dwPOVs = MIN(devinfo->dinput.caps.dwPOVs, 4);
 	devinfo->dinput.caps.dwButtons = MIN(devinfo->dinput.caps.dwButtons, 128);
 
+exit:
+	return DIENUM_CONTINUE;
+}
+
+static void assign_joystick_to_player(running_machine &machine, device_info *devinfo)
+{
+	int axisnum, axiscount, povnum, butnum;
+
 	// add the device
 	devinfo->device = machine.input().device_class(DEVICE_CLASS_JOYSTICK).add_device(devinfo->name, devinfo);
 	devinfo->poll = dinput_joystick_poll;
@@ -1525,6 +1601,7 @@ static BOOL CALLBACK dinput_joystick_enum(LPCDIDEVICEINSTANCE instance, LPVOID r
 	{
 		DIPROPRANGE dipr;
 		char *name;
+		HRESULT result;
 
 		// fetch the range of this axis
 		dipr.diph.dwSize = sizeof(dipr);
@@ -1589,9 +1666,6 @@ static BOOL CALLBACK dinput_joystick_enum(LPCDIDEVICEINSTANCE instance, LPVOID r
 		devinfo->device->add_item(name, itemid, generic_button_get_state, &devinfo->joystick.state.rgbButtons[butnum]);
 		osd_free(name);
 	}
-
-exit:
-	return DIENUM_CONTINUE;
 }
 
 

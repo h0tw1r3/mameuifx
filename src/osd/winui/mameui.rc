@@ -1,0 +1,1002 @@
+#include "windows.h"
+#include "commctrl.h"
+#include "richedit.h"
+#include "resource.h"
+#include "mamevers.rc"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_UI_MENU MENU 
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&Play",                       ID_FILE_PLAY
+        MENUITEM SEPARATOR
+        MENUITEM "Play game INP input",         ID_FILE_PLAY_BACK
+        MENUITEM "Play game WAV sound", 		ID_PLAY_AUDIO
+        MENUITEM "Play game MNG video", 		ID_PLAY_MNG
+        MENUITEM "Play game AVI video", 		ID_PLAY_VIDEO
+        MENUITEM SEPARATOR
+        MENUITEM "Record game &INP input",   	ID_FILE_PLAY_RECORD
+        MENUITEM "Record game &WAV sound", 		ID_FILE_PLAY_RECORD_WAVE
+        MENUITEM "Record game &MNG video", 		ID_FILE_PLAY_RECORD_MNG
+        MENUITEM "Record game &AVI video", 		ID_FILE_PLAY_RECORD_AVI
+        MENUITEM SEPARATOR
+        MENUITEM "Loa&d savestate",          	ID_FILE_LOADSTATE
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit\t Alt+F4",              ID_FILE_EXIT
+    END
+    POPUP "&View"
+    BEGIN
+        MENUITEM "&Toolbar\tAlt+T",             ID_VIEW_TOOLBARS
+        MENUITEM "&Statusbar\tAlt+S",          	ID_VIEW_STATUS
+        MENUITEM "Fold&ers List\tAlt+D",        ID_VIEW_FOLDERS
+        MENUITEM "&Pictures Area\tAlt+P",       ID_VIEW_PICTURE_AREA
+        MENUITEM "Ta&bs\tAlt+B",      			ID_VIEW_PAGETAB
+		MENUITEM SEPARATOR
+        MENUITEM "Large icons",       			ID_VIEW_ICONS_LARGE
+        MENUITEM "Small icons",     			ID_VIEW_ICONS_SMALL        
+		MENUITEM SEPARATOR
+        MENUITEM "Grouped",     				ID_ENABLE_INDENT        
+		MENUITEM SEPARATOR
+         POPUP "Sort games list by"
+        BEGIN
+            MENUITEM "Description",        		ID_VIEW_BYGAME
+            MENUITEM "ROM name",          		ID_VIEW_BYDIRECTORY
+			MENUITEM "Source file",				ID_VIEW_BYSOURCE
+            MENUITEM "Manufacturer",       		ID_VIEW_BYMANUFACTURER
+            MENUITEM "Year",               		ID_VIEW_BYYEAR
+            MENUITEM "Played counts",        	ID_VIEW_BYTIMESPLAYED
+		END
+        MENUITEM SEPARATOR
+        POPUP "&Show folders"
+        BEGIN
+            MENUITEM "overridden by code",    	ID_SHOW_FOLDER_START1
+            MENUITEM "overridden by code",    	ID_SHOW_FOLDER_START2
+			MENUITEM "overridden by code",    	ID_SHOW_FOLDER_START3
+			MENUITEM "overridden by code",    	ID_SHOW_FOLDER_START4
+			MENUITEM "overridden by code",    	ID_SHOW_FOLDER_START5
+			MENUITEM "overridden by code",    	ID_SHOW_FOLDER_START6
+			MENUITEM "overridden by code",    	ID_SHOW_FOLDER_START7
+			MENUITEM "overridden by code",    	ID_SHOW_FOLDER_START8
+			MENUITEM "overridden by code",    	ID_SHOW_FOLDER_START9
+			MENUITEM "overridden by code",    	ID_SHOW_FOLDER_START10
+			MENUITEM "overridden by code",    	ID_SHOW_FOLDER_START11
+			MENUITEM "overridden by code",    	ID_SHOW_FOLDER_START12
+			MENUITEM "overridden by code",    	ID_SHOW_FOLDER_START13
+			MENUITEM "overridden by code",    	ID_SHOW_FOLDER_START14
+			MENUITEM "overridden by code",    	ID_SHOW_FOLDER_START15
+			MENUITEM "overridden by code",    	ID_SHOW_FOLDER_START16
+			MENUITEM "overridden by code",    	ID_SHOW_FOLDER_START17
+			MENUITEM "overridden by code",    	ID_SHOW_FOLDER_START18
+			MENUITEM "overridden by code",    	ID_SHOW_FOLDER_START19
+			MENUITEM "overridden by code",    	ID_SHOW_FOLDER_START20
+			MENUITEM "overridden by code",    	ID_SHOW_FOLDER_START21
+			MENUITEM "overridden by code",    	ID_SHOW_FOLDER_START22
+			MENUITEM "overridden by code",    	ID_SHOW_FOLDER_START23
+			MENUITEM "overridden by code",    	ID_SHOW_FOLDER_START24
+			MENUITEM "overridden by code",    	ID_SHOW_FOLDER_START25
+			MENUITEM "overridden by code",    	ID_SHOW_FOLDER_START26			
+		END
+		MENUITEM SEPARATOR
+        POPUP "S&how pictures"
+        BEGIN
+            MENUITEM "&Snapshot",              	ID_TOGGLE_TAB_SCREENSHOT
+            MENUITEM "&Flyer",                 	ID_TOGGLE_TAB_FLYER
+            MENUITEM "&Cabinet",               	ID_TOGGLE_TAB_CABINET
+            MENUITEM "&Marquee",               	ID_TOGGLE_TAB_MARQUEE
+            MENUITEM "&Title",                 	ID_TOGGLE_TAB_TITLE
+            MENUITEM "Control &Panel",         	ID_TOGGLE_TAB_CONTROL_PANEL
+            MENUITEM "PC&B",                   	ID_TOGGLE_TAB_PCB
+            MENUITEM "Scores",					ID_TOGGLE_TAB_SCORES
+            MENUITEM "&Info",           		ID_TOGGLE_TAB_HISTORY
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "&Fullscreen\tF11",            ID_VIEW_FULLSCREEN
+	END
+    POPUP "&Options"
+    BEGIN
+        MENUITEM "&Interface settings",       	ID_OPTIONS_INTERFACE
+        MENUITEM "Default games &options",    	ID_OPTIONS_DEFAULTS
+        MENUITEM "&Directories",             	ID_OPTIONS_DIR
+        MENUITEM SEPARATOR
+		POPUP "Fonts and colors"
+		BEGIN
+			MENUITEM "Folders list font and &color",	ID_OPTIONS_TREE_FONT
+			MENUITEM "&Game info font and color",   	ID_OPTIONS_HISTORY_FONT
+			MENUITEM "Games list &font and color",   	ID_OPTIONS_FONT
+			MENUITEM "Folders list bac&kground color", 	ID_OPTIONS_FOLDERS_COLOR
+			MENUITEM "Game info background color", 		ID_OPTIONS_HISTORY_COLOR
+			MENUITEM "Games list &background color", 	ID_OPTIONS_LIST_COLOR
+		END
+        MENUITEM SEPARATOR
+        MENUITEM "&Reset settings to default",  ID_OPTIONS_RESET_DEFAULTS
+    END
+    POPUP "&Tools"
+    BEGIN
+        MENUITEM "&Select random game",         ID_CONTEXT_SELECT_RANDOM
+        MENUITEM SEPARATOR
+        MENUITEM "&Add game to custom folder",  ID_CONTEXT_ADD_CUSTOM
+        MENUITEM "R&emove game from this folder", ID_CONTEXT_REMOVE_CUSTOM
+        MENUITEM SEPARATOR
+        MENUITEM "Reset game played counts",	ID_CONTEXT_RESET_PLAYCOUNT
+        MENUITEM "Reset game played time",		ID_CONTEXT_RESET_PLAYTIME
+        MENUITEM SEPARATOR
+        MENUITEM "&Listen game music with M1FX",ID_PLAY_M1
+        MENUITEM SEPARATOR
+        MENUITEM "Game pr&operties",            ID_GAME_PROPERTIES
+        MENUITEM SEPARATOR
+        MENUITEM "View game ZIP file content", 	ID_VIEW_ZIP
+        MENUITEM SEPARATOR
+        MENUITEM "&Custom filters\tCtrl+F",  	ID_CONTEXT_FILTERS
+        MENUITEM "Customi&ze fields",        	ID_CUSTOMIZE_FIELDS
+        MENUITEM SEPARATOR
+        MENUITEM "Audit all ROMs",				ID_FILE_AUDIT
+        MENUITEM "&Refresh games list\tF5",   	ID_UPDATE_GAMELIST
+        MENUITEM SEPARATOR
+        MENUITEM "Save current &games list",	ID_FILE_GAMELIST
+        MENUITEM "Save current ROMs l&ist",     ID_FILE_ROMSLIST
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&Contents\tF1",               ID_HELP_CONTENTS
+        MENUITEM "&Support Forum",            	ID_HELP_TROUBLE
+        MENUITEM SEPARATOR
+        MENUITEM "&Mame release notes",         ID_HELP_WHATS_NEW
+        MENUITEM SEPARATOR
+        MENUITEM "MAME &development site",      ID_MAME_HOMEPAGE
+        MENUITEM "&Frequently Asked Questions", ID_MAME_FAQ
+        MENUITEM SEPARATOR
+        MENUITEM "&About",                      ID_HELP_ABOUT
+    END
+END
+
+IDR_CONTEXT_MENU MENU
+BEGIN
+    POPUP "Context Menu"
+    BEGIN
+        MENUITEM "&Play",                       ID_FILE_PLAY
+        MENUITEM SEPARATOR
+        MENUITEM "Record INP input",   			ID_FILE_PLAY_RECORD
+        MENUITEM SEPARATOR
+        MENUITEM "&Add to custom folder",    	ID_CONTEXT_ADD_CUSTOM
+        MENUITEM "R&emove from this folder",    ID_CONTEXT_REMOVE_CUSTOM
+        MENUITEM SEPARATOR
+        MENUITEM "A&udit",                      ID_GAME_AUDIT
+        MENUITEM SEPARATOR
+        MENUITEM "Reset played counts",			ID_CONTEXT_RESET_PLAYCOUNT
+        MENUITEM "Reset played time",			ID_CONTEXT_RESET_PLAYTIME
+        MENUITEM SEPARATOR
+        MENUITEM "&Listen music with M1FX",		ID_PLAY_M1
+        MENUITEM SEPARATOR
+        MENUITEM "Pr&operties",                 ID_GAME_PROPERTIES
+        MENUITEM "Propert&ies for driver",     	ID_FOLDER_SOURCEPROPERTIES
+        MENUITEM SEPARATOR
+        MENUITEM "View ZIP file content",     	ID_VIEW_ZIP
+	END
+END
+
+IDR_CONTEXT_HEADER MENU
+BEGIN
+    POPUP "Header Context Menu"
+    BEGIN
+        MENUITEM "Sort &ascending",             ID_SORT_ASCENDING
+        MENUITEM "Sort &descending",            ID_SORT_DESCENDING
+        MENUITEM SEPARATOR
+        MENUITEM "Customi&ze fields",        	ID_CUSTOMIZE_FIELDS
+    END
+END
+
+IDR_CONTEXT_TREE MENU
+BEGIN
+    POPUP "Context Menu Tree"
+    BEGIN
+        MENUITEM "&Rename",                     ID_CONTEXT_RENAME_CUSTOM
+        MENUITEM "&Custom filters",          	ID_CONTEXT_FILTERS
+        MENUITEM SEPARATOR
+        POPUP "&Show folders"
+        BEGIN
+            MENUITEM "overridden by code",    	ID_CONTEXT_SHOW_FOLDER_START
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "&Audit",                      ID_FOLDER_AUDIT
+        MENUITEM SEPARATOR
+        MENUITEM "&Properties",                 ID_FOLDER_PROPERTIES
+    END
+END
+
+IDR_CONTEXT_SCREENSHOT MENU
+BEGIN
+    POPUP "Context Screen Shot"
+    BEGIN
+        MENUITEM "Show Tabs",           		ID_VIEW_PAGETAB
+        MENUITEM SEPARATOR
+        POPUP "S&how pictures"
+        BEGIN
+            MENUITEM "&Snapshot",              	ID_TOGGLE_TAB_SCREENSHOT
+            MENUITEM "&Flyer",                 	ID_TOGGLE_TAB_FLYER
+            MENUITEM "&Cabinet",               	ID_TOGGLE_TAB_CABINET
+            MENUITEM "&Marquee",               	ID_TOGGLE_TAB_MARQUEE
+            MENUITEM "&Title",                 	ID_TOGGLE_TAB_TITLE
+            MENUITEM "Control &Panel",         	ID_TOGGLE_TAB_CONTROL_PANEL
+            MENUITEM "PC&B",                   	ID_TOGGLE_TAB_PCB
+            MENUITEM "Scores",					ID_TOGGLE_TAB_SCORES
+            MENUITEM "&History",                ID_TOGGLE_TAB_HISTORY
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "&Snapshot",                   ID_VIEW_TAB_SCREENSHOT
+        MENUITEM "&Flyer",                      ID_VIEW_TAB_FLYER
+        MENUITEM "&Cabinet",                    ID_VIEW_TAB_CABINET
+        MENUITEM "&Marquee",                    ID_VIEW_TAB_MARQUEE
+        MENUITEM "&Title",                      ID_VIEW_TAB_TITLE
+        MENUITEM "Control &Panel",              ID_VIEW_TAB_CONTROL_PANEL
+        MENUITEM "PC&B",                        ID_VIEW_TAB_PCB
+        MENUITEM "Scores",						ID_VIEW_TAB_SCORES
+        MENUITEM "&History",                    ID_VIEW_TAB_HISTORY
+    END
+END
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_MAMEUI_ICON         ICON                    "res\\mameui.ico"
+IDI_WIN_ROMS            ICON                    "res\\win_roms.ico"
+IDI_WIN_NOROMS          ICON                    "res\\win_noro.ico"
+IDI_WIN_UNKNOWN         ICON                    "res\\win_unkn.ico"
+IDI_WIN_CLONE           ICON                    "res\\win_clone.ico"
+IDI_WIN_REDX            ICON                    "res\\win_redx.ico"
+IDI_WIN_IMPERFECT       ICON 					"res\\win_imp.ico"
+IDI_FOLDER_AVAILABLE    ICON                    "res\\foldavail.ico"
+IDI_FOLDER              ICON                    "res\\folder.ico"
+IDI_FOLDER_MANUFACTURER ICON                    "res\\foldmanu.ico"
+IDI_FOLDER_OPEN         ICON                    "res\\foldopen.ico"
+IDI_FOLDER_UNAVAILABLE  ICON                    "res\\foldunav.ico"
+IDI_FOLDER_HORIZONTAL   ICON                    "res\\horz.ico"
+IDI_FOLDER_VERTICAL     ICON                    "res\\vert.ico"
+IDI_MANUFACTURER        ICON                    "res\\manufact.ico"
+IDI_FOLDER_YEAR         ICON                    "res\\foldyear.ico"
+IDI_FOLDER_SOURCE       ICON                    "res\\foldsrc.ico"
+IDI_WORKING             ICON                    "res\\working.ico"
+IDI_NONWORKING          ICON                    "res\\nonwork.ico"
+IDI_YEAR                ICON                    "res\\year.ico"
+IDI_KEYBOARD            ICON                    "res\\keyboard.ico"
+IDI_JOYSTICK            ICON                    "res\\joystick.ico"
+IDI_CHIP                ICON                    "res\\chip.ico"
+IDI_SOUND               ICON                    "res\\sound.ico"
+IDI_SOURCE              ICON                    "res\\source.ico"
+IDI_HARDDISK            ICON                    "res\\harddisk.ico"
+IDI_DISPLAY             ICON                    "res\\display.ico"
+IDI_AUDIT_PASS          ICON                    "res\\audit_pass.ico"
+IDI_MISC                ICON 					"res\\misc.ico"
+IDI_VECTOR              ICON 					"res\\vector.ico"
+IDI_SCREEN              ICON 					"res\\screen.ico"
+IDI_ADVANCED            ICON 					"res\\advanced.ico"
+IDI_AUDIT_FAIL			ICON	  				"res\\audit_fail.ico"
+IDI_FOLDER_IMPERFECT    ICON 					"res\\foldimp.ico"
+IDI_FOLDER_CPU          ICON 					"res\\foldcsb.ico"
+IDI_FOLDER_SOUND        ICON 					"res\\foldcsb.ico"
+IDI_FOLDER_BIOS         ICON 					"res\\foldcsb.ico"
+IDI_SYSTRAY             ICON    				"res\\mameui.ico"
+IDI_DEBUG				ICON					"res\\debug.ico"
+IDI_MONITOR    			ICON 					"res\\monitor.ico"
+IDI_MECHANICAL    		ICON 					"res\\mechanical.ico"
+IDI_FOLDER_ALLGAMES		ICON 					"res\\allgames.ico"
+IDI_FOLDER_CLONES       ICON 					"res\\foldclone.ico"
+IDI_FOLDER_ORIGINALS    ICON 					"res\\foldorig.ico"
+IDI_FOLDER_RASTER    	ICON 					"res\\foldrast.ico"
+IDI_FOLDER_VECTOR    	ICON 					"res\\foldvec.ico"
+IDI_FOLDER_SAMPLES    	ICON 					"res\\foldsamp.ico"
+IDI_FOLDER_MONITOR    	ICON 					"res\\multimon.ico"
+IDI_FOLDER_FPS    		ICON 					"res\\foldfps.ico"
+IDI_FOLDER_RESOL    	ICON 					"res\\foldres.ico"
+IDI_FOLDER_LIGHTGUN    	ICON 					"res\\foldgun.ico"
+IDI_FOLDER_TRACKBALL    ICON 					"res\\foldball.ico"
+IDI_OPENGL				ICON					"res\\opengl.ico"
+IDI_SNAPSHOT			ICON					"res\\snapshot.ico"
+IDI_GENERALSHEET		ICON					"res\\chip.ico"
+IDI_AUDITSHEET			ICON					"res\\audit_pass.ico"
+IDI_DISPLAYSHEET		ICON					"res\\display.ico"
+IDI_ADVANCEDSHEET		ICON					"res\\advanced.ico"
+IDI_SCREENSHEET			ICON					"res\\screen.ico"
+IDI_OPENGLSHEET			ICON					"res\\opengl.ico"
+IDI_VECTORSHEET			ICON					"res\\vector.ico"
+IDI_SOUNDSHEET			ICON					"res\\sound.ico"
+IDI_INPUTSHEET			ICON					"res\\keyboard.ico"
+IDI_CONTROLSHEET		ICON					"res\\joystick.ico"
+IDI_MISCSHEET			ICON					"res\\misc.ico"
+IDI_SNAPSHEET			ICON					"res\\snapshot.ico"
+IDI_DEBUGSHEET			ICON					"res\\debug.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_STARTUP DIALOGEX 0, 0, 263, 78
+STYLE WS_POPUP | WS_VISIBLE |  WS_BORDER | DS_CENTER | DS_SETFOREGROUND | DS_SETFONT
+EXSTYLE WS_EX_TOOLWINDOW
+FONT 10, "Tahoma"
+BEGIN
+    CONTROL         "",IDC_SPLASH,WC_STATIC,SS_BITMAP,0,0,56,18
+    CTEXT           "",IDC_PROGBAR,0,69,262,12
+END
+
+IDD_MAIN DIALOGEX 0, 0, 364, 206
+STYLE WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | DS_NOFAILCREATE | DS_SETFOREGROUND | DS_SETFONT
+EXSTYLE WS_EX_CONTROLPARENT
+CAPTION "MAMEUI - overwritten at runtime"
+CLASS "MainClass"
+FONT 8, "Tahoma"
+BEGIN
+    CONTROL         "",IDC_DIVIDER,WC_STATIC,SS_ETCHEDHORZ,0,0,364,1
+    CONTROL         "",IDC_TREE,WC_TREEVIEW,TVS_HASBUTTONS | TVS_TRACKSELECT | TVS_LINESATROOT | TVS_EDITLABELS | TVS_FULLROWSELECT | TVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP,5,28,48,172
+    CONTROL         "",IDC_LIST,WC_LISTVIEW,LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_SHAREIMAGELISTS | WS_BORDER | WS_TABSTOP,65,28,42,172
+    GROUPBOX        "",IDC_SPLITTER,55,28,8,172,BS_NOTIFY | NOT WS_VISIBLE
+    GROUPBOX        "",IDC_SPLITTER2,109,28,8,172,BS_NOTIFY | NOT WS_VISIBLE
+    CONTROL         "",IDC_SSBORDER,WC_STATIC,SS_GRAYFRAME,121,28,176,172
+    CONTROL         "",IDC_SSFRAME,WC_STATIC,SS_WHITERECT | SS_NOTIFY,121,28,176,172
+    CONTROL         "",IDC_SSPICTURE,WC_STATIC,SS_BITMAP,141,18,141,127
+    EDITTEXT        IDC_HISTORY,129,150,167,49,ES_MULTILINE | ES_READONLY | ES_OEMCONVERT | NOT WS_BORDER | WS_VSCROLL
+END
+
+IDD_ABOUT DIALOGEX 0, 0, 320, 186
+STYLE WS_POPUP | WS_VISIBLE | WS_BORDER | DS_SETFONT
+FONT 8, "Tahoma"
+BEGIN
+	RTEXT			"",IDC_BUILD,6,4,308,10
+	LTEXT			"",IDC_BUILDVER,6,4,120,10
+    CONTROL         "",IDC_ABOUT,WC_STATIC,SS_BITMAP,6,16,56,17
+    CTEXT           "Multiple Arcade Machine Emulator Copyright (C) 1997-2015 The MAME Team",IDC_TEXT1,4,106,312,10
+    CTEXT           "MAMEUI version by Christopher Kirmse and The MAMEUI Team",IDC_TEXT2,4,118,312,10
+    CTEXT           "Additional MAMEUI code by Mike Haaland, Andrew Kirmse,",IDC_TEXT3,4,130,312,10
+    CTEXT           "Jeff Miller, John Hardy IV and Michael Soderstrom",IDC_TEXT4,4,142,312,10
+    CTEXT           "Additional MAMEUIFX code and features by Mamesick",IDC_SICKFX,4,154,312,10
+    PUSHBUTTON   	"OK",IDOK,136,166,50,14
+END
+
+IDD_AUDIT DIALOGEX 0, 0, 284, 204
+STYLE WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | DS_MODALFRAME | DS_SETFONT
+CAPTION "File audit"
+FONT 8, "Tahoma"
+BEGIN
+    GROUPBOX        "ROMs",IDC_STATIC,6,4,132,80
+    CONTROL         "",IDC_ROMS_PROGRESS,PROGRESS_CLASS,PBS_SMOOTH,14,16,116,8
+    LTEXT           "Correct:",IDC_STATIC,50,28,36,10
+    LTEXT           "Incorrect:",IDC_STATIC,50,42,36,10
+    LTEXT           "Missing:",IDC_STATIC,50,56,36,10
+    LTEXT           "Total:",IDC_STATIC,50,70,36,10
+    LTEXT           "0",IDC_ROMS_CORRECT,88,28,20,10
+    LTEXT           "0",IDC_ROMS_INCORRECT,88,42,20,10
+    LTEXT           "0",IDC_ROMS_NOTFOUND,88,56,20,10
+    LTEXT           "0",IDC_ROMS_TOTAL,88,70,20,10
+    GROUPBOX        "Samples",IDC_STATIC,146,4,132,80
+    CONTROL         "",IDC_SAMPLES_PROGRESS,PROGRESS_CLASS,PBS_SMOOTH,154,16,116,8
+    LTEXT           "Correct:",IDC_STATIC,190,28,36,10
+    LTEXT           "Incorrect:",IDC_STATIC,190,42,36,10
+    LTEXT           "Missing:",IDC_STATIC,190,56,36,10
+    LTEXT           "Total:",IDC_STATIC,190,70,36,10
+    LTEXT           "0",IDC_SAMPLES_CORRECT,228,28,20,10
+    LTEXT           "0",IDC_SAMPLES_INCORRECT,228,42,20,10
+    LTEXT           "0",IDC_SAMPLES_NOTFOUND,228,56,20,10
+    LTEXT           "0",IDC_SAMPLES_TOTAL,228,70,20,10
+    GROUPBOX        "Details",IDC_STATIC,6,88,272,90
+    CONTROL         "",IDC_AUDIT_DETAILS,RICHEDIT_CLASS,ES_MULTILINE | ES_READONLY | WS_BORDER | WS_VSCROLL | NOT WS_TABSTOP,12,100,260,68
+    PUSHBUTTON      "&Cancel",IDCANCEL,116,184,50,14
+END
+
+IDD_DIRECTORIES DIALOGEX 0, 0, 230, 108
+STYLE WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | DS_MODALFRAME | DS_SETFONT
+CAPTION "Directories"
+FONT 8, "Tahoma"
+BEGIN
+    LTEXT           "Show directories for:",IDC_STATIC,6,6,67,10
+    COMBOBOX        IDC_DIR_COMBO,6,18,160,79,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Directories:",IDC_STATIC,6,38,38,10
+    CONTROL         "",IDC_DIR_LIST,WC_LISTVIEW,LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_EDITLABELS | LVS_NOSORTHEADER | LVS_NOCOLUMNHEADER | WS_BORDER | WS_TABSTOP,6,50,160,50
+    DEFPUSHBUTTON   "OK",IDOK,174,8,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,174,26,50,14
+    PUSHBUTTON      "Browse...",IDC_DIR_BROWSE,174,50,50,14
+    PUSHBUTTON      "Insert",IDC_DIR_INSERT,174,68,50,14
+    PUSHBUTTON      "Delete",IDC_DIR_DELETE,174,86,50,14
+END
+
+IDD_PROP_GAME DIALOGEX 0, 0, 220, 280
+STYLE WS_CHILD | WS_DISABLED | WS_CAPTION | DS_SETFONT
+CAPTION "General"
+FONT 8, "Tahoma"
+BEGIN
+    ICON            IDI_MAMEUI_ICON,IDC_GAME_ICON,10,12,32,32
+    LTEXT           WC_STATIC,IDC_PROP_TITLE,42,10,168,30,SS_NOPREFIX
+    LTEXT           "Manufactured:",IDC_STATIC,10,40,47,10
+    LTEXT           WC_STATIC,IDC_PROP_MANUFACTURED,66,40,144,10,SS_NOPREFIX
+    LTEXT           "Status:",IDC_STATIC,10,50,47,10
+    LTEXT           WC_STATIC,IDC_PROP_STATUS,66,50,144,30
+    CONTROL         "",IDC_STATIC,WC_STATIC,SS_ETCHEDHORZ,4,85,212,1
+    LTEXT           "CPU:",IDC_STATIC,10,90,47,8
+    LTEXT           WC_STATIC,IDC_PROP_CPU,66,90,144,40
+    CONTROL         "",IDC_STATIC,WC_STATIC,SS_ETCHEDHORZ,4,135,212,1
+    LTEXT           "Sound:",IDC_STATIC,10,140,47,10
+    LTEXT           WC_STATIC,IDC_PROP_SOUND,66,140,144,40
+    CONTROL         "",IDC_STATIC,WC_STATIC,SS_ETCHEDHORZ,4,185,212,1
+    LTEXT           "Screen:",IDC_STATIC,10,190,47,10
+    LTEXT           WC_STATIC,IDC_PROP_SCREEN,66,190,144,30
+    CONTROL         "",IDC_STATIC,WC_STATIC,SS_ETCHEDHORZ,4,225,212,1
+    LTEXT           "Save state:",IDC_STATIC,10,230,47,10
+    LTEXT           WC_STATIC,IDC_PROP_SAVESTATE,66,230,144,10
+    LTEXT           "Source:",IDC_STATIC,10,240,47,10
+    LTEXT           WC_STATIC,IDC_PROP_SOURCE,66,240,144,10
+    LTEXT           "Clone of:",IDC_PROP_CLONEOF_TEXT,10,250,50,10
+    LTEXT           WC_STATIC,IDC_PROP_CLONEOF,66,250,144,40,SS_NOPREFIX
+END
+
+IDD_PROP_AUDIT DIALOGEX 0, 0, 220, 280
+STYLE WS_CHILD | WS_DISABLED | WS_CAPTION | DS_SETFONT
+CAPTION "Audit"
+FONT 8, "Tahoma"
+BEGIN
+    ICON            IDI_MAMEUI_ICON,IDC_AUDIT_ICON,10,12,32,32
+    LTEXT           WC_STATIC,IDC_PROP_TITLE,42,10,168,30,SS_NOPREFIX
+    LTEXT           "ROM check:",IDC_STATIC,10,40,50,8
+    LTEXT           "Checking...",IDC_PROP_ROMS,66,40,139,8
+    LTEXT           "Sample check:",IDC_STATIC,10,50,50,8
+    LTEXT           "Checking...",IDC_PROP_SAMPLES,66,50,139,8
+    GROUPBOX        "ROM details",IDC_STATIC,4,62,212,100
+    CONTROL         "",IDC_ROM_DETAILS,RICHEDIT_CLASS,ES_MULTILINE | ES_READONLY | WS_BORDER | WS_VSCROLL | NOT WS_TABSTOP,10,76,200,76
+    GROUPBOX        "Audit details",IDC_STATIC,4,166,212,100
+    CONTROL         "",IDC_AUDIT_DETAILS_PROP,RICHEDIT_CLASS,ES_MULTILINE | ES_READONLY | WS_BORDER | WS_VSCROLL | NOT WS_TABSTOP,10,180,200,76
+END
+
+IDD_PROP_DISPLAY DIALOGEX 0, 0, 220, 280
+STYLE WS_CHILD | WS_DISABLED | WS_CAPTION | DS_SETFONT
+CAPTION "Display"
+FONT 8, "Tahoma"
+BEGIN
+    ICON            IDI_DISPLAY,IDC_STATIC,10,12,32,32
+    LTEXT           WC_STATIC,IDC_PROP_TITLE,42,10,168,30,SS_NOPREFIX
+    CONTROL         "Run in a window",IDC_WINDOWED,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,40,69,10,0
+    CONTROL         "Start out maximized",IDC_MAXIMIZE,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,52,77,10,0
+    CONTROL         "Enforce aspect ratio",IDC_KEEPASPECT,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,64,79,10,0
+    CONTROL         "Throttle",IDC_THROTTLE,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,76,39,10,0
+    GROUPBOX        "Bitmap prescaling",IDC_PRESCALETEXT,4,88,102,28
+    CONTROL         "",IDC_PRESCALE,TRACKBAR_CLASS,TBS_AUTOTICKS | WS_TABSTOP,10,100,72,10,0
+    RTEXT           "1.00",IDC_PRESCALEDISP,84,98,16,10,SS_CENTERIMAGE | NOT WS_GROUP
+    GROUPBOX        "Gamma correction",IDC_STATIC,4,120,102,28
+    CONTROL         "",IDC_GAMMA,TRACKBAR_CLASS,TBS_AUTOTICKS | WS_TABSTOP,10,132,72,10,0
+    RTEXT           "1.00",IDC_GAMMADISP,84,130,16,10,SS_CENTERIMAGE | NOT WS_GROUP
+    GROUPBOX        "Brightness correction",IDC_STATIC,4,152,102,28
+    CONTROL         "",IDC_BRIGHTCORRECT,TRACKBAR_CLASS,TBS_AUTOTICKS | WS_TABSTOP,10,164,72,10,0
+    RTEXT           "1.00",IDC_BRIGHTCORRECTDISP,84,162,16,10,SS_CENTERIMAGE | NOT WS_GROUP
+    GROUPBOX        "Contrast correction",IDC_STATIC,4,184,102,28
+    CONTROL         "",IDC_CONTRAST,TRACKBAR_CLASS,TBS_AUTOTICKS | WS_TABSTOP,10,196,72,10,0
+    RTEXT           "1.00",IDC_CONTRASTDISP,84,194,16,10,SS_CENTERIMAGE | NOT WS_GROUP
+    GROUPBOX        "Pause brightness",IDC_STATIC,4,216,102,28
+    CONTROL         "",IDC_PAUSEBRIGHT,TRACKBAR_CLASS,TBS_AUTOTICKS | WS_TABSTOP,10,228,72,10,0
+    RTEXT           "1.00",IDC_PAUSEBRIGHTDISP,84,226,16,10,SS_CENTERIMAGE | NOT WS_GROUP
+    GROUPBOX        "Video mode",IDC_STATIC,114,40,102,28
+    COMBOBOX        IDC_VIDEO_MODE,120,50,90,62,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP,0
+    GROUPBOX        "Rotation",IDC_STATIC,114,72,102,56
+    COMBOBOX        IDC_ROTATE,120,82,90,62,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP,0
+    CONTROL         "Flip screen upside-down",IDC_FLIPY,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,120,100,91,10,0
+    CONTROL         "Flip screen left-right",IDC_FLIPX,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,120,112,91,10,0
+    GROUPBOX        "Direct3D/OpenGL",IDC_STATIC,114,132,102,28
+    CONTROL         "Use bilinear filtering",IDC_D3D_FILTER,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,120,144,86,10,0
+    GROUPBOX        "DirectDraw",IDC_STATIC,114,164,102,28
+    CONTROL         "Stretch using hardware",IDC_HWSTRETCH,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,120,176,92,10,0
+    CONTROL         "Use widescreen stretch",IDC_WIDESTRETCH,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,120,198,92,10,0
+    PUSHBUTTON      "Reset",IDC_PROP_RESET,4,274,98,14,0,0
+    PUSHBUTTON      "Restore default options",IDC_USE_DEFAULT,118,274,98,14,0,0
+END
+
+IDD_PROP_SOUND DIALOGEX 0, 0, 220, 280
+STYLE WS_CHILD | WS_DISABLED | WS_CAPTION | DS_SETFONT
+CAPTION "Sound"
+FONT 8, "Tahoma"
+BEGIN
+    ICON            IDI_SOUND,IDC_STATIC,10,12,32,32
+    LTEXT           WC_STATIC,IDC_PROP_TITLE,42,10,168,30,SS_NOPREFIX
+    GROUPBOX        "Sound mode",IDC_STATIC,4,40,102,28
+    COMBOBOX        IDC_SOUND_MODE,10,50,90,62,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP,0
+    GROUPBOX        "Sample rate",IDC_RATETEXT,4,72,102,28
+    COMBOBOX        IDC_SAMPLERATE,10,82,90,62,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP,0
+    GROUPBOX        "Volume attenuation",IDC_STATIC,4,104,102,28
+    CONTROL         "",IDC_VOLUME,TRACKBAR_CLASS,TBS_AUTOTICKS | WS_TABSTOP,10,116,72,10,0
+    RTEXT           "0dB",IDC_VOLUMEDISP,80,124,20,10,SS_CENTERIMAGE
+    GROUPBOX        "Audio latency",IDC_AUDIO_LATENCY_TEXT,4,136,102,28
+    CONTROL         "",IDC_AUDIO_LATENCY,TRACKBAR_CLASS,TBS_AUTOTICKS | WS_TABSTOP,10,148,72,10,0
+    RTEXT           "1/5",IDC_AUDIO_LATENCY_DISP,80,146,20,10,SS_CENTERIMAGE
+    CONTROL         "Use external samples",IDC_SAMPLES,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,170,140,10,0
+    PUSHBUTTON      "Reset",IDC_PROP_RESET,4,274,98,14,0,0
+    PUSHBUTTON      "Restore default options",IDC_USE_DEFAULT,118,274,98,14,0,0
+END
+
+IDD_PROP_ADVANCED DIALOGEX 0, 0, 220, 280
+STYLE WS_CHILD | WS_DISABLED | WS_CAPTION | DS_SETFONT
+CAPTION "Advanced"
+FONT 8, "Tahoma"
+BEGIN
+    ICON            IDI_ADVANCED,IDC_STATIC,10,12,32,32
+    LTEXT           WC_STATIC,IDC_PROP_TITLE,42,10,168,30,SS_NOPREFIX
+    CONTROL         "Triple buffering",IDC_TRIPLE_BUFFER,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,40,93,10,0
+    CONTROL         "Sync to monitor refresh",IDC_SYNCREFRESH,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,52,93,10,0
+    CONTROL         "Wait for vertical sync",IDC_WAITVSYNC,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,64,93,10,0
+    CONTROL         "Refresh speed",IDC_REFRESHSPEED,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,76,93,10,0
+    CONTROL         "Enable HLSL",IDC_HLSL_ON,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,88,93,10,0
+    GROUPBOX        "Frame skipping",IDC_STATIC,4,100,102,44
+    CONTROL         "Automatic",IDC_AUTOFRAMESKIP,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,112,77,10,0
+    COMBOBOX        IDC_FRAMESKIP,10,126,90,62,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP,0
+    GROUPBOX        "Fullscreen gamma",IDC_FSGAMMATEXT,114,40,102,28
+    CONTROL         "",IDC_FSGAMMA,TRACKBAR_CLASS,TBS_AUTOTICKS | WS_TABSTOP,120,52,72,10,0
+    RTEXT           "1.00",IDC_FSGAMMADISP,194,50,16,10,SS_CENTERIMAGE | NOT WS_GROUP
+    GROUPBOX        "Fullscreen brightness",IDC_FSBRIGHTNESSTEXT,114,72,102,28
+    CONTROL         "",IDC_FSBRIGHTNESS,TRACKBAR_CLASS,TBS_AUTOTICKS | WS_TABSTOP,120,84,72,10,0
+    RTEXT           "1.00",IDC_FSBRIGHTNESSDISP,194,82,16,10,SS_CENTERIMAGE | NOT WS_GROUP
+    GROUPBOX        "Fullscreen contrast",IDC_FSCONTRASTTEXT,114,104,102,28
+    CONTROL         "",IDC_FSCONTRAST,TRACKBAR_CLASS,TBS_AUTOTICKS | WS_TABSTOP,120,116,71,10,0
+    RTEXT           "1.00",IDC_FSCONTRASTDISP,194,114,16,10,SS_CENTERIMAGE | NOT WS_GROUP
+    GROUPBOX        "Seconds to run",IDC_SECONDSTORUNTEXT,114,136,102,28
+    CONTROL         "",IDC_SECONDSTORUN,TRACKBAR_CLASS,TBS_AUTOTICKS | WS_TABSTOP,120,148,72,10,0
+    RTEXT           "60",IDC_SECONDSTORUNDISP,194,146,16,10,SS_CENTERIMAGE | NOT WS_GROUP
+    GROUPBOX        "Emulation speed",IDC_SPEEDTEXT,4,168,212,28
+    CONTROL         "",IDC_SPEED,TRACKBAR_CLASS,TBS_AUTOTICKS | WS_TABSTOP,10,180,180,10,0
+    RTEXT           "1.00",IDC_SPEEDDISP,190,178,20,10,SS_CENTERIMAGE | NOT WS_GROUP
+    GROUPBOX        "Effect",IDC_STATIC,4,200,212,48
+    CONTROL         "",IDC_EFFECT,WC_STATIC,SS_CENTERIMAGE | SS_LEFT | SS_EDITCONTROL | WS_BORDER,10,210,200,14
+    PUSHBUTTON      "Select effect",IDC_SELECT_EFFECT,10,228,60,14,0,0
+    PUSHBUTTON      "Reset effect",IDC_RESET_EFFECT,150,228,60,14,0,0
+    PUSHBUTTON      "Reset",IDC_PROP_RESET,4,274,98,14,0,0
+    PUSHBUTTON      "Restore default options",IDC_USE_DEFAULT,118,274,98,14,0,0
+END
+
+IDD_PROP_OPENGL DIALOGEX 0, 0, 220, 280
+STYLE WS_CHILD | WS_DISABLED | WS_CAPTION | DS_SETFONT
+CAPTION "OpenGL"
+FONT 8, "Tahoma"
+BEGIN
+    ICON            IDI_OPENGL,IDC_STATIC,10,12,32,32
+    LTEXT           WC_STATIC,IDC_PROP_TITLE,42,10,168,30,SS_NOPREFIX
+    CONTROL         "Enable GLSL",IDC_GLSL,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,40,144,10,0
+    CONTROL         "Enable GLSL filtering",IDC_GLSLFILTER,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,52,144,10,0
+    CONTROL         "Force power of two textures",IDC_GLSLPOW,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,64,144,10,0
+    CONTROL         "Don't use GL_ARB_texture_rectangle",IDC_GLSLTEXTURE,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,76,160,10,0
+    CONTROL         "Enable VBO",IDC_GLSLVBO,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,88,144,10,0
+    CONTROL         "Enable PBO",IDC_GLSLPBO,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,100,144,10,0
+    GROUPBOX        "Shader 0",IDC_STATIC,4,112,212,48
+    CONTROL         "",IDC_SHADER1,WC_STATIC,SS_CENTERIMAGE | SS_LEFT | SS_EDITCONTROL | WS_BORDER,10,122,200,14
+    PUSHBUTTON      "Select shader",IDC_SELECT_SHADER1,10,140,60,14,0,0
+    PUSHBUTTON      "Reset shader",IDC_RESET_SHADER1,150,140,60,14,0,0
+    GROUPBOX        "Shader 1",IDC_STATIC,4,164,212,48
+    CONTROL         "",IDC_SHADER2,WC_STATIC,SS_CENTERIMAGE | SS_LEFT | SS_EDITCONTROL | WS_BORDER,10,174,200,14
+    PUSHBUTTON      "Select shader",IDC_SELECT_SHADER2,10,192,60,14,0,0
+    PUSHBUTTON      "Reset shader",IDC_RESET_SHADER2,150,192,60,14,0,0
+    GROUPBOX        "Shader 2",IDC_STATIC,4,216,212,48
+    CONTROL         "",IDC_SHADER3,WC_STATIC,SS_CENTERIMAGE | SS_LEFT | SS_EDITCONTROL | WS_BORDER,10,226,200,14
+    PUSHBUTTON      "Select shader",IDC_SELECT_SHADER3,10,244,60,14,0,0
+    PUSHBUTTON      "Reset shader",IDC_RESET_SHADER3,150,244,60,14,0,0
+    PUSHBUTTON      "Reset",IDC_PROP_RESET,4,274,98,14,0,0
+    PUSHBUTTON      "Restore default options",IDC_USE_DEFAULT,118,274,98,14,0,0
+END
+
+IDD_PROP_DEBUG DIALOGEX 0, 0, 220, 280
+STYLE WS_CHILD | WS_DISABLED | WS_CAPTION | DS_SETFONT
+CAPTION "Debug"
+FONT 8, "Tahoma"
+BEGIN
+    ICON            IDI_DEBUG,IDC_STATIC,10,12,32,32
+    LTEXT           WC_STATIC,IDC_PROP_TITLE,42,10,168,30,SS_NOPREFIX
+    CONTROL         "Output log to Windows debugger",IDC_OSLOG,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,40,124,10,0
+    CONTROL         "Output log To LOG file",IDC_LOG,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,52,93,10,0
+    CONTROL         "Output diagnostic information",IDC_VERBOSE,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,64,111,10,0
+    CONTROL         "Update main window during paused emulation",IDC_UPDATEINPAUSE,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,76,171,10,0
+    CONTROL         "Activate integrated debugger",IDC_DEBUG,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,88,118,10,0
+    GROUPBOX        "Debug script",IDC_STATIC,4,100,212,48
+    CONTROL         "",IDC_DEBUGSCRIPT,WC_STATIC,SS_CENTERIMAGE | SS_LEFT | SS_EDITCONTROL | WS_BORDER,10,110,200,14
+    PUSHBUTTON      "Select debug script",IDC_SELECT_DEBUGSCRIPT,10,128,70,14,0,0
+    PUSHBUTTON      "Reset sebug script",IDC_RESET_DEBUGSCRIPT,140,128,70,14,0,0
+    PUSHBUTTON      "Reset",IDC_PROP_RESET,4,274,98,14,0,0
+    PUSHBUTTON      "Restore default options",IDC_USE_DEFAULT,118,274,98,14,0,0
+END
+
+IDD_PROP_INPUT DIALOGEX 0, 0, 220, 280
+STYLE WS_CHILD | WS_DISABLED | WS_CAPTION | DS_SETFONT
+CAPTION "Controllers"
+FONT 8, "Tahoma"
+BEGIN
+    ICON            IDI_KEYBOARD,IDC_STATIC,10,12,32,32
+    LTEXT           WC_STATIC,IDC_PROP_TITLE,42,10,168,30,SS_NOPREFIX
+    CONTROL         "Enable mouse input",IDC_USE_MOUSE,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,40,88,10,0
+    CONTROL         "Enable steadykey support",IDC_STEADYKEY,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,52,98,10,0
+    GROUPBOX        "",IDC_STATIC,4,64,102,78
+    CONTROL         "Enable joystick input",IDC_JOYSTICK,WC_BUTTON,BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,10,64,82,10,0
+    GROUPBOX        "Joystick deadzone",IDC_JDZTEXT,10,76,90,28
+    CONTROL         "",IDC_JDZ,TRACKBAR_CLASS,TBS_AUTOTICKS | WS_TABSTOP,16,88,62,10,0
+    RTEXT           "0.30",IDC_JDZDISP,78,86,16,10,SS_CENTERIMAGE | NOT WS_GROUP
+    GROUPBOX        "Joystick saturation",IDC_JSATTEXT,10,108,90,28
+    CONTROL         "",IDC_JSAT,TRACKBAR_CLASS,TBS_AUTOTICKS | WS_TABSTOP,16,120,62,10,0
+    RTEXT           "0.85",IDC_JSATDISP,78,118,16,10,SS_CENTERIMAGE | NOT WS_GROUP
+    GROUPBOX        "Default input layout",IDC_STATIC,114,40,102,28
+    COMBOBOX        IDC_DEFAULT_INPUT,120,50,90,62,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP,0
+    CONTROL         "Enable lightgun input",IDC_LIGHTGUN,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,120,74,84,10,0
+    CONTROL         "Offscreen shots reload",IDC_RELOAD,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,120,86,88,10,0
+    CONTROL         "Dual lightguns",IDC_DUAL_LIGHTGUN,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,120,98,88,10,0
+    CONTROL         "Multiple keyboards",IDC_MULTIKEYBOARD,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,120,110,78,10,0
+    CONTROL         "Multiple mices",IDC_MULTIMOUSE,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,120,122,58,10,0
+    GROUPBOX        "Joystickmap",IDC_STATIC,4,146,212,48
+    CONTROL         "",IDC_JOYSTICKMAP,WC_STATIC,SS_CENTERIMAGE | SS_LEFT | SS_EDITCONTROL | WS_BORDER,10,156,200,14
+    PUSHBUTTON      "Select joystick map",IDC_SELECT_JOYSTICKMAP,10,174,70,14,0,0
+    PUSHBUTTON      "Reset joystick map",IDC_RESET_JOYSTICKMAP,140,174,70,14,0,0
+	PUSHBUTTON      "Reset",IDC_PROP_RESET,4,274,98,14,0,0
+    PUSHBUTTON      "Restore default options",IDC_USE_DEFAULT,118,274,98,14,0,0
+END
+
+IDD_PROP_CONTROLLER DIALOGEX 0, 0, 220, 280
+STYLE WS_CHILD | WS_DISABLED | WS_CAPTION | DS_SETFONT
+CAPTION "Controller mapping"
+FONT 8, "Tahoma"
+BEGIN
+    ICON            IDI_JOYSTICK,IDC_STATIC,10,12,32,32
+    LTEXT           WC_STATIC,IDC_PROP_TITLE,42,10,168,30,SS_NOPREFIX
+    GROUPBOX        "Paddle device",IDC_STATIC,4,40,102,28
+    COMBOBOX        IDC_PADDLE,10,50,90,62,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP,0
+    GROUPBOX        "ADStick device",IDC_STATIC,4,72,102,28
+    COMBOBOX        IDC_ADSTICK,10,82,90,62,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP,0
+    GROUPBOX        "Pedal device",IDC_STATIC,4,104,102,28
+    COMBOBOX        IDC_PEDAL,10,114,90,62,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP,0
+    GROUPBOX        "Mouse device",IDC_STATIC,4,136,102,28
+    COMBOBOX        IDC_MOUSE,10,146,90,62,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP,0
+    GROUPBOX        "Dial device",IDC_STATIC,114,40,102,28
+    COMBOBOX        IDC_DIAL,120,50,90,62,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP,0
+    GROUPBOX        "Trackball device",IDC_STATIC,114,72,102,28
+    COMBOBOX        IDC_TRACKBALL,120,82,90,62,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP,0
+    GROUPBOX        "Lightgun device",IDC_STATIC,114,104,102,28
+    COMBOBOX        IDC_LIGHTGUNDEVICE,120,114,90,62,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP,0
+    GROUPBOX        "Positional device",IDC_STATIC,114,136,102,28
+    COMBOBOX        IDC_POSITIONAL,120,146,90,62,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP,0
+    GROUPBOX        "Controller ID layout",IDC_STATIC,4,168,212,46
+    LTEXT           "P1",IDC_STATIC,10,180,10,10
+    COMBOBOX        IDC_JOYSTICK_ID_1,22,178,26,160,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "P2",IDC_STATIC,64,180,10,10
+    COMBOBOX        IDC_JOYSTICK_ID_2,76,178,26,160,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "P3",IDC_STATIC,118,180,10,10
+    COMBOBOX        IDC_JOYSTICK_ID_3,130,178,26,160,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "P4",IDC_STATIC,172,180,10,10
+    COMBOBOX        IDC_JOYSTICK_ID_4,184,178,26,160,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "P5",IDC_STATIC,10,198,10,10
+    COMBOBOX        IDC_JOYSTICK_ID_5,22,196,26,160,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "P6",IDC_STATIC,64,198,10,10
+    COMBOBOX        IDC_JOYSTICK_ID_6,76,196,26,160,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "P7",IDC_STATIC,118,198,10,10
+    COMBOBOX        IDC_JOYSTICK_ID_7,130,196,26,160,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "P8",IDC_STATIC,172,198,10,10
+    COMBOBOX        IDC_JOYSTICK_ID_8,184,196,26,160,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Reset",IDC_PROP_RESET,4,274,98,14,0,0
+    PUSHBUTTON      "Restore default options",IDC_USE_DEFAULT,118,274,98,14,0,0
+END
+
+IDD_PROP_SNAP DIALOGEX 0, 0, 220, 280
+STYLE WS_CHILD | WS_DISABLED | WS_CAPTION | DS_SETFONT
+CAPTION "Snapshot/Movie"
+FONT 8, "Tahoma"
+BEGIN
+    ICON            IDI_SNAPSHOT,IDC_STATIC,10,12,32,32
+    LTEXT           WC_STATIC,IDC_PROP_TITLE,42,10,168,30,SS_NOPREFIX
+    GROUPBOX        "View mode",IDC_STATIC,4,40,102,28
+    COMBOBOX        IDC_SNAPVIEW,10,50,90,62,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP,0
+    GROUPBOX        "",IDC_STATIC,4,72,102,28
+    CONTROL         "Auto select size",IDC_SNAPSIZE,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,72,63,10,0
+    LTEXT           "Size",IDC_SNAPSIZETEXT,10,84,24,11,SS_CENTERIMAGE | NOT WS_GROUP
+    EDITTEXT        IDC_SNAPSIZEWIDTH,40,83,24,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,0
+    LTEXT           "x",IDC_SNAPSIZEX,68,84,8,10,SS_CENTERIMAGE | NOT WS_GROUP
+    EDITTEXT        IDC_SNAPSIZEHEIGHT,76,83,24,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,0
+    GROUPBOX        "Pattern",IDC_STATIC,4,104,152,28
+    COMBOBOX        IDC_SNAPNAME,10,114,140,62,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP,0
+    CONTROL         "Use bilinear filtering for movie recording",IDC_SNAPBILINEAR,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,138,148,10,0
+    CONTROL         "Create burn-in snapshots for each screen",IDC_SNAPBURNIN,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,150,148,10,0
+    PUSHBUTTON      "Reset",IDC_PROP_RESET,4,274,98,14,0,0
+    PUSHBUTTON      "Restore default options",IDC_USE_DEFAULT,118,274,98,14,0,0
+END
+
+IDD_PROP_SCREEN DIALOGEX 0, 0, 220, 280
+STYLE WS_CHILD | WS_DISABLED | WS_CAPTION | DS_SETFONT
+CAPTION "Screen"
+FONT 8, "Tahoma"
+BEGIN
+    ICON            IDI_SCREEN,IDC_STATIC,10,12,32,32
+    LTEXT           WC_STATIC,IDC_PROP_TITLE,42,10,168,30,SS_NOPREFIX
+    GROUPBOX        "Number of screens",IDC_STATIC,4,40,102,28
+    CONTROL         "",IDC_NUMSCREENS,TRACKBAR_CLASS,TBS_AUTOTICKS | WS_TABSTOP,10,52,72,10,0
+    RTEXT           "1",IDC_NUMSCREENSDISP,84,50,14,10,SS_CENTERIMAGE | NOT WS_GROUP
+    GROUPBOX        "Screen",IDC_STATIC,4,72,102,28
+    COMBOBOX        IDC_SCREEN,10,82,90,62,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP,0
+    GROUPBOX        "",IDC_STATIC,4,104,102,28
+    CONTROL         "Auto select aspect ratio",IDC_ASPECT,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,104,89,10,0
+    LTEXT           "Aspect ratio",IDC_ASPECTRATIOTEXT,10,116,40,11,SS_CENTERIMAGE | NOT WS_GROUP
+    EDITTEXT        IDC_ASPECTRATION,62,115,14,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,0
+    LTEXT           ":",IDC_ASPECTRATIOP,80,116,8,10,SS_CENTERIMAGE | NOT WS_GROUP
+    EDITTEXT        IDC_ASPECTRATIOD,86,115,14,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,0
+    GROUPBOX        "View mode",IDC_STATIC,4,136,102,28
+    COMBOBOX        IDC_VIEW,10,146,90,62,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP,0
+    GROUPBOX        "Screen number",IDC_SCREENSELECTTEXT,114,40,102,28
+    COMBOBOX        IDC_SCREENSELECT,120,50,90,62,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP,0
+    GROUPBOX        "Resolution",IDC_STATIC,114,72,102,76,WS_GROUP
+    GROUPBOX        "Size",IDC_STATIC,120,82,90,28,WS_GROUP
+    COMBOBOX        IDC_SIZES,126,92,78,62,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP,0
+    GROUPBOX        "Refresh",IDC_REFRESHTEXT,120,114,90,28,WS_GROUP
+    COMBOBOX        IDC_REFRESH,126,124,78,62,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP,0
+    CONTROL         "Switch resolutions to fit",IDC_SWITCHRES,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,120,154,94,10,0
+    PUSHBUTTON      "Reset",IDC_PROP_RESET,4,274,98,14,0,0
+    PUSHBUTTON      "Restore default options",IDC_USE_DEFAULT,118,274,98,14,0,0
+END
+
+IDD_PROP_MISC DIALOGEX 0, 0, 220, 280
+STYLE WS_CHILD | WS_DISABLED | WS_CAPTION | DS_SETFONT
+CAPTION "Miscellaneous"
+FONT 8, "Tahoma"
+BEGIN
+    ICON            IDI_MISC,IDC_STATIC,10,12,32,32
+    LTEXT           WC_STATIC,IDC_PROP_TITLE,42,10,168,30,SS_NOPREFIX
+    CONTROL         "Enable cheats",IDC_CHEAT,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,40,86,10,0
+    CONTROL         "Enable hiscore support",IDC_HISCORE,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,52,86,10
+    CONTROL         "Sleep when possible",IDC_SLEEP,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,64,86,10,0
+    CONTROL         "Skip game informations",IDC_SKIP_GAME_INFO,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,76,96,10,0
+    CONTROL         "Save game state on exit",IDC_ENABLE_AUTOSAVE,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,88,96,10,0
+    CONTROL         "Multi-threaded rendering",IDC_MULTITHREAD_RENDERING,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,100,96,10,0
+    CONTROL         "Coin lockout",IDC_COINLOCKOUT,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,112,96,10,0
+    CONTROL         "Quit confirmation on exit",IDC_CONFIRM_QUIT,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,124,96,10,0
+    GROUPBOX        "Thread priority",IDC_HIGH_PRIORITY_TEXT,4,136,102,36
+    CONTROL         "",IDC_HIGH_PRIORITY,TRACKBAR_CLASS,TBS_AUTOTICKS | WS_TABSTOP,10,148,72,10,0
+    LTEXT           "Idle",IDC_STATIC,10,158,12,8
+    RTEXT           "-15",IDC_HIGH_PRIORITYTXT,84,146,14,10,SS_CENTERIMAGE
+    RTEXT           "Real-Time",IDC_STATIC,65,158,32,8
+    GROUPBOX        "BIOS selection",IDC_STATIC,4,176,212,28
+    COMBOBOX        IDC_BIOS,10,186,200,62,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP,0
+    GROUPBOX        "Cheat file",IDC_STATIC,4,208,212,48
+    CONTROL         "",IDC_CHEATFILE,WC_STATIC,SS_CENTERIMAGE | SS_LEFT | SS_EDITCONTROL | WS_BORDER,10,218,200,14
+    PUSHBUTTON      "Select cheat file",IDC_SELECT_CHEATFILE,10,236,70,14,0,0
+    PUSHBUTTON      "Reset cheat file",IDC_RESET_CHEATFILE,140,236,70,14,0,0
+    GROUPBOX        "Artwork options",IDC_STATIC,114,40,102,86
+    CONTROL         "Backdrops",IDC_BACKDROPS,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,120,50,86,10,0
+    CONTROL         "Bezels",IDC_BEZELS,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,120,62,86,10,0
+    CONTROL         "Overlays",IDC_OVERLAYS,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,120,74,84,10,0
+    CONTROL         "Control panels",IDC_CPANELS,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,120,86,84,10,0
+    CONTROL         "Marquees",IDC_MARQUEES,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,120,98,84,10,0
+    CONTROL         "Crop artwork",IDC_ARTWORK_CROP,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,120,110,54,10,0
+	PUSHBUTTON      "Reset",IDC_PROP_RESET,4,274,98,14,0,0
+    PUSHBUTTON      "Restore default options",IDC_USE_DEFAULT,118,274,98,14,0,0
+END
+
+IDD_PROP_VECTOR DIALOGEX 0, 0, 220, 280
+STYLE WS_CHILD | WS_DISABLED | WS_CAPTION | DS_SETFONT
+CAPTION "Vector"
+FONT 8, "Tahoma"
+BEGIN
+    ICON            IDI_VECTOR,IDC_STATIC,10,12,32,32
+    LTEXT           WC_STATIC,IDC_PROP_TITLE,42,10,168,30,SS_NOPREFIX
+    CONTROL         "Draw anti-aliased vectors",IDC_ANTIALIAS,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,10,40,96,10,0
+    GROUPBOX        "Beam width",IDC_BEAMTEXT,4,52,212,28
+    CONTROL         "",IDC_BEAM,TRACKBAR_CLASS,TBS_AUTOTICKS | WS_TABSTOP,10,64,180,10,0
+    RTEXT           "1.00",IDC_BEAMDISP,190,62,20,10,SS_CENTERIMAGE
+    GROUPBOX        "Flicker",IDC_FLICKERTEXT,4,84,212,28
+    CONTROL         "",IDC_FLICKER,TRACKBAR_CLASS,TBS_AUTOTICKS | WS_TABSTOP,10,96,180,10,0
+    RTEXT           "0.00",IDC_FLICKERDISP,190,94,20,10,SS_CENTERIMAGE | NOT WS_GROUP
+    PUSHBUTTON      "Reset",IDC_PROP_RESET,4,274,98,14,0,0
+    PUSHBUTTON      "Restore default options",IDC_USE_DEFAULT,118,274,98,14,0,0
+END
+
+IDD_FILTERS DIALOGEX 0, 0, 190, 192
+STYLE WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | DS_MODALFRAME | DS_SETFONT
+CAPTION "Game filters"
+FONT 8, "Tahoma"
+BEGIN
+    GROUPBOX        "Game filters",IDC_STATIC,6,4,178,84
+    CONTROL         "&Vector graphics",IDC_FILTER_VECTOR,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,14,16,80,10,0
+    CONTROL         "C&lones",IDC_FILTER_CLONES,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,14,30,80,10,0
+    CONTROL         "Not Wor&king",IDC_FILTER_NONWORKING,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,14,44,80,10,0
+    CONTROL         "&Horizontal",IDC_FILTER_HORIZONTAL,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,14,58,80,10,0
+    CONTROL         "&Unavailable",IDC_FILTER_UNAVAILABLE,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,14,72,80,10,0
+    CONTROL         "&Raster graphics",IDC_FILTER_RASTER,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,100,16,80,10,0
+    CONTROL         "Ori&ginals",IDC_FILTER_ORIGINALS,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,100,30,80,10,0
+    CONTROL         "&Working",IDC_FILTER_WORKING,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,100,44,80,10,0
+    CONTROL         "&Vertical",IDC_FILTER_VERTICAL,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,100,58,80,10,0
+    CONTROL         "&Available",IDC_FILTER_AVAILABLE,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,100,72,80,10,0
+    CTEXT           "(*) = Inherited from parent folder",IDC_INHERITED,6,92,178,10
+    LTEXT           "Game filters allow customizing the games that are displayed in each folder by hiding games that match the filters applied.",IDC_STATIC,6,106,178,30
+    GROUPBOX        "&Description filter",IDC_STATIC,6,134,178,32
+    EDITTEXT        IDC_FILTER_EDIT,14,146,162,12,ES_AUTOHSCROLL | WS_BORDER,0
+    DEFPUSHBUTTON   "&OK",IDOK,42,172,50,14
+    PUSHBUTTON      "&Cancel",IDCANCEL,98,172,50,14
+END
+
+IDD_RESET DIALOGEX 0, 0, 190, 122
+STYLE WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | DS_MODALFRAME | DS_SETFONT
+CAPTION "Reset settings"
+FONT 8, "Tahoma"
+BEGIN
+    GROUPBOX        "Categories",IDC_STATIC,6,4,178,70
+    CONTROL         "&User Interface (fonts, colors, sizes)",IDC_RESET_UI,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,14,16,146,10,0
+    CONTROL         "&Default game options",IDC_RESET_DEFAULT,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,14,30,146,10,0
+    CONTROL         "&All games to use default options",IDC_RESET_GAMES,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,14,44,146,10,0
+    CONTROL         "&Folder 'filters'",IDC_RESET_FILTERS,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,14,58,146,10,0
+    LTEXT           "Select the options to be restored to the default settings.",IDC_STATIC,6,78,178,20
+    DEFPUSHBUTTON   "&OK",IDOK,42,102,50,14
+    PUSHBUTTON      "&Cancel",IDCANCEL,98,102,50,14
+END
+
+
+IDD_INTERFACE_OPTIONS DIALOGEX 0, 0, 378, 222
+STYLE WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | DS_MODALFRAME | DS_SETFONT
+CAPTION "Interface settings"
+FONT 8, "Tahoma"
+BEGIN
+    GROUPBOX        "Game selection",IDC_STATIC,6,4,190,188
+    CONTROL         "Hide &mouse cursor (requires restart)",IDC_HIDE_MOUSE,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,14,16,132,10,0
+    CONTROL         "Minimize window to system tray icon",IDC_DISABLE_TRAY_ICON,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,14,30,166,10
+    CONTROL         "Allow game selection by &joystick (requires restart)",IDC_JOY_GUI,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,14,44,176,10,0
+    CONTROL         "Allow game selection by custom &key sequences",IDC_KEY_GUI,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,14,58,166,10
+    CONTROL         "&Broadcast selected game to all windows",IDC_BROADCAST,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,14,72,141,10,0
+    CONTROL         "Use different icon for Not Working games",IDC_USE_BROKEN_ICON,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,14,86,152,10
+    CONTROL         "Inheritable filters",IDC_FILTER_INHERIT,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,14,100,68,10
+    CONTROL         "Display NO ROMS games always as available",IDC_DISPLAY_NO_ROMS,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,14,114,178,10
+    GROUPBOX        "Display info on tab",IDC_STATIC,202,4,170,28
+    COMBOBOX        IDC_HISTORY_TAB,208,14,158,60,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Bookkeeping",IDC_STATIC,202,35,170,39
+    CONTROL         "Reset all played counts",IDC_RESET_PLAYCOUNT,WC_BUTTON, BS_AUTOCHECKBOX | WS_TABSTOP,210,47,100,10
+    CONTROL         "Reset all played times",IDC_RESET_PLAYTIME,WC_BUTTON, BS_AUTOCHECKBOX | WS_TABSTOP,210,59,100,10
+	GROUPBOX        "Screenshot area",IDC_STATIC,202,76,170,116
+    CONTROL         "S&tretch screenshot larger than natural size",IDC_STRETCH_SCREENSHOT_LARGER,WC_BUTTON,BS_AUTOCHECKBOX | WS_TABSTOP,210,88,156,10,0
+    GROUPBOX        "Screenshot cycle time in seconds",IDC_STATIC,210,102,154,28
+    CONTROL         "",IDC_CYCLETIMESEC,TRACKBAR_CLASS,TBS_AUTOTICKS | WS_TABSTOP,218,114,120,10,0
+    RTEXT           "60",IDC_CYCLETIMESECTXT,340,112,16,10,SS_CENTERIMAGE
+    GROUPBOX        "Screenshot border size",IDC_STATIC,210,134,154,28
+    CONTROL         "",IDC_SCREENSHOT_BORDERSIZE,TRACKBAR_CLASS,TBS_AUTOTICKS | WS_TABSTOP,218,146,120,10
+    RTEXT           "100",IDC_SCREENSHOT_BORDERSIZETXT,340,144,16,10,SS_CENTERIMAGE
+    PUSHBUTTON      "Set screenshot border color",IDC_SCREENSHOT_BORDERCOLOR,210,170,154,14
+    DEFPUSHBUTTON   "&OK",IDOK,136,200,50,14
+    PUSHBUTTON      "&Cancel",IDCANCEL,192,200,50,14
+END
+
+IDD_CUSTOM_FILE DIALOGEX 0, 0, 190, 136
+STYLE WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | DS_MODALFRAME | DS_SETFONT
+CAPTION "Add game to custom folder"
+FONT 8, "Tahoma"
+BEGIN
+    LTEXT           "",IDC_CUSTOMFILE_GAME,6,6,178,30,SS_NOPREFIX
+    CONTROL         "",IDC_CUSTOM_TREE,WC_TREEVIEW,TVS_HASBUTTONS | TVS_TRACKSELECT | TVS_LINESATROOT | TVS_FULLROWSELECT | TVS_DISABLEDRAGDROP | TVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP,6,36,178,70
+    DEFPUSHBUTTON   "OK",IDOK,42,114,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,98,114,50,14
+END
+
+IDD_COLUMNS DIALOGEX 0, 0, 302, 146
+STYLE WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | DS_MODALFRAME | DS_SETFONT
+CAPTION "Customize fields"
+FONT 8, "Tahoma"
+BEGIN
+    LTEXT           "Available fields:",IDC_STATIC,6,6,80,10,SS_CENTERIMAGE
+    CONTROL         "",IDC_LISTAVAILABLECOLUMNS,WC_LISTVIEW,LVS_REPORT | LVS_SINGLESEL | LVS_NOCOLUMNHEADER | LVS_NOSORTHEADER | LVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP,6,18,90,98
+    PUSHBUTTON      "Add ->",IDC_BUTTONADD,102,18,46,14,WS_DISABLED
+    PUSHBUTTON      "<- Remove",IDC_BUTTONREMOVE,102,36,46,14,WS_DISABLED
+    LTEXT           "Show these fields in this order:",IDC_STATIC,154,6,116,10,SS_CENTERIMAGE
+    CONTROL         "",IDC_LISTSHOWCOLUMNS,WC_LISTVIEW,LVS_REPORT | LVS_SINGLESEL | LVS_NOCOLUMNHEADER | LVS_NOSORTHEADER | LVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP,154,18,90,98
+    PUSHBUTTON      "Move Up",IDC_BUTTONMOVEUP,250,18,46,14,WS_DISABLED
+    PUSHBUTTON      "Move Down",IDC_BUTTONMOVEDOWN,250,36,46,14,WS_DISABLED
+    DEFPUSHBUTTON   "OK",IDOK,98,124,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,154,124,50,14
+END
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDA_TAB_KEYS ACCELERATORS
+BEGIN
+    "1",            ID_VIEW_TAB_SCREENSHOT, 	VIRTKEY, ALT, NOINVERT
+    "2",            ID_VIEW_TAB_FLYER,      	VIRTKEY, ALT, NOINVERT
+    "3",            ID_VIEW_TAB_CABINET,    	VIRTKEY, ALT, NOINVERT
+    "4",            ID_VIEW_TAB_MARQUEE,    	VIRTKEY, ALT, NOINVERT
+    "5",            ID_VIEW_TAB_TITLE,      	VIRTKEY, ALT, NOINVERT
+    "6",            ID_VIEW_TAB_CONTROL_PANEL, 	VIRTKEY, ALT, NOINVERT
+    "7",            ID_VIEW_TAB_PCB,        	VIRTKEY, ALT, NOINVERT
+    "8",            ID_VIEW_TAB_SCORES,  	  	VIRTKEY, ALT, NOINVERT
+    "9",            ID_VIEW_TAB_HISTORY,    	VIRTKEY, ALT, NOINVERT
+    "A",            ID_GAME_AUDIT,          	VIRTKEY, ALT, NOINVERT
+    "B",            ID_VIEW_PAGETAB,        	VIRTKEY, ALT, NOINVERT
+    "D",            ID_VIEW_FOLDERS,        	VIRTKEY, ALT, NOINVERT
+    "E",            ID_TOOLBAR_EDIT,        	VIRTKEY, CONTROL, NOINVERT
+    "F",            ID_CONTEXT_FILTERS,     	VIRTKEY, CONTROL, NOINVERT
+    "U",            ID_FOLDER_AUDIT,        	VIRTKEY, ALT, NOINVERT
+    "P",            ID_VIEW_PICTURE_AREA,   	VIRTKEY, ALT, NOINVERT
+    "R",            ID_CONTEXT_SELECT_RANDOM, 	VIRTKEY, CONTROL, NOINVERT
+    "S",            ID_VIEW_STATUS,         	VIRTKEY, ALT, NOINVERT
+    "T",            ID_VIEW_TOOLBARS,       	VIRTKEY, ALT, NOINVERT
+    VK_F1,          ID_HELP_CONTENTS,       	VIRTKEY, NOINVERT
+    VK_F11,         ID_VIEW_FULLSCREEN,     	VIRTKEY, NOINVERT
+    VK_F5,          ID_UPDATE_GAMELIST,     	VIRTKEY, NOINVERT
+    VK_NEXT,        ID_UI_HISTORY_DOWN,     	VIRTKEY, CONTROL, NOINVERT
+    VK_PRIOR,       ID_UI_HISTORY_UP,       	VIRTKEY, CONTROL, NOINVERT
+    VK_RETURN,      ID_GAME_PROPERTIES,     	VIRTKEY, ALT, NOINVERT
+END
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmaps
+//
+
+IDB_TOOLBAR             BITMAP                  "res\\toolbar.bmp"
+IDB_SNAPSHOT	    	BITMAP  				"res\\snapshot.bmp"
+IDB_SPLASH				BITMAP  				"res\\splash.bmp"
+IDB_TABVIEW				BITMAP  				"res\\tabview.bmp"
+IDB_ABOUTMENU			BITMAP					"res\\aboutmenu.bmp"
+IDB_CUSTOM				BITMAP					"res\\custom.bmp"
+IDB_DIRECTORIES			BITMAP					"res\\directories.bmp"
+IDB_EXIT				BITMAP					"res\\exit.bmp"
+IDB_FULLSCREEN			BITMAP					"res\\fullscreen.bmp"
+IDB_INTERFACE			BITMAP					"res\\interface.bmp"
+IDB_HELP				BITMAP					"res\\help.bmp"
+IDB_MAMEHOME			BITMAP					"res\\mamehome.bmp"
+IDB_PLAY				BITMAP					"res\\play.bmp"
+IDB_PLAYM1				BITMAP					"res\\playm1.bmp"
+IDB_OPTIONS				BITMAP					"res\\options.bmp"
+IDB_REFRESH				BITMAP					"res\\refresh.bmp"
+IDB_ZIP					BITMAP					"res\\zip.bmp"
+IDB_SAVELIST			BITMAP					"res\\savelist.bmp"
+IDB_SAVEROMS			BITMAP					"res\\saveroms.bmp"
+IDB_PLAYBACK			BITMAP					"res\\playback.bmp"
+IDB_PROPERTIES			BITMAP					"res\\properties.bmp"
+IDB_AUDIT				BITMAP					"res\\audit.bmp"
+IDB_VIDEO				BITMAP					"res\\video.bmp"
+IDB_FONTS				BITMAP					"res\\fonts.bmp"
+IDB_FOLDERS				BITMAP					"res\\folders.bmp"
+IDB_SORT				BITMAP					"res\\sort.bmp"
+IDB_DRIVER				BITMAP					"res\\driver.bmp"
+IDB_FAQ					BITMAP					"res\\faq.bmp"
+IDB_TABS				BITMAP					"res\\tabs.bmp"
+IDB_TROUBLE				BITMAP					"res\\trouble.bmp"
+IDB_COUNT				BITMAP					"res\\count.bmp"
+IDB_RELEASE				BITMAP					"res\\release.bmp"
+IDB_TIME				BITMAP					"res\\time.bmp"
+IDB_DESCRIPTION			BITMAP					"res\\description.bmp"
+IDB_ROM					BITMAP					"res\\rom.bmp"
+IDB_SOURCE				BITMAP					"res\\source.bmp"
+IDB_MANUFACTURER		BITMAP					"res\\manufacturer.bmp"
+IDB_YEAR				BITMAP					"res\\year.bmp"
+IDB_PLAYWAV				BITMAP					"res\\playwav.bmp"
+IDB_FONT1				BITMAP					"res\\font1.bmp"
+IDB_FONT2				BITMAP					"res\\font2.bmp"
+IDB_INFOBACK			BITMAP					"res\\infoback.bmp"
+IDB_LISTBACK			BITMAP					"res\\listback.bmp"
+IDB_TREEBACK			BITMAP					"res\\treeback.bmp"
+IDB_ASCENDING			BITMAP					"res\\ascending.bmp"
+IDB_FIELDS				BITMAP					"res\\fields.bmp"
+IDB_RECAVI				BITMAP					"res\\recavi.bmp"
+IDB_RECINPUT			BITMAP					"res\\recinput.bmp"
+IDB_RECWAV				BITMAP					"res\\recwav.bmp"
+IDB_PLAYMNG				BITMAP					"res\\playmng.bmp"
+IDB_RANDOM				BITMAP					"res\\random.bmp"
+IDB_RECMNG				BITMAP					"res\\recmng.bmp"
+IDB_SAVESTATE			BITMAP					"res\\savestate.bmp"
+IDB_FILTERS				BITMAP					"res\\filters.bmp"
+IDB_REMOVE				BITMAP					"res\\remove.bmp"
+IDB_RENAME				BITMAP					"res\\rename.bmp"
+IDB_RESET				BITMAP					"res\\reset.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Cursor
+//
+
+IDC_CURSOR_HSPLIT       CURSOR                  "res\\splith.cur"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// RT_MANIFEST AND ICON
+//
+
+1                       RT_MANIFEST             "res\\mameui.manifest"
+2                       ICON         			"res\\mameui.ico"

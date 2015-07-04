@@ -652,6 +652,7 @@ void hyprduel_state::dirty_tiles( int layer, UINT16 *vram )
 
 UINT32 hyprduel_state::screen_update_hyprduel(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
 {
+	const rectangle &visarea_sprites = m_screen->visible_area();
 	int i, pri, layers_ctrl = -1;
 	UINT16 screenctrl = *m_screenctrl;
 
@@ -725,8 +726,12 @@ if (machine().input().code_pressed(KEYCODE_Z))
 	for (pri = 3; pri >= 0; pri--)
 		draw_layers(screen, bitmap, cliprect, pri, layers_ctrl);
 
-	if (layers_ctrl & 0x08)
-		draw_sprites(screen, bitmap, cliprect);
+	/* don't do the rasters on the sprites. it's very slow and the hw might not anyway. */
+	if (cliprect.max_y == visarea_sprites.max_y)
+	{
+		if (layers_ctrl & 0x08)
+			draw_sprites(screen, bitmap, visarea_sprites);
+	}
 
 	return 0;
 }

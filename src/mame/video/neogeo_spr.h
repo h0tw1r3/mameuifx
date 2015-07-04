@@ -142,3 +142,5 @@ public:
 };
 
 extern const device_type NEOGEO_SPRITE_MIDAS;
+
+extern int neogeo_raster_hack;

@@ -174,9 +174,9 @@ void nemesis_state::create_palette_lookups()
 	{
 		RES_NET_VCC_5V | RES_NET_VBIAS_5V | RES_NET_VIN_OPEN_COL,
 		{
-			{ RES_NET_AMP_EMITTER, 1000, 0, 5, { 4700, 2400, 1200, 620, 300 } },
-			{ RES_NET_AMP_EMITTER, 1000, 0, 5, { 4700, 2400, 1200, 620, 300 } },
-			{ RES_NET_AMP_EMITTER, 1000, 0, 5, { 4700, 2400, 1200, 620, 300 } }
+			{ RES_NET_AMP_EMITTER, 1000, 470, 5, { 4700, 2400, 1200, 620, 300 } },
+			{ RES_NET_AMP_EMITTER, 1000, 470, 5, { 4700, 2400, 1200, 620, 300 } },
+			{ RES_NET_AMP_EMITTER, 1000, 470, 5, { 4700, 2400, 1200, 620, 300 } }
 		}
 	};
 

@@ -531,8 +531,8 @@ void qs1000_device::sound_stream_update(sound_stream &stream, stream_sample_t **
 					chan.m_addr = (chan.m_addr + (chan.m_acc >> 18)) & QS1000_ADDRESS_MASK;
 					chan.m_acc &= ((1 << 18) - 1);
 
-					outputs[0][samp] += (result * 4 * lvol * vol) >> 12;
-					outputs[1][samp] += (result * 4 * rvol * vol) >> 12;
+					outputs[0][samp] += (result * 16 * lvol * vol) >> 12;
+					outputs[1][samp] += (result * 16 * rvol * vol) >> 12;
 				}
 			}
 			else
@@ -560,8 +560,8 @@ void qs1000_device::sound_stream_update(sound_stream &stream, stream_sample_t **
 					chan.m_addr = (chan.m_addr + (chan.m_acc >> 18)) & QS1000_ADDRESS_MASK;
 					chan.m_acc &= ((1 << 18) - 1);
 
-					outputs[0][samp] += (result * lvol * vol) >> 12;
-					outputs[1][samp] += (result * rvol * vol) >> 12;
+					outputs[0][samp] += (result * 16 * lvol * vol) >> 12;
+					outputs[1][samp] += (result * 16 * rvol * vol) >> 12;
 				}
 			}
 		}

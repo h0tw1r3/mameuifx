@@ -2218,6 +2218,35 @@ ROM_START( dkongx11 )
 	ROM_LOAD( "v-5e.bpr",     0x0200, 0x0100, CRC(b869b8f5) SHA1(c2bdccbf2654b64ea55cd589fd21323a9178a660) ) /* character color codes on a per-column basis */
 ROM_END
 
+ROM_START( dkongpne )
+	ROM_REGION( 0x10000, "maincpu", 0 )
+	ROM_LOAD( "c_5et_g.bin",  0x0000, 0x1000, CRC(ba70b88b) )
+	ROM_LOAD( "c_5ct_g.bin",  0x1000, 0x1000, CRC(45af403e) )
+	ROM_LOAD( "c_5bt_g.bin",  0x2000, 0x1000, CRC(3a9783b7) )
+	ROM_LOAD( "c_5at_g.bin",  0x3000, 0x1000, CRC(32bc20ff) )
+	/* space for diagnostic ROM */
+
+	ROM_REGION( 0x1800, "soundcpu", 0 ) /* sound */
+	ROM_LOAD( "s_3i_b.bin",   0x0000, 0x0800, CRC(45a4ed06) SHA1(144d24464c1f9f01894eb12f846952290e6e32ef) )
+	ROM_RELOAD(               0x0800, 0x0800 )
+	ROM_LOAD( "s_3j_b.bin",   0x1000, 0x0800, CRC(4743fe92) SHA1(6c82b57637c0212a580591397e6a5a1718f19fd2) )
+
+	ROM_REGION( 0x1000, "gfx1", 0 )
+	ROM_LOAD( "v_5h_b.bin",   0x0000, 0x0800, CRC(007aa348) )
+	ROM_LOAD( "v_3pt.bin",    0x0800, 0x0800, CRC(a967aff0) )
+
+	ROM_REGION( 0x2000, "gfx2", 0 )
+	ROM_LOAD( "l_4m_b.bin",   0x0000, 0x0800, CRC(766ae006) )
+	ROM_LOAD( "l_4n_b.bin",   0x0800, 0x0800, CRC(39e7ca4b) )
+	ROM_LOAD( "l_4r_b.bin",   0x1000, 0x0800, CRC(012f2f25) )
+	ROM_LOAD( "l_4s_b.bin",   0x1800, 0x0800, CRC(84eb5bfb) )
+
+	ROM_REGION( 0x0300, "proms", 0 )
+	ROM_LOAD( "c-2k.bpr",     0x0000, 0x0100, CRC(e273ede5) SHA1(b50ec9e1837c00c20fb2a4369ec7dd0358321127) ) /* palette low 4 bits (inverted) */
+	ROM_LOAD( "c-2j.bpr",     0x0100, 0x0100, CRC(d6412358) SHA1(f9c872da2fe8e800574ae3bf483fb3ccacc92eb3) ) /* palette high 4 bits (inverted) */
+	ROM_LOAD( "v-5e.bpr",     0x0200, 0x0100, CRC(b869b8f5) SHA1(c2bdccbf2654b64ea55cd589fd21323a9178a660) ) /* character color codes on a per-column basis */
+ROM_END
+
 ROM_START( dkongjr )
 	ROM_REGION( 0x10000, "maincpu", 0 )
 	ROM_LOAD( "djr1-c_5b_f-2.5b", 0x0000, 0x1000, CRC(dea28158) SHA1(08baf84ae6f9b40a2c743fe1d8c158c74a40e95a) )
@@ -3302,6 +3331,7 @@ GAME( 1982, dkongjre,  dkongjr,  dkongjr,   dkongjr,  driver_device, 0,        R
 GAME( 1982, dkongjrpb, dkongjr,  dkongjr,   dkongjr,  driver_device, 0,        ROT90,  "bootleg", "Donkey Kong Junior (P kit, bootleg)", GAME_SUPPORTS_SAVE ) // definitely not issued by Nintendo
 GAME( 1982, jrking,    dkongjr,  dkongjr,   dkongjr,  driver_device, 0,        ROT90,  "bootleg", "Junior King (bootleg of Donkey Kong Jr.)", GAME_SUPPORTS_SAVE )
 GAME( 1982, dkingjr,   dkongjr,  dkongjr,   dkongjr,  dkong_state,   dkingjr,  ROT90,  "bootleg", "Donkey King Jr. (bootleg of Donkey Kong Jr.)", GAME_SUPPORTS_SAVE )
+GAME( 2013, dkongpne,  dkong,    dkong2b,   dkong,    driver_device, 0,  	   ROT90,  "hack by Mike Mika", "Donkey Kong (Pauline Edition)", GAME_SUPPORTS_SAVE )
 
 GAME( 1983, dkong3,    0,        dkong3,    dkong3,   driver_device, 0,        ROT90,  "Nintendo of America", "Donkey Kong 3 (US)", GAME_SUPPORTS_SAVE )
 GAME( 1983, dkong3j,   dkong3,   dkong3,    dkong3,   driver_device, 0,        ROT90,  "Nintendo", "Donkey Kong 3 (Japan)", GAME_SUPPORTS_SAVE )

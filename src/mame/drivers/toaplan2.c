@@ -360,6 +360,25 @@ To Do / Unknowns:
 #include "includes/toaplipt.h"
 
 
+int fadeout_ready = 0;
+int fadeout_stop = 0;
+int counter1 = 0;
+float sample_vol1 = 0;
+
+int playing1 = 0xff;
+int playing2 = 0xff;
+int playing3 = 0x00;
+int playing4 = 0x00;
+int playing5 = 0x00;
+int play_bat1 = 0x00;
+int play_bat2 = 0x00;
+
+int thunder1 = 0;
+int thunder2 = 0;
+int thunder3 = 0;
+int thunder4 = 0;
+int thunder5 = 0;
+int thunder6 = 0;
 /***************************************************************************
   Initialisation handlers
 ***************************************************************************/
@@ -630,6 +649,65 @@ WRITE16_MEMBER(toaplan2_state::toaplan2_hd647180_cpu_w)
 	}
 }
 
+WRITE16_MEMBER(toaplan2_state::tekipaki_hd647180_cpu_w)
+{
+	if (data == 0xfe)
+	{
+		m_samples->stop(0);
+		m_samples->stop(1);
+		m_samples->stop(2);
+		m_samples->stop(3);
+		m_samples->stop(4);
+		m_samples->stop(5);
+		m_samples->stop(6);
+		m_samples->stop(7);
+	}
+	
+	if (data >= 0x01 && data <= 0x03)
+		m_samples->start(0, data, 1);
+	
+	if (data >= 0x04 && data <= 0x05)
+		m_samples->start(0, data, 0);
+	
+	if (data == 0x06)
+		m_samples->start(1, data ,0);
+	
+	if (data == 0x07)
+		m_samples->start(1, data ,0);
+	
+	if (data >= 0x08 && data <= 0x09)
+		m_samples->start(2, data, 0);
+	
+	if (data >= 0x0a && data <= 0x0d)
+		m_samples->start(3, data, 0);
+	
+	if (data >= 0x0e && data <= 0x12)
+		m_samples->start(4, data, 0);
+	
+	if (data >= 0x13 && data <= 0x14)
+		m_samples->start(5, data, 0);
+	
+	if (data == 0x15)
+		m_samples->start(6, data, 0);
+
+	// Command sent to secondary CPU. Support for HD647180 will be
+	// required when a ROM dump becomes available for this hardware
+
+	if (ACCESSING_BITS_0_7)
+	{
+		m_mcu_data = data & 0xff;
+		logerror("PC:%08x Writing command (%04x) to secondary CPU shared port\n", space.device().safe_pcbase(), m_mcu_data);
+	}
+}
+
+const char *tekipaki_sample_names[] =
+{
+	"*tekipaki",
+	"dm","01","02","03","04","05","06","07",
+	"08","09","0a","0b","0c","0d","0e","0f",
+	"10","11","12","13","14","15",0
+};
+
 
 CUSTOM_INPUT_MEMBER(toaplan2_state::c2map_r)
 {
@@ -674,6 +752,48 @@ READ16_MEMBER(toaplan2_state::ghox_mcu_r)
 
 WRITE16_MEMBER(toaplan2_state::ghox_mcu_w)
 {
+	if (data == 0xfe)
+		m_samples->stop(0);
+
+	if (data == 0x42 || data == 0x44 || data == 0x45 || data == 0x47 || data == 0x48 || data == 0x4c || data == 0x4d || data == 0x4e)
+		m_samples->start(0, data , 1);
+
+	if (data == 0xd0)
+		m_samples->start(0, 0, 1);
+
+	if (data == 0x49)
+		m_samples->start(0, data , 0);
+
+	if (data >= 0x02 && data <= 0x0f)
+		m_samples->start(1, data , 0);
+
+	if (data >= 0x10 && data <= 0x17)
+		m_samples->start(2, data , 0);
+
+	if (data >= 0x18 && data <= 0x1f)
+		m_samples->start(3, data , 0);
+
+	if (data >= 0x20 && data <= 0x27)
+		m_samples->start(4, data , 0);
+
+	if (data >= 0x28 && data <= 0x2f)
+		m_samples->start(5, data , 0);
+
+	if (data >= 0x30 && data <= 0x38)
+		m_samples->start(6, data , 0);
+
+	if (data == 0x39)
+		m_samples->start(8, data , 0);
+
+	if (data >= 0x3a && data <= 0x3f)
+		m_samples->start(7, data , 0);
+
+	if (data == 0x01)
+		m_samples->start(8, data , 0);
+
+	if (data == 0x4b)
+		m_samples->start(0, 0x4f , 0);
+
 	if (ACCESSING_BITS_0_7)
 	{
 		data &= 0xff;
@@ -712,6 +832,21 @@ WRITE16_MEMBER(toaplan2_state::ghox_mcu_w)
 		}
 	}
 }
+
+const char *ghox_sample_names[] =
+{
+	"*ghox",
+	"d0","01","02","dm","04","05","06","dm",
+	"08","09","dm","0b","0c","dm","dm","0f",
+	"dm","11","12","12","14","15","16","17",
+	"18","19","1a","1b","1c","1c","1c","1f",
+	"20","21","22","23","24","dm","dm","27",
+	"dm","dm","2a","2b","dm","2d","2e","2f",
+	"dm","dm","dm","33","34","35","36","37",
+	"38","39","dm","dm","3c","dm","3e","dm",
+	"dm","dm","42","43","44","45","43","47",
+	"48","49","43","dm","4c","4d","4e","d1",0
+};
 
 
 READ16_MEMBER(toaplan2_state::ghox_shared_ram_r)
@@ -994,7 +1129,7 @@ static ADDRESS_MAP_START( tekipaki_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x180040, 0x180041) AM_WRITE(toaplan2_coin_word_w)
 	AM_RANGE(0x180050, 0x180051) AM_READ_PORT("IN1")
 	AM_RANGE(0x180060, 0x180061) AM_READ_PORT("IN2")
-	AM_RANGE(0x180070, 0x180071) AM_WRITE(toaplan2_hd647180_cpu_w)
+	AM_RANGE(0x180070, 0x180071) AM_WRITE(tekipaki_hd647180_cpu_w)
 ADDRESS_MAP_END
 
 
@@ -3071,7 +3206,7 @@ static MACHINE_CONFIG_START( tekipaki, toaplan2_state )
 	//MCFG_SCREEN_REFRESH_RATE(60)
 	//MCFG_SCREEN_SIZE(432, 262)
 	//MCFG_SCREEN_VISIBLE_AREA(0, 319, 0, 239)
-	MCFG_SCREEN_UPDATE_DRIVER(toaplan2_state, screen_update_toaplan2)
+	MCFG_SCREEN_UPDATE_DRIVER(toaplan2_state, screen_update_toaplan2_samples)
 	MCFG_SCREEN_VBLANK_DRIVER(toaplan2_state, screen_eof_toaplan2)
 	MCFG_SCREEN_PALETTE("palette")
 
@@ -3090,6 +3225,9 @@ static MACHINE_CONFIG_START( tekipaki, toaplan2_state )
 #ifdef USE_HD64x180
 	MCFG_YM3812_IRQ_HANDLER(INPUTLINE("audiocpu", 0))
 #endif
+	MCFG_SOUND_ADD("samples", SAMPLES, 0)
+	MCFG_SAMPLES_CHANNELS(8)
+	MCFG_SAMPLES_NAMES(tekipaki_sample_names)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 1.0)
 MACHINE_CONFIG_END
 
@@ -3116,7 +3254,7 @@ static MACHINE_CONFIG_START( ghox, toaplan2_state )
 	//MCFG_SCREEN_REFRESH_RATE(60)
 	//MCFG_SCREEN_SIZE(432, 262)
 	//MCFG_SCREEN_VISIBLE_AREA(0, 319, 0, 239)
-	MCFG_SCREEN_UPDATE_DRIVER(toaplan2_state, screen_update_toaplan2)
+	MCFG_SCREEN_UPDATE_DRIVER(toaplan2_state, screen_update_toaplan2_samples)
 	MCFG_SCREEN_VBLANK_DRIVER(toaplan2_state, screen_eof_toaplan2)
 	MCFG_SCREEN_PALETTE("palette")
 
@@ -3132,6 +3270,9 @@ static MACHINE_CONFIG_START( ghox, toaplan2_state )
 	MCFG_SPEAKER_STANDARD_MONO("mono")
 
 	MCFG_YM2151_ADD("ymsnd", XTAL_27MHz/8) /* verified on pcb */
+	MCFG_SOUND_ADD("samples", SAMPLES, 0)
+	MCFG_SAMPLES_CHANNELS(9)
+	MCFG_SAMPLES_NAMES(ghox_sample_names)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 1.0)
 MACHINE_CONFIG_END
 

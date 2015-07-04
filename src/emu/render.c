@@ -1143,41 +1143,84 @@ const render_screen_list &render_target::view_screens(int viewindex)
 
 void render_target::compute_visible_area(INT32 target_width, INT32 target_height, float target_pixel_aspect, int target_orientation, INT32 &visible_width, INT32 &visible_height)
 {
-	float width, height;
-	float scale;
-
-	// constrained case
-	if (target_pixel_aspect != 0.0f)
+	if (m_manager.machine().options().widestretch())
 	{
-		// start with the aspect ratio of the square pixel layout
+		float width = 0, height = 0;
+		float scale = 0, aspect = 0;
+
+		// scan the current view for all screens
+		for (item_layer layer = ITEM_LAYER_FIRST; layer < ITEM_LAYER_MAX; layer++)
+
+			// iterate over items in the layer
+			for (layout_view::item *curitem = m_curview->first_item(layer); curitem != NULL; curitem = curitem->next())
+				if (curitem->screen() != NULL)
+				{
+					// use a hard-coded default visible area for vector screens
+					screen_device *screen = curitem->screen();
+					const rectangle vectorvis(0, 639, 0, 479);
+					const rectangle &visarea = (screen->screen_type() == SCREEN_TYPE_VECTOR) ? vectorvis : screen->visible_area();
+					aspect = (float)visarea.width()/(float)visarea.height();
+				}
+
 		width = m_curview->effective_aspect(m_layerconfig);
 		height = 1.0f;
+	
+		if (aspect <= 1.2f)
+			set_view(1);	// pixel_aspect
+		else 		
+			set_view(0);	// standard
 
-		// first apply target orientation
 		if (target_orientation & ORIENTATION_SWAP_XY)
-			FSWAP(width, height);
+			width *= 4.0f/3.0f;
+		else
+			height *= 3.0f/4.0f;
 
-		// apply the target pixel aspect ratio
-		height *= target_pixel_aspect;
-
-		// based on the height/width ratio of the source and target, compute the scale factor
 		if (width / height > (float)target_width / (float)target_height)
 			scale = (float)target_width / width;
 		else
 			scale = (float)target_height / height;
-	}
 
-	// stretch-to-fit case
+ 		visible_width = render_round_nearest(width * scale);
+		visible_height = render_round_nearest(height * scale);
+	}
 	else
 	{
-		width = (float)target_width;
-		height = (float)target_height;
-		scale = 1.0f;
+		float width, height;
+		float scale;
+	
+		// constrained case
+		if (target_pixel_aspect != 0.0f)
+		{
+			// start with the aspect ratio of the square pixel layout
+			width = m_curview->effective_aspect(m_layerconfig);
+			height = 1.0f;
+	
+			// first apply target orientation
+			if (target_orientation & ORIENTATION_SWAP_XY)
+				FSWAP(width, height);
+	
+			// apply the target pixel aspect ratio
+			height *= target_pixel_aspect;
+	
+			// based on the height/width ratio of the source and target, compute the scale factor
+			if (width / height > (float)target_width / (float)target_height)
+				scale = (float)target_width / width;
+			else
+				scale = (float)target_height / height;
+		}
+	
+		// stretch-to-fit case
+		else
+		{
+			width = (float)target_width;
+			height = (float)target_height;
+			scale = 1.0f;
+		}
+	
+		// set the final width/height
+		visible_width = render_round_nearest(width * scale);
+		visible_height = render_round_nearest(height * scale);
 	}
-
-	// set the final width/height
-	visible_width = render_round_nearest(width * scale);
-	visible_height = render_round_nearest(height * scale);
 }
 
 

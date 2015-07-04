@@ -620,6 +620,30 @@ To Do:
 #include "sound/3812intf.h"
 
 
+int tsundere = 0;
+
+const char *const samesame_sample_names[] =
+{
+	"*samesame",
+	"dm","01","02","03","04","05","06","07",
+	"08","09","0a","0b","0c","0d","0e","0f",
+	"10","11","12","13","14","15","16","17",
+	"18","19","1a","1b","1c","1d","1e","1f",
+	"20","21","22","23","24","25","26","27",
+	"28",0
+};
+
+const char *vimana_sample_names[] =
+{
+	"*vimana",
+	"00","01","02","03","04","05","06","07",
+	"08","09","0a","0b","0c","0d","0e","0f",
+	"10","11","12","13","14","15","16","17",
+	"18","19","dm","dm","1c","1d","1e","dm",
+	"20","dm","22",0
+};
+
+
 /***************************** 68000 Memory Map *****************************/
 
 static ADDRESS_MAP_START( rallybik_main_map, AS_PROGRAM, 16, toaplan1_rallybik_state )
@@ -754,7 +778,7 @@ static ADDRESS_MAP_START( samesame_main_map, AS_PROGRAM, 16, toaplan1_state )
 	AM_RANGE(0x140008, 0x140009) AM_READ_PORT("SYSTEM")
 	AM_RANGE(0x14000a, 0x14000b) AM_READ(samesame_port_6_word_r)    /* Territory, and MCU ready */
 	AM_RANGE(0x14000c, 0x14000d) AM_WRITE(samesame_coin_w)  /* Coin counter/lockout */
-//  AM_RANGE(0x14000e, 0x14000f) AM_WRITE(samesame_mcu_w)   /* Commands sent to HD647180 */
+    AM_RANGE(0x14000e, 0x14000f) AM_WRITE(samesame_mcu_w)   /* Commands sent to HD647180 - THUNDERMAME HACKS */
 	AM_RANGE(0x180000, 0x180001) AM_WRITE(toaplan1_bcu_flipscreen_w)
 	AM_RANGE(0x180002, 0x180003) AM_READWRITE(toaplan1_tileram_offs_r, toaplan1_tileram_offs_w)
 	AM_RANGE(0x180004, 0x180007) AM_READWRITE(toaplan1_tileram16_r, toaplan1_tileram16_w)
@@ -2004,6 +2028,9 @@ static MACHINE_CONFIG_START( samesame, toaplan1_state )
 
 	MCFG_SOUND_ADD("ymsnd", YM3812, XTAL_28MHz/8)
 	MCFG_YM3812_IRQ_HANDLER(INPUTLINE("audiocpu", 0))
+	MCFG_SOUND_ADD("samples", SAMPLES, 0)
+	MCFG_SAMPLES_CHANNELS(9)
+	MCFG_SAMPLES_NAMES(samesame_sample_names)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 1.0)
 MACHINE_CONFIG_END
 
@@ -2078,6 +2105,9 @@ static MACHINE_CONFIG_START( vimana, toaplan1_state )
 
 	MCFG_SOUND_ADD("ymsnd", YM3812, XTAL_28MHz/8)   /* verified on pcb */
 	MCFG_YM3812_IRQ_HANDLER(INPUTLINE("audiocpu", 0))
+	MCFG_SOUND_ADD("samples", SAMPLES, 0)
+	MCFG_SAMPLES_CHANNELS(16)
+	MCFG_SAMPLES_NAMES(vimana_sample_names)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 1.0)
 MACHINE_CONFIG_END
 
@@ -2827,10 +2857,17 @@ DRIVER_INIT_MEMBER(toaplan1_state,demonwld)
 	demonwld_driver_savestate();
 }
 
+DRIVER_INIT_MEMBER(toaplan1_state,fireshrk)
+{
+	toaplan1_driver_savestate();
+	tsundere = 1;
+}
+
 DRIVER_INIT_MEMBER(toaplan1_state,vimana)
 {
 	toaplan1_driver_savestate();
 	vimana_driver_savestate();
+	tsundere = 2;
 }
 
 
@@ -2848,12 +2885,12 @@ GAME( 1990, demonwld,   0,        demonwld, demonwld,  toaplan1_state, demonwld,
 GAME( 1989, demonwld1,  demonwld, demonwld, demonwld1, toaplan1_state, demonwld, ROT0,   "Toaplan", "Demon's World / Horror Story (set 2)", 0 )
 GAME( 1989, demonwld2,  demonwld, demonwld, demonwld1, toaplan1_state, demonwld, ROT0,   "Toaplan", "Demon's World / Horror Story (set 3)", 0 )
 GAME( 1989, demonwld3,  demonwld, demonwld, demonwld1, toaplan1_state, demonwld, ROT0,   "Toaplan", "Demon's World / Horror Story (set 4)", 0 )
-GAME( 1990, fireshrk,   0,        samesame, fireshrk,  toaplan1_state, toaplan1, ROT270, "Toaplan", "Fire Shark", GAME_NO_SOUND )
-GAME( 1989, fireshrka,  fireshrk, samesame, fireshrka, toaplan1_state, toaplan1, ROT270, "Toaplan", "Fire Shark (earlier)", GAME_NO_SOUND )
-GAME( 1990, fireshrkd,  fireshrk, samesame, samesame2, toaplan1_state, toaplan1, ROT270, "Toaplan (Dooyong license)", "Fire Shark (Korea, set 1, easier)", GAME_NO_SOUND )
-GAME( 1990, fireshrkdh, fireshrk, samesame, samesame2, toaplan1_state, toaplan1, ROT270, "Toaplan (Dooyong license)", "Fire Shark (Korea, set 2, harder)", GAME_NO_SOUND )
-GAME( 1989, samesame,   fireshrk, samesame, samesame,  toaplan1_state, toaplan1, ROT270, "Toaplan", "Same! Same! Same! (1P set)", GAME_NO_SOUND )
-GAME( 1989, samesame2,  fireshrk, samesame, samesame2, toaplan1_state, toaplan1, ROT270, "Toaplan", "Same! Same! Same! (2P set)", GAME_NO_SOUND )
+GAME( 1990, fireshrk,   0,        samesame, fireshrk,  toaplan1_state, fireshrk, ROT270, "Toaplan", "Fire Shark", GAME_NO_SOUND )
+GAME( 1989, fireshrka,  fireshrk, samesame, fireshrka, toaplan1_state, fireshrk, ROT270, "Toaplan", "Fire Shark (earlier)", GAME_NO_SOUND )
+GAME( 1990, fireshrkd,  fireshrk, samesame, samesame2, toaplan1_state, fireshrk, ROT270, "Toaplan (Dooyong license)", "Fire Shark (Korea, set 1, easier)", GAME_NO_SOUND )
+GAME( 1990, fireshrkdh, fireshrk, samesame, samesame2, toaplan1_state, fireshrk, ROT270, "Toaplan (Dooyong license)", "Fire Shark (Korea, set 2, harder)", GAME_NO_SOUND )
+GAME( 1989, samesame,   fireshrk, samesame, samesame,  toaplan1_state, fireshrk, ROT270, "Toaplan", "Same! Same! Same! (1P set)", GAME_NO_SOUND )
+GAME( 1989, samesame2,  fireshrk, samesame, samesame2, toaplan1_state, fireshrk, ROT270, "Toaplan", "Same! Same! Same! (2P set)", GAME_NO_SOUND )
 GAME( 1990, outzone,    0,        outzone,  outzone,   toaplan1_state, toaplan1, ROT270, "Toaplan", "Out Zone", 0 )
 GAME( 1990, outzoneh,   outzone,  outzone,  outzone,   toaplan1_state, toaplan1, ROT270, "Toaplan", "Out Zone (harder)", 0 )
 GAME( 1990, outzonea,   outzone,  outzone,  outzonea,  toaplan1_state, toaplan1, ROT270, "Toaplan", "Out Zone (old set)", 0 )

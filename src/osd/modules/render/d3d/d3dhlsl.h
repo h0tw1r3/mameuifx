@@ -351,6 +351,8 @@ private:
 	int                     prescale_force_y;           // prescale force y
 	int                     prescale_size_x;            // prescale size x
 	int                     prescale_size_y;            // prescale size y
+	int                     hlsl_prescale_x;            // hlsl prescale x
+	int                     hlsl_prescale_y;            // hlsl prescale y
 	int                     preset;                     // preset, if relevant
 	bitmap_argb32           shadow_bitmap;              // shadow mask bitmap for post-processing shader
 	texture_info *          shadow_texture;             // shadow mask texture for post-processing shader

@@ -261,6 +261,14 @@ void tc0100scn_device::device_start()
 	m_tilemap[2][0]->set_scrolldx(xd - 16, -m_flip_text_xoffs - xd - 16 - 7);
 	m_tilemap[2][0]->set_scrolldy(yd,      -m_flip_text_yoffs - yd);
 
+	if ((strcmp(machine().system().name, "megablst") == 0) ||
+		(strcmp(machine().system().name, "megablstu") == 0) ||
+		(strcmp(machine().system().name, "megablstj") == 0) ||
+		(strcmp(machine().system().name, "finalb") == 0) ||
+		(strcmp(machine().system().name, "finalbu") == 0) ||
+		(strcmp(machine().system().name, "finalbj") == 0))
+		m_tilemap[2][0]->set_scrolldy(yd - 1,      -m_flip_text_yoffs - (yd - 1));
+
 	/* Double width tilemaps. We must correct offsets for
 	   extra chips, as MAME sees offsets from LHS of whole
 	   display not from the edges of individual screens.

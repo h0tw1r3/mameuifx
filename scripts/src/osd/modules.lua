@@ -57,7 +57,7 @@ function osdmodulesbuild()
 		MAME_DIR .. "src/osd/modules/sound/none.c",
 	}
 
-	if _OPTIONS["targetos"]=="windows" then
+	if _OPTIONS["targetos"]=="windows" or _OPTIONS["targetos"]=="winui" then
 		includedirs {
 			MAME_DIR .. "3rdparty/winpcap/Include",
 		}
@@ -165,7 +165,7 @@ function osdmodulesbuild()
 			
 		}
 		
-		if _OPTIONS["targetos"]=="windows" then
+		if _OPTIONS["targetos"]=="windows" or _OPTIONS["targetos"]=="winui" then
 			configuration { "mingw*" }
 				buildoptions {
 					"-I$(shell qmake -query QT_INSTALL_HEADERS)",
@@ -203,7 +203,7 @@ function osdmodulestargetconf()
 				"OpenGL.framework",
 			}
 		elseif _OPTIONS["USE_DISPATCH_GL"]~="1" then
-			if _OPTIONS["targetos"]=="windows" then
+			if _OPTIONS["targetos"]=="windows" or _OPTIONS["targetos"]=="winui" then
 				links {
 					"opengl32",
 				}
@@ -228,7 +228,7 @@ function osdmodulestargetconf()
 	end
 
 	if _OPTIONS["USE_QTDEBUG"]=="1" then
-		if _OPTIONS["targetos"]=="windows" then
+		if _OPTIONS["targetos"]=="windows" or _OPTIONS["targetos"]=="winui" then
 			linkoptions {
 				"-L$(shell qmake -query QT_INSTALL_LIBS)",
 			}
@@ -262,7 +262,7 @@ function osdmodulestargetconf()
 		end
 	end
 
-	if _OPTIONS["targetos"]=="windows" then
+	if _OPTIONS["targetos"]=="windows" or _OPTIONS["targetos"]=="winui" then
 		links {
 			"gdi32",
 			"dsound",
@@ -352,7 +352,7 @@ newoption {
 
 
 if not _OPTIONS["USE_QTDEBUG"] then
-	if _OPTIONS["targetos"]=="windows" or _OPTIONS["targetos"]=="macosx" or _OPTIONS["targetos"]=="solaris" or _OPTIONS["targetos"]=="haiku" or _OPTIONS["targetos"] == "emscripten" or _OPTIONS["targetos"] == "os2" then
+	if _OPTIONS["targetos"]=="windows" or _OPTIONS["targetos"]=="winui" or _OPTIONS["targetos"]=="macosx" or _OPTIONS["targetos"]=="solaris" or _OPTIONS["targetos"]=="haiku" or _OPTIONS["targetos"] == "emscripten" or _OPTIONS["targetos"] == "os2" then
 		_OPTIONS["USE_QTDEBUG"] = "0"
 	else
 		_OPTIONS["USE_QTDEBUG"] = "1"

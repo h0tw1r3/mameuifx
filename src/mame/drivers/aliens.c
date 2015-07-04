@@ -199,7 +199,7 @@ static MACHINE_CONFIG_START( aliens, aliens_state )
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", aliens_state, aliens_interrupt)
 	MCFG_KONAMICPU_LINE_CB(WRITE8(aliens_state, banking_callback))
 
-	MCFG_CPU_ADD("audiocpu", Z80, XTAL_3_579545MHz)     /* verified on pcb */
+	MCFG_CPU_ADD("audiocpu", Z80, XTAL_3_579545MHz * 2)     /* multiplied for music speed */
 	MCFG_CPU_PROGRAM_MAP(aliens_sound_map)
 
 	MCFG_DEVICE_ADD("bank0000", ADDRESS_MAP_BANK, 0)

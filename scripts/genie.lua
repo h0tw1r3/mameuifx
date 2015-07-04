@@ -431,7 +431,7 @@ configuration { "gmake" }
 dofile ("toolchain.lua")
 
 
-if _OPTIONS["targetos"]=="windows" then
+if _OPTIONS["targetos"]=="windows" or _OPTIONS["targetos"]=="winui" then
 	configuration { "x64" }
 		defines {
 			"X64_WINDOWS_ABI",
@@ -492,7 +492,7 @@ configuration { "Release" }
 configuration { }
 
 -- CR/LF setup: use both on win32/os2, CR only on everything else
-if _OPTIONS["targetos"]=="windows" or _OPTIONS["targetos"]=="os2" then
+if _OPTIONS["targetos"]=="windows" or _OPTIONS["targetos"]=="winui" or _OPTIONS["targetos"]=="os2" then
 	defines {
 		"CRLF=3",
 	}

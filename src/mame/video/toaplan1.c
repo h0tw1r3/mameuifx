@@ -128,6 +128,9 @@ Abnormalities:
 #define TOAPLAN1_SPRITERAM_SIZE      0x800  /* sprite ram */
 #define TOAPLAN1_SPRITESIZERAM_SIZE  0x80   /* sprite size ram */
 
+int wait;
+int vcounter1 = 0;
+float vsample_vol1 = 0;
 
 /***************************************************************************
 
@@ -919,7 +922,88 @@ void toaplan1_state::draw_sprites(screen_device &screen, bitmap_ind16 &bitmap, c
 	}
 }
 
+void toaplan1_state::ese_fadeout()
+{
+	if (vfadeout_stop == 1)
+	{
+		vplaying2 = 0xff;
+		vfadeout_ready = 0;
+		vfadeout_stop = 0;
+		vsample_vol1 = 1.00;
+		m_samples->set_volume(0, 1.00);
+	}
+	
+	if (vcounter1 >= 17)
+	{
+		vcounter1 = 0;
 
+		if (vfadeout_ready == 1)
+		{
+			vsample_vol1 = vsample_vol1 - 0.10;
+
+			if (vsample_vol1 <= 0)
+				vsample_vol1 = 0;
+
+			m_samples->set_volume(0, vsample_vol1);
+		}
+
+		if (vsample_vol1 == 0)
+		{
+			m_samples->stop(0);
+			vfadeout_ready = 0;
+			vfadeout_stop = 0;
+			vsample_vol1 = 1.00;
+			m_samples->set_volume(0, 1.00);
+
+			if (vplaying2 != 0xff)
+			{
+				m_samples->start(0, vplaying2, 1);
+				vplaying1 = 0xff;
+				vplaying2 = 0xff;
+			}
+		}
+	}
+
+	vcounter1++;	
+}
+
+void toaplan1_state::ese_fadeout2()
+{
+	if (vfadeout_stop == 1)
+	{
+		vplaying2 = 0xff;
+		vfadeout_ready = 0;
+		vfadeout_stop = 0;
+		vsample_vol1 = 1.00;
+		m_samples->set_volume(0, 1.00);
+	}
+	
+	if (vcounter1 >= 10)
+	{
+		vcounter1 = 0;
+
+		if (vfadeout_ready == 1)
+		{
+			vsample_vol1 = vsample_vol1 - 0.1;
+
+			if (vsample_vol1 <= 0)
+				vsample_vol1 = 0;
+
+			m_samples->set_volume(0, vsample_vol1);
+		}
+
+		if (vsample_vol1 == 0)
+		{
+			m_samples->stop(0);
+			vfadeout_ready = 0;
+			vfadeout_stop = 0;
+			vsample_vol1 = 1.00;
+			m_samples->set_volume(0, 1.00);
+		}
+	}
+
+	vcounter1++;	
+}
 
 
 /***************************************************************************
@@ -976,6 +1060,28 @@ UINT32 toaplan1_state::screen_update_toaplan1(screen_device &screen, bitmap_ind1
 	}
 
 	draw_sprites(screen, bitmap, cliprect);
+	
+	if (tsundere != 0)
+	{
+		if (start1 > 0) 
+			wait++;
+
+		if (wait >=(92 + start2))
+		{
+			m_samples->stop(0);
+			m_samples->set_volume(0, 1.00);
+			m_samples->start(0, 0x7, 0);
+			start1 = 0;
+			start2 = 1;
+			wait = 0;
+		}
+
+		if (start2 == 0 && tsundere == 1) 
+			ese_fadeout2();
+		
+		if (tsundere == 2) 
+			ese_fadeout();	// Vimana
+	}
 	return 0;
 }
 

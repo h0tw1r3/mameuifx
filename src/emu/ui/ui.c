@@ -25,6 +25,7 @@
 #include "ui/sliders.h"
 #include "ui/viewgfx.h"
 #include "imagedev/cassette.h"
+#include <time.h>
 
 
 /***************************************************************************
@@ -100,6 +101,7 @@ static slider_state *slider_list;
 static slider_state *slider_current;
 
 
+static int show_time = 0;
 /***************************************************************************
     FUNCTION PROTOTYPES
 ***************************************************************************/
@@ -227,6 +229,8 @@ ui_manager::ui_manager(running_machine &machine)
 	// initialize the other UI bits
 	ui_menu::init(machine);
 	ui_gfx_init(machine);
+
+	show_time = 0;
 
 	// reset instance variables
 	m_font = NULL;
@@ -456,7 +460,7 @@ void ui_manager::update_and_render(render_container *container)
 		{
 			float mouse_y=-1,mouse_x=-1;
 			if (mouse_target->map_point_container(mouse_target_x, mouse_target_y, *container, mouse_x, mouse_y)) {
-				container->add_quad(mouse_x,mouse_y,mouse_x + 0.05*container->manager().ui_aspect(container),mouse_y + 0.05,UI_TEXT_COLOR,m_mouse_arrow_texture,PRIMFLAG_BLENDMODE(BLENDMODE_ALPHA));
+				container->add_quad(mouse_x,mouse_y,mouse_x + 0.05*container->manager().ui_aspect(container),mouse_y + 0.05,ARGB_WHITE,m_mouse_arrow_texture,PRIMFLAG_BLENDMODE(BLENDMODE_ALPHA));
 			}
 		}
 	}
@@ -842,8 +846,12 @@ void ui_manager::draw_text_box(render_container *container, const char *text, in
 						target_y - UI_BOX_TB_BORDER,
 						target_x + target_width + UI_BOX_LR_BORDER,
 						target_y + target_height + UI_BOX_TB_BORDER, backcolor);
-	draw_text_full(container, text, target_x, target_y, target_width + 0.00001f,
-				justify, WRAP_WORD, DRAW_NORMAL, UI_TEXT_COLOR, UI_TEXT_BG_COLOR, NULL, NULL);
+	if (backcolor == UI_BACKGROUND_COLOR)
+		draw_text_full(container, text, target_x, target_y, target_width + 0.00001f,
+					justify, WRAP_WORD, DRAW_NORMAL, UI_TEXT_COLOR, backcolor, NULL, NULL);
+	else
+		draw_text_full(container, text, target_x, target_y, target_width + 0.00001f,
+					justify, WRAP_WORD, DRAW_NORMAL, ARGB_WHITE, backcolor, NULL, NULL);
 }
 
 
@@ -1232,10 +1240,18 @@ std::string &ui_manager::game_info_astring(std::string &str)
 			{
 				const rectangle &visarea = screen->visible_area();
 
-				strcatprintf(str, "%d " UTF8_MULTIPLY " %d (%s) %f" UTF8_NBSP "Hz\n",
-						visarea.width(), visarea.height(),
-						(machine().system().flags & ORIENTATION_SWAP_XY) ? "V" : "H",
-						ATTOSECONDS_TO_HZ(screen->frame_period().attoseconds));
+				if (machine().system().flags & ORIENTATION_SWAP_XY)
+				{
+					strcatprintf(str, "%d " UTF8_MULTIPLY " %d (%s) %f" UTF8_NBSP "Hz\n",
+							visarea.height(), visarea.width(), "V",
+							ATTOSECONDS_TO_HZ(screen->frame_period().attoseconds));
+				}
+				else
+				{
+					strcatprintf(str, "%d " UTF8_MULTIPLY " %d (%s) %f" UTF8_NBSP "Hz\n",
+							visarea.width(), visarea.height(), "H",
+							ATTOSECONDS_TO_HZ(screen->frame_period().attoseconds));
+				}
 			}
 		}
 	}
@@ -1458,6 +1474,19 @@ void ui_manager::image_handler_ingame()
 	}
 }
 
+static void ui_display_time(running_machine &machine, render_container *container)
+{
+	char buf[20];
+	time_t ltime;
+	struct tm *today;
+	float line_height = machine.ui().get_line_height();
+
+	time(&ltime);
+	today = localtime(&ltime);
+
+	sprintf(buf, "%02d:%02d:%02d", today->tm_hour, today->tm_min, today->tm_sec);
+	machine.ui().draw_text_full(container, buf, 0.0f, 1.0f - line_height, 1.0f, JUSTIFY_RIGHT, WRAP_WORD, DRAW_OPAQUE, ARGB_WHITE, ARGB_BLACK, NULL, NULL);
+}
 
 //-------------------------------------------------
 //  handler_ingame - in-game handler takes care
@@ -1482,6 +1511,9 @@ UINT32 ui_manager::handler_ingame(running_machine &machine, render_container *co
 		const char *text = g_profiler.text(machine);
 		machine.ui().draw_text_full(container, text, 0.0f, 0.0f, 1.0f, JUSTIFY_LEFT, WRAP_WORD, DRAW_OPAQUE, ARGB_WHITE, ARGB_BLACK, NULL, NULL);
 	}
+
+	if (show_time)
+		ui_display_time(machine, container);
 
 	// if we're single-stepping, pause now
 	if (machine.ui().single_step())
@@ -1647,6 +1679,18 @@ UINT32 ui_manager::handler_ingame(running_machine &machine, render_container *co
 	// toggle throttle?
 	if (ui_input_pressed(machine, IPT_UI_THROTTLE))
 		machine.video().toggle_throttle();
+
+	// toggle autofire
+	if (ui_input_pressed(machine, IPT_UI_TOGGLE_AUTOFIRE))
+	{
+		autofire_toggle ^= 1;
+		popmessage("Autofire %s", autofire_toggle ? "Disabled" : "Enabled");
+	}
+	
+	if (ui_input_pressed(machine, IPT_UI_SHOW_TIME))
+	{
+		show_time ^= 1;
+	}
 
 	// check for fast forward
 	if (machine.ioport().type_pressed(IPT_UI_FAST_FORWARD))

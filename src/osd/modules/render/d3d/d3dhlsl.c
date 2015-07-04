@@ -1432,11 +1432,15 @@ void shaders::deconverge_pass(render_target *rt, vec2f &texsize, vec2f &delta, v
 void shaders::defocus_pass(render_target *rt, vec2f &texsize)
 {
 	UINT num_passes = 0;
+	
+	float prescale[2] = { (float)hlsl_prescale_x, (float)hlsl_prescale_y };
 
 	// Defocus pass 1
 	curr_effect = focus_effect;
 	curr_effect->update_uniforms();
 	curr_effect->set_texture("Diffuse", rt->render_texture[2]);
+	
+	curr_effect->set_vector("Prescale", 2, prescale);
 
 	curr_effect->begin(&num_passes, 0);
 
@@ -1538,9 +1542,15 @@ void shaders::avi_post_pass(render_target *rt, vec2f &texsize, vec2f &delta, vec
 {
 	UINT num_passes = 0;
 
+	float prescale[2] = { (float)hlsl_prescale_x, (float)hlsl_prescale_y };
+	int orientation = d3d->window().machine().system().flags & ORIENTATION_SWAP_XY ? 0 : 1;
+
 	curr_effect = post_effect;
 	curr_effect->update_uniforms();
 	curr_effect->set_texture("ShadowTexture", shadow_texture == NULL ? NULL : shadow_texture->get_finaltex());
+
+	curr_effect->set_vector("Prescale", 2, prescale);
+	curr_effect->set_int("Orientation", orientation);
 
 	// Scanlines and shadow mask, at high res for AVI logging
 	if(avi_output_file != NULL)
@@ -1591,12 +1601,18 @@ void shaders::avi_post_pass(render_target *rt, vec2f &texsize, vec2f &delta, vec
 void shaders::screen_post_pass(render_target *rt, vec2f &texsize, vec2f &delta, vec2f &sourcedims, poly_info *poly, int vertnum)
 {
 	UINT num_passes = 0;
+  
+	float prescale[2] = { (float)hlsl_prescale_x, (float)hlsl_prescale_y };
+	int orientation = d3d->window().machine().system().flags & ORIENTATION_SWAP_XY ? 0 : 1;
 
 	curr_effect = post_effect;
 	curr_effect->update_uniforms();
 	curr_effect->set_texture("ShadowTexture", shadow_texture == NULL ? NULL : shadow_texture->get_finaltex());
 
 	curr_effect->set_texture("DiffuseTexture", rt->render_texture[0]);
+
+	curr_effect->set_vector("Prescale", 2, prescale);
+	curr_effect->set_int("Orientation", orientation);
 
 	d3d->set_wrap(D3DTADDRESS_MIRROR);
 
@@ -1624,11 +1640,15 @@ void shaders::screen_post_pass(render_target *rt, vec2f &texsize, vec2f &delta, 
 void shaders::raster_bloom_pass(render_target *rt, vec2f &texsize, vec2f &delta, poly_info *poly, int vertnum)
 {
 	UINT num_passes = 0;
+  
+	float prescale[2] = { (float)hlsl_prescale_x, (float)hlsl_prescale_y };
 
 	curr_effect = downsample_effect;
 
 	curr_effect->set_texture("Diffuse", rt->render_texture[2]);
 	curr_effect->set_float("BloomRescale", options->raster_bloom_scale);
+
+	curr_effect->set_vector("Prescale", 2, prescale);
 
 	float bloom_size = (d3d->get_width() < d3d->get_height()) ? d3d->get_width() : d3d->get_height();
 	int bloom_index = 0;
@@ -1687,6 +1707,8 @@ void shaders::raster_bloom_pass(render_target *rt, vec2f &texsize, vec2f &delta,
 	curr_effect->set_vector("LevelASize", 2, bloom_dims[10]);
 
 	curr_effect->set_texture("DiffuseA", rt->render_texture[2]);
+
+	curr_effect->set_vector("Prescale", 2, prescale);
 
 	char name[9] = "Diffuse*";
 	for(int index = 1; index < bloom_index; index++)
@@ -1812,12 +1834,16 @@ void shaders::render_quad(poly_info *poly, int vertnum)
 	else if (PRIMFLAG_GET_VECTORBUF(poly->get_flags()) && vector_enable)
 	{
 		render_target *rt = find_render_target(d3d->get_width(), d3d->get_height(), 0, 0);
+    
+		float prescale[2] = { (float)hlsl_prescale_x, (float)hlsl_prescale_y };
 
 		/* Bloom */
 		curr_effect = downsample_effect;
 
 		curr_effect->set_texture("Diffuse", rt->render_texture[0]);
 		curr_effect->set_float("BloomRescale", options->vector_bloom_scale);
+
+		curr_effect->set_vector("Prescale", 2, prescale);
 
 		float bloom_size = (d3d->get_width() < d3d->get_height()) ? d3d->get_width() : d3d->get_height();
 		int bloom_index = 0;
@@ -1879,6 +1905,8 @@ void shaders::render_quad(poly_info *poly, int vertnum)
 		curr_effect->set_vector("LevelASize", 2, bloom_dims[10]);
 
 		curr_effect->set_texture("DiffuseA", rt->render_texture[0]);
+
+		curr_effect->set_vector("Prescale", 2, prescale);
 
 		char name[9] = "Diffuse*";
 		for(int index = 1; index < bloom_index; index++)
@@ -2170,8 +2198,8 @@ bool shaders::register_texture(texture_info *texture)
 
 	enumerate_screens();
 
-	int hlsl_prescale_x = prescale_force_x;
-	int hlsl_prescale_y = prescale_force_y;
+	hlsl_prescale_x = prescale_force_x;
+	hlsl_prescale_y = prescale_force_y;
 
 	// Find the nearest prescale factor that is over our screen size
 	if (hlsl_prescale_x == 0)

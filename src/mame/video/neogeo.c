@@ -163,9 +163,12 @@ UINT32 neogeo_state::screen_update_neogeo(screen_device &screen, bitmap_rgb32 &b
 	// fill with background color first
 	bitmap.fill(*m_bg_pen, cliprect);
 
-	m_sprgen->draw_sprites(bitmap, cliprect.min_y);
-
-	m_sprgen->draw_fixed_layer(bitmap, cliprect.min_y);
+	for (int line = cliprect.min_y; line <= cliprect.max_y ; line++)
+	{
+		m_sprgen->parse_sprites(line);
+		m_sprgen->draw_sprites(bitmap, line);
+		m_sprgen->draw_fixed_layer(bitmap, line);
+	}
 
 	return 0;
 }

@@ -722,7 +722,7 @@ void ui_menu::draw_text_box()
 						target_x + target_width + gutter_width + UI_BOX_LR_BORDER,
 						target_y + target_height + UI_BOX_TB_BORDER, (item[0].flags & MENU_FLAG_REDTEXT) ?  UI_RED_COLOR : UI_BACKGROUND_COLOR);
 	machine().ui().draw_text_full(container, text, target_x, target_y, target_width,
-				JUSTIFY_LEFT, WRAP_WORD, DRAW_NORMAL, UI_TEXT_COLOR, UI_TEXT_BG_COLOR, NULL, NULL);
+				JUSTIFY_LEFT, WRAP_WORD, DRAW_NORMAL, (item[0].flags & MENU_FLAG_REDTEXT) ?  ARGB_WHITE : UI_TEXT_COLOR, UI_TEXT_BG_COLOR, NULL, NULL);
 
 	// draw the "return to prior menu" text with a hilight behind it
 	highlight(

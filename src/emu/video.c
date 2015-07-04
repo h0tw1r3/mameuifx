@@ -86,6 +86,7 @@ video_manager::video_manager(running_machine &machine)
 		m_overall_valid_counter(0),
 		m_throttled(machine.options().throttle()),
 		m_throttle_rate(1.0f),
+		m_syncrefresh(machine.options().sync_refresh()),
 		m_fastforward(false),
 		m_seconds_to_run(machine.options().seconds_to_run()),
 		m_auto_frameskip(machine.options().auto_frameskip()),
@@ -400,7 +401,7 @@ void video_manager::begin_recording(const char *name, movie_format format)
 		file_error filerr;
 		std::string fullpath;
 		{
-			emu_file tempfile(machine().options().snapshot_directory(), OPEN_FLAG_WRITE | OPEN_FLAG_CREATE | OPEN_FLAG_CREATE_PATHS);
+			emu_file tempfile(machine().options().video_directory(), OPEN_FLAG_WRITE | OPEN_FLAG_CREATE | OPEN_FLAG_CREATE_PATHS);
 			if (name != NULL)
 				filerr = tempfile.open(name);
 			else
@@ -437,7 +438,7 @@ void video_manager::begin_recording(const char *name, movie_format format)
 		m_mng_next_frame_time = machine().time();
 
 		// create a new movie file and start recording
-		m_mng_file.reset(global_alloc(emu_file(machine().options().snapshot_directory(), OPEN_FLAG_WRITE | OPEN_FLAG_CREATE | OPEN_FLAG_CREATE_PATHS)));
+		m_mng_file.reset(global_alloc(emu_file(machine().options().video_directory(), OPEN_FLAG_WRITE | OPEN_FLAG_CREATE | OPEN_FLAG_CREATE_PATHS)));
 		file_error filerr;
 		if (name != NULL)
 			filerr = m_mng_file->open(name);
@@ -734,6 +735,10 @@ void video_manager::update_throttle(attotime emutime)
 		3,4,4,5,4,5,5,6, 4,5,5,6,5,6,6,7, 4,5,5,6,5,6,6,7, 5,6,6,7,6,7,7,8
 	};
 
+	// if we're only syncing to the refresh, bail now
+	if (m_syncrefresh)
+		return;
+
 	// outer scope so we can break out in case of a resync
 	while (1)
 	{
@@ -1009,6 +1014,9 @@ void video_manager::recompute_speed(const attotime &emutime)
 		osd_ticks_t delta_realtime = realtime - m_speed_last_realtime;
 		osd_ticks_t tps = osd_ticks_per_second();
 		m_speed_percent = delta_emutime.as_double() * (double)tps / (double)delta_realtime;
+
+		if (m_syncrefresh && m_throttled)
+			m_speed = m_speed_percent * 1000;
 
 		// remember the last times
 		m_speed_last_realtime = realtime;

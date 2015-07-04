@@ -632,7 +632,7 @@ static MACHINE_CONFIG_START( scontra, thunderx_state )
 	MCFG_CPU_PROGRAM_MAP(scontra_map)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", thunderx_state,  vblank_interrupt)
 
-	MCFG_CPU_ADD("audiocpu", Z80, XTAL_3_579545MHz)     /* verified on pcb */
+	MCFG_CPU_ADD("audiocpu", Z80, XTAL_3_579545MHz * 2)     /* multiplied for music speed */
 	MCFG_CPU_PROGRAM_MAP(scontra_sound_map)
 
 	MCFG_DEVICE_ADD("bank5800", ADDRESS_MAP_BANK, 0)
@@ -644,10 +644,10 @@ static MACHINE_CONFIG_START( scontra, thunderx_state )
 
 	/* video hardware */
 	MCFG_SCREEN_ADD("screen", RASTER)
-	MCFG_SCREEN_REFRESH_RATE(59.17)             /* verified on pcb */
+	MCFG_SCREEN_REFRESH_RATE(57)             /* tweaked for game speed */
 	MCFG_SCREEN_VBLANK_TIME(ATTOSECONDS_IN_USEC(0))
 	MCFG_SCREEN_SIZE(64*8, 32*8)
-	MCFG_SCREEN_VISIBLE_AREA(14*8, (64-14)*8-1, 2*8, 30*8-1 )
+	MCFG_SCREEN_VISIBLE_AREA(12*8, (64-12)*8-1, 2*8, 30*8-1 )
 	MCFG_SCREEN_UPDATE_DRIVER(thunderx_state, screen_update)
 	MCFG_SCREEN_PALETTE("palette")
 
@@ -691,11 +691,17 @@ static MACHINE_CONFIG_DERIVED( thunderx, scontra )
 	MCFG_KONAMICPU_LINE_CB(WRITE8(thunderx_state, banking_callback))
 
 	MCFG_DEVICE_MODIFY("audiocpu")
+	MCFG_CPU_CLOCK(XTAL_3_579545MHz)     /* verified on pcb */
 	MCFG_CPU_PROGRAM_MAP(thunderx_sound_map)
 
 	MCFG_DEVICE_MODIFY("bank5800")
 	MCFG_DEVICE_PROGRAM_MAP(thunderx_bank5800_map)
 	MCFG_ADDRESS_MAP_BANK_ADDRBUS_WIDTH(13)
+
+	/* video hardware */
+	MCFG_SCREEN_MODIFY("screen")
+	MCFG_SCREEN_REFRESH_RATE(60)
+	MCFG_SCREEN_VISIBLE_AREA(14*8, (64-14)*8-1, 2*8, 30*8-1 )
 
 	MCFG_DEVICE_REMOVE("k007232")
 MACHINE_CONFIG_END

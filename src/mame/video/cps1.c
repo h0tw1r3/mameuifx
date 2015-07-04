@@ -1397,6 +1397,7 @@ static const struct CPS1config cps1_config_table[]=
 	{"striderua",   CPS_B_01,     mapper_ST24M1 },  // wrong, this set uses ST24B2, still not dumped
 	{"striderj",    CPS_B_01,     mapper_ST22B },   // equivalent to ST24M1
 	{"striderjr",   CPS_B_21_DEF, mapper_ST24M1 },  // wrong, this set uses STH63B, still not dumped
+	{"stridergh",   CPS_B_01,     mapper_ST24M1 },	//works
 	{"dynwar",      CPS_B_02,     mapper_TK22B },   // wrong, this set uses TK24B1, dumped but equations still not added
 	{"dynwara",     CPS_B_02,     mapper_TK22B },
 	{"dynwarj",     CPS_B_02,     mapper_TK22B },
@@ -1543,6 +1544,7 @@ static const struct CPS1config cps1_config_table[]=
 	{"wofu",        CPS_B_21_QS1, mapper_TK263B },
 	{"wofj",        CPS_B_21_QS1, mapper_TK263B },
 	{"wofhfh",      CPS_B_21_DEF, mapper_TK263B, 0x36 },    /* Chinese bootleg */
+	{"wofjm",    	CPS_B_21_QS1, mapper_TK263B },	// works
 	{"dino",        CPS_B_21_QS2, mapper_CD63B },   /* layer enable never used */
 	{"dinou",       CPS_B_21_QS2, mapper_CD63B },   /* layer enable never used */
 	{"dinoj",       CPS_B_21_QS2, mapper_CD63B },   /* layer enable never used */
@@ -2931,7 +2933,15 @@ UINT32 cps_state::screen_update_cps1(screen_device &screen, bitmap_ind16 &bitmap
 	{
 		// CPS1 games use pen 0xbff as background color; this is used in 3wonders,
 		// mtwins (explosion during attract), mercs (intermission).
-		bitmap.fill(0xbff, cliprect);
+		if ((strcmp(machine().system().name, "mtwins") == 0) ||
+			(strcmp(machine().system().name, "chikij") == 0) ||
+			(strcmp(machine().system().name, "mercs") == 0) ||
+			(strcmp(machine().system().name, "mercsu") == 0) ||
+			(strcmp(machine().system().name, "mercsur1") == 0) ||
+			(strcmp(machine().system().name, "mercsj") == 0))
+			bitmap.fill(0xbff, cliprect);
+		else
+			bitmap.fill(m_palette->black_pen(), cliprect);
 	}
 	else
 	{

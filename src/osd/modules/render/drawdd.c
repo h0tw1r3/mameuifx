@@ -828,7 +828,7 @@ int renderer_dd::create_clipper()
 void renderer_dd::compute_blit_surface_size()
 {
 	INT32 newwidth, newheight;
-	int xscale, yscale;
+	float xscale, yscale;
 	RECT client;
 
 	// start with the minimum size
@@ -867,8 +867,8 @@ void renderer_dd::compute_blit_surface_size()
 		}
 
 		// compute maximum integral scaling to fit the window
-		xscale = (target_width + 2) / newwidth;
-		yscale = (target_height + 2) / newheight;
+		xscale = (float)target_width / newwidth;
+		yscale = (float)target_height / newheight;
 
 		// try a little harder to keep the aspect ratio if desired
 		if (video_config.keepaspect)
@@ -1004,7 +1004,8 @@ void renderer_dd::blit_to_primary(int srcwidth, int srcheight)
 		dstwidth = srcwidth = source.right - source.left;
 		dstheight = srcheight = source.bottom - source.top;
 	}
-	else if (video_config.keepaspect)
+	
+	if (video_config.keepaspect)
 	{
 		// compute the appropriate visible area
 		window().target()->compute_visible_area(rect_width(&outer), rect_height(&outer), monitor->aspect(), window().target()->orientation(), dstwidth, dstheight);

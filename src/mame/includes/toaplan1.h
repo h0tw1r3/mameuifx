@@ -5,6 +5,7 @@
 
 #include "cpu/m68000/m68000.h"
 #include "video/toaplan_scu.h"
+#include "sound/samples.h"
 
 class toaplan1_state : public driver_device
 {
@@ -18,6 +19,7 @@ public:
 		m_maincpu(*this, "maincpu"),
 		m_audiocpu(*this, "audiocpu"),
 		m_dsp(*this, "dsp"),
+		m_samples(*this, "samples"),
 		m_gfxdecode(*this, "gfxdecode"),
 		m_screen(*this, "screen"),
 		m_palette(*this, "palette") { }
@@ -93,6 +95,7 @@ public:
 	DECLARE_READ16_MEMBER(vimana_system_port_r);
 	DECLARE_READ16_MEMBER(vimana_mcu_r);
 	DECLARE_WRITE16_MEMBER(vimana_mcu_w);
+	DECLARE_WRITE16_MEMBER(samesame_mcu_w);
 	DECLARE_READ16_MEMBER(toaplan1_shared_r);
 	DECLARE_WRITE16_MEMBER(toaplan1_shared_w);
 	DECLARE_WRITE16_MEMBER(toaplan1_reset_sound_w);
@@ -122,6 +125,7 @@ public:
 	DECLARE_DRIVER_INIT(toaplan1);
 	DECLARE_DRIVER_INIT(demonwld);
 	DECLARE_DRIVER_INIT(vimana);
+	DECLARE_DRIVER_INIT(fireshrk);
 	TILE_GET_INFO_MEMBER(get_pf1_tile_info);
 	TILE_GET_INFO_MEMBER(get_pf2_tile_info);
 	TILE_GET_INFO_MEMBER(get_pf3_tile_info);
@@ -145,6 +149,8 @@ public:
 	void register_common();
 	void toaplan1_log_vram();
 	void draw_sprites(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect );
+	void ese_fadeout();
+	void ese_fadeout2();
 	void demonwld_dsp(int enable);
 	void toaplan1_reset_sound();
 	void toaplan1_driver_savestate();
@@ -154,6 +160,7 @@ public:
 	required_device<m68000_device> m_maincpu;
 	required_device<cpu_device> m_audiocpu;
 	optional_device<cpu_device> m_dsp;
+	optional_device<samples_device> m_samples;
 	required_device<gfxdecode_device> m_gfxdecode;
 	required_device<screen_device> m_screen;
 	required_device<palette_device> m_palette;
@@ -176,3 +183,13 @@ public:
 
 	required_device<toaplan_scu_device> m_spritegen;
 };
+
+extern int start1;
+extern int start2;
+extern int vfadeout_ready;
+extern int vfadeout_stop;
+extern int vplaying1;
+extern int vplaying2;
+extern int tsundere;
+extern int vcounter1;
+extern float vsample_vol1;

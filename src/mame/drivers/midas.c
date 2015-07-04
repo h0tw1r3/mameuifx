@@ -111,9 +111,12 @@ UINT32 midas_state::screen_update_midas(screen_device &screen, bitmap_rgb32 &bit
 	// fill with background color first
 	bitmap.fill(0x0, cliprect);
 
-	m_sprgen->draw_sprites(bitmap, cliprect.min_y);
-
-	m_sprgen->draw_fixed_layer(bitmap, cliprect.min_y);
+	for (int line = cliprect.min_y; line <= cliprect.max_y ; line++)
+	{
+		m_sprgen->parse_sprites(line);
+		m_sprgen->draw_sprites(bitmap, line);
+		m_sprgen->draw_fixed_layer(bitmap, line);
+	}
 
 	return 0;
 }

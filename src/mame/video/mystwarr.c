@@ -226,10 +226,10 @@ VIDEO_START_MEMBER(mystwarr_state, metamrph)
 	konamigx_mixer_init(*m_screen, 0);
 
 	// other reference, floor at first boss
-	m_k056832->set_layer_offs(0, -2+4, 0); // text
-	m_k056832->set_layer_offs(1,  0+4, 0); // attract sea
-	m_k056832->set_layer_offs(2,  2+4, 0); // attract red monster in background of sea
-	m_k056832->set_layer_offs(3,  3+4, 0); // attract sky background to sea
+	m_k056832->set_layer_offs(0, -2+4, +2); // text
+	m_k056832->set_layer_offs(1,  0+4, +2); // attract sea
+	m_k056832->set_layer_offs(2,  2+4, +2); // attract red monster in background of sea
+	m_k056832->set_layer_offs(3,  3+4, +2); // attract sky background to sea
 }
 
 VIDEO_START_MEMBER(mystwarr_state, viostorm)

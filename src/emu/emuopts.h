@@ -56,6 +56,8 @@ enum
 #define OPTION_FONTPATH             "fontpath"
 #define OPTION_CHEATPATH            "cheatpath"
 #define OPTION_CROSSHAIRPATH        "crosshairpath"
+#define OPTION_HIGHPATH             "highpath"
+#define OPTION_GLSLPATH             "glslpath"
 
 // core directory options
 #define OPTION_CFG_DIRECTORY        "cfg_directory"
@@ -65,6 +67,8 @@ enum
 #define OPTION_SNAPSHOT_DIRECTORY   "snapshot_directory"
 #define OPTION_DIFF_DIRECTORY       "diff_directory"
 #define OPTION_COMMENT_DIRECTORY    "comment_directory"
+#define OPTION_HISCORE_DIRECTORY	"hiscore_directory"
+#define OPTION_VIDEO_DIRECTORY		"video_directory"
 
 // core state/playback options
 #define OPTION_STATE                "state"
@@ -89,6 +93,7 @@ enum
 #define OPTION_FRAMESKIP            "frameskip"
 #define OPTION_SECONDS_TO_RUN       "seconds_to_run"
 #define OPTION_THROTTLE             "throttle"
+#define OPTION_SYNCREFRESH          "syncrefresh"
 #define OPTION_SLEEP                "sleep"
 #define OPTION_SPEED                "speed"
 #define OPTION_REFRESHSPEED         "refreshspeed"
@@ -116,6 +121,7 @@ enum
 #define OPTION_GAMMA                "gamma"
 #define OPTION_PAUSE_BRIGHTNESS     "pause_brightness"
 #define OPTION_EFFECT               "effect"
+#define OPTION_WIDESTRETCH			"widestretch"
 
 // core vector options
 #define OPTION_ANTIALIAS            "antialias"
@@ -176,6 +182,7 @@ enum
 
 #define OPTION_CONFIRM_QUIT         "confirm_quit"
 #define OPTION_UI_MOUSE             "ui_mouse"
+#define OPTION_HISCORE				"hiscore"
 
 #define OPTION_AUTOBOOT_COMMAND     "autoboot_command"
 #define OPTION_AUTOBOOT_DELAY       "autoboot_delay"
@@ -227,6 +234,8 @@ public:
 	const char *font_path() const { return value(OPTION_FONTPATH); }
 	const char *cheat_path() const { return value(OPTION_CHEATPATH); }
 	const char *crosshair_path() const { return value(OPTION_CROSSHAIRPATH); }
+	const char *high_path() const { return value(OPTION_HIGHPATH); }
+	const char *glsl_path() const { return value(OPTION_GLSLPATH); }
 
 	// core directory options
 	const char *cfg_directory() const { return value(OPTION_CFG_DIRECTORY); }
@@ -236,6 +245,8 @@ public:
 	const char *snapshot_directory() const { return value(OPTION_SNAPSHOT_DIRECTORY); }
 	const char *diff_directory() const { return value(OPTION_DIFF_DIRECTORY); }
 	const char *comment_directory() const { return value(OPTION_COMMENT_DIRECTORY); }
+	const char *hiscore_directory() const { return value(OPTION_HISCORE_DIRECTORY); }
+	const char *video_directory() const { return value(OPTION_VIDEO_DIRECTORY); }
 
 	// core state/playback options
 	const char *state() const { return value(OPTION_STATE); }
@@ -260,6 +271,7 @@ public:
 	int frameskip() const { return int_value(OPTION_FRAMESKIP); }
 	int seconds_to_run() const { return int_value(OPTION_SECONDS_TO_RUN); }
 	bool throttle() const { return bool_value(OPTION_THROTTLE); }
+	bool sync_refresh() const { return bool_value(OPTION_SYNCREFRESH); }
 	bool sleep() const { return bool_value(OPTION_SLEEP); }
 	float speed() const { return float_value(OPTION_SPEED); }
 	bool refresh_speed() const { return bool_value(OPTION_REFRESHSPEED); }
@@ -287,6 +299,7 @@ public:
 	float gamma() const { return float_value(OPTION_GAMMA); }
 	float pause_brightness() const { return float_value(OPTION_PAUSE_BRIGHTNESS); }
 	const char *effect() const { return value(OPTION_EFFECT); }
+	bool widestretch() const { return bool_value(OPTION_WIDESTRETCH); }
 
 	// core vector options
 	bool antialias() const { return bool_value(OPTION_ANTIALIAS); }
@@ -345,6 +358,7 @@ public:
 
 	bool confirm_quit() const { return bool_value(OPTION_CONFIRM_QUIT); }
 	bool ui_mouse() const { return bool_value(OPTION_UI_MOUSE); }
+	bool hiscore() const { return bool_value(OPTION_HISCORE); }
 
 	const char *autoboot_command() const { return value(OPTION_AUTOBOOT_COMMAND); }
 	int autoboot_delay() const { return int_value(OPTION_AUTOBOOT_DELAY); }

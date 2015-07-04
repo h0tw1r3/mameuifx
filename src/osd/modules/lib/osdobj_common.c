@@ -47,7 +47,6 @@ const options_entry osd_options::s_option_entries[] =
 	{ OSDOPTION_KEEPASPECT ";ka",             "1",              OPTION_BOOLEAN,   "constrain to the proper aspect ratio" },
 	{ OSDOPTION_UNEVENSTRETCH ";ues",         "1",              OPTION_BOOLEAN,   "allow non-integer stretch factors" },
 	{ OSDOPTION_WAITVSYNC ";vs",              "0",              OPTION_BOOLEAN,   "enable waiting for the start of VBLANK before flipping screens; reduces tearing effects" },
-	{ OSDOPTION_SYNCREFRESH ";srf",           "0",              OPTION_BOOLEAN,   "enable using the start of VBLANK for throttling instead of the game time" },
 
 	// per-window options
 	{ NULL,                                   NULL,             OPTION_HEADER,    "OSD PER-WINDOW VIDEO OPTIONS" },

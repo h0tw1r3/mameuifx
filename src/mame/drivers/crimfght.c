@@ -256,7 +256,7 @@ static MACHINE_CONFIG_START( crimfght, crimfght_state )
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", crimfght_state,  crimfght_interrupt)
 	MCFG_KONAMICPU_LINE_CB(WRITE8(crimfght_state, banking_callback))
 
-	MCFG_CPU_ADD("audiocpu", Z80, XTAL_3_579545MHz)     /* verified on pcb */
+	MCFG_CPU_ADD("audiocpu", Z80, XTAL_3_579545MHz * 2)     /* multiplied for music speed */
 	MCFG_CPU_PROGRAM_MAP(crimfght_sound_map)
 
 	/* video hardware */

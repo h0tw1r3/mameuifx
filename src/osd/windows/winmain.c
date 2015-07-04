@@ -282,7 +282,7 @@ const options_entry windows_options::s_option_entries[] =
 
 	// DirectDraw-specific options
 	{ NULL,                                           NULL,       OPTION_HEADER,     "DIRECTDRAW-SPECIFIC OPTIONS" },
-	{ WINOPTION_HWSTRETCH ";hws",                     "1",        OPTION_BOOLEAN,    "enable hardware stretching" },
+	{ WINOPTION_HWSTRETCH ";hws",                     "0",        OPTION_BOOLEAN,    "enable hardware stretching" },
 
 	// post-processing options
 	{ NULL,                                                     NULL,        OPTION_HEADER,     "DIRECT3D POST-PROCESSING OPTIONS" },
@@ -370,6 +370,14 @@ const options_entry windows_options::s_option_entries[] =
 	// input options
 	{ NULL,                                           NULL,       OPTION_HEADER,     "INPUT DEVICE OPTIONS" },
 	{ WINOPTION_DUAL_LIGHTGUN ";dual",                "0",        OPTION_BOOLEAN,    "enable dual lightgun input" },
+	{ WINOPTION_JOYSTICK_ID_1 "(0-7)",       		  "0",        OPTION_INTEGER,    "set joystick ID (Player1)" }, 	
+	{ WINOPTION_JOYSTICK_ID_2 "(0-7)",       		  "1",        OPTION_INTEGER,    "set joystick ID (Player2)" }, 	
+	{ WINOPTION_JOYSTICK_ID_3 "(0-7)",       		  "2",        OPTION_INTEGER,    "set joystick ID (Player3)" }, 	
+	{ WINOPTION_JOYSTICK_ID_4 "(0-7)",       		  "3",        OPTION_INTEGER,    "set joystick ID (Player4)" }, 	
+	{ WINOPTION_JOYSTICK_ID_5 "(0-7)",       		  "4",        OPTION_INTEGER,    "set joystick ID (Player5)" }, 	
+	{ WINOPTION_JOYSTICK_ID_6 "(0-7)",       		  "5",        OPTION_INTEGER,    "set joystick ID (Player6)" }, 	
+	{ WINOPTION_JOYSTICK_ID_7 "(0-7)",       		  "6",        OPTION_INTEGER,    "set joystick ID (Player7)" }, 	
+	{ WINOPTION_JOYSTICK_ID_8 "(0-7)",       		  "7",        OPTION_INTEGER,    "set joystick ID (Player8)" }, 
 
 	{ NULL }
 };

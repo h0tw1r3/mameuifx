@@ -1934,7 +1934,9 @@ void taito_f3_state::get_line_ram_info(tilemap_t *tmap, int sx, int sy, int pos,
 	}
 
 
-	tilemap_t* tm = tmap;
+	/* set pixmap pointer */
+	bitmap_ind16 &srcbitmap = tmap->pixmap();
+	bitmap_ind8 &flagsbitmap = tmap->flagsmap();
 
 	y=y_start;
 	while(y!=y_end)
@@ -1942,6 +1944,7 @@ void taito_f3_state::get_line_ram_info(tilemap_t *tmap, int sx, int sy, int pos,
 		UINT32 x_index_fx;
 		UINT32 y_index;
 
+#if 0	/* SLOW SLOW SLOW!! */
 		/* The football games use values in the range 0x200-0x3ff where the crowd should be drawn - !?
 
 		   This appears to cause it to reference outside of the normal tilemap RAM area into the unused
@@ -1968,9 +1971,7 @@ void taito_f3_state::get_line_ram_info(tilemap_t *tmap, int sx, int sy, int pos,
 			tmap = tm;
 		}
 
-		/* set pixmap pointer */
-		bitmap_ind16 &srcbitmap = tmap->pixmap();
-		bitmap_ind8 &flagsbitmap = tmap->flagsmap();
+#endif /* SLOW SLOW SLOW!! */
 
 		if(line_t->alpha_mode[y]!=0)
 		{

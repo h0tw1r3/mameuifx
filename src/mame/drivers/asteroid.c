@@ -731,6 +731,19 @@ ROM_START( asteroid )
 	ROM_LOAD( "034602-01.c8",   0x0000, 0x0100, CRC(97953db8) SHA1(8cbded64d1dd35b18c4d5cece00f77e7b2cab2ad) )
 ROM_END
 
+ROM_START( asteroid6 )
+	ROM_REGION( 0x8000, "maincpu", 0 )
+	ROM_LOAD( "035145-04e.ef2", 0x6800, 0x0800, CRC(6cdf25a3) )
+	ROM_LOAD( "035144-04e.h2",  0x7000, 0x0800, CRC(b4dcfbde) )
+	ROM_LOAD( "035143-02.j2",   0x7800, 0x0800, CRC(312caa02) SHA1(1ce2eac1ab90b972e3f1fc3d250908f26328d6cb) )
+	/* Vector ROM */
+	ROM_LOAD( "035127-02.np3",  0x5000, 0x0800, CRC(8b71fd9e) SHA1(8cd5005e531eafa361d6b7e9eed159d164776c70) )
+
+	/* DVG PROM */
+	ROM_REGION( 0x100, "user1", 0 )
+	ROM_LOAD( "034602-01.c8",   0x0000, 0x0100, CRC(97953db8) SHA1(8cbded64d1dd35b18c4d5cece00f77e7b2cab2ad) )
+ROM_END
+
 ROM_START( asteroid2 )
 	ROM_REGION( 0x8000, "maincpu", 0 )
 	ROM_LOAD( "035145-02.ef2",  0x6800, 0x0800, CRC(0cc75459) SHA1(2af85c9689b878155004da47fedbde5853a18723) )
@@ -1027,6 +1040,7 @@ GAME( 1979, asterockv, asteroid,  asterock,  asterock,  asteroid_state, asterock
 GAME( 1979, meteorts,  asteroid,  asteroid,  asteroid,  driver_device,  0,         ROT0, "bootleg (VGG)",         "Meteorites (bootleg of Asteroids)", GAME_SUPPORTS_SAVE )
 GAME( 1979, meteorho,  asteroid,  asteroid,  asteroid,  driver_device,  0,         ROT0, "bootleg (Hoei)",        "Meteor (bootleg of Asteroids)",     GAME_SUPPORTS_SAVE )
 GAME( 1979, hyperspc,  asteroid,  asteroid,  asteroid,  driver_device,  0,         ROT0, "bootleg (Rumiano)",     "Hyperspace (bootleg of Asteroids)", GAME_SUPPORTS_SAVE )
+GAME( 2013, asteroid6, asteroid,  asteroid,  asteroid,  driver_device,  0,         ROT0, "hack",   	"Asteroids (Six Bullets Shot Hack)",        GAME_SUPPORTS_SAVE )
 
 GAMEL(1980, astdelux,  0,         astdelux,  astdelux,  driver_device,  0,         ROT0, "Atari",   "Asteroids Deluxe (rev 3)", GAME_SUPPORTS_SAVE, layout_astdelux )
 GAMEL(1980, astdelux2, astdelux,  astdelux,  astdelux,  driver_device,  0,         ROT0, "Atari",   "Asteroids Deluxe (rev 2)", GAME_SUPPORTS_SAVE, layout_astdelux )

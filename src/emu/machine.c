@@ -82,6 +82,7 @@
 #include "unzip.h"
 #include "debug/debugcon.h"
 #include "debug/debugvw.h"
+#include "hiscore.h"
 
 #include <time.h>
 
@@ -161,6 +162,11 @@ running_machine::running_machine(const machine_config &_config, machine_manager 
 		}
 	screen_device_iterator screeniter(root_device());
 	primary_screen = screeniter.first();
+
+	// hiscore
+  	cpu[0] = firstcpu;
+ 	for (int cpunum = 1; cpunum < ARRAY_LENGTH(cpu) && cpu[cpunum - 1] != NULL; cpunum++)
+ 		cpu[cpunum] = cpu[cpunum - 1]->next();
 
 	// fetch core options
 	if (options().debug())
@@ -298,6 +304,10 @@ void running_machine::start()
 
 	// set up the cheat engine
 	m_cheat.reset(global_alloc(cheat_manager(*this)));
+
+	// initialize the hiscore system
+	if (options().hiscore())
+		hiscore_init(*this); 
 
 	// allocate autoboot timer
 	m_autoboot_timer = scheduler().timer_alloc(timer_expired_delegate(FUNC(running_machine::autoboot_callback), this));

@@ -102,6 +102,14 @@
 
 // input options
 #define WINOPTION_DUAL_LIGHTGUN         "dual_lightgun"
+#define WINOPTION_JOYSTICK_ID_1			"joystick_id_1"
+#define WINOPTION_JOYSTICK_ID_2			"joystick_id_2"
+#define WINOPTION_JOYSTICK_ID_3			"joystick_id_3"
+#define WINOPTION_JOYSTICK_ID_4			"joystick_id_4"
+#define WINOPTION_JOYSTICK_ID_5			"joystick_id_5"
+#define WINOPTION_JOYSTICK_ID_6			"joystick_id_6"
+#define WINOPTION_JOYSTICK_ID_7			"joystick_id_7"
+#define WINOPTION_JOYSTICK_ID_8			"joystick_id_8"
 
 
 
@@ -199,6 +207,14 @@ public:
 
 	// input options
 	bool dual_lightgun() const { return bool_value(WINOPTION_DUAL_LIGHTGUN); }
+	int joystick_id_1() const { return int_value(WINOPTION_JOYSTICK_ID_1); }
+	int joystick_id_2() const { return int_value(WINOPTION_JOYSTICK_ID_2); }
+	int joystick_id_3() const { return int_value(WINOPTION_JOYSTICK_ID_3); }
+	int joystick_id_4() const { return int_value(WINOPTION_JOYSTICK_ID_4); }
+	int joystick_id_5() const { return int_value(WINOPTION_JOYSTICK_ID_5); }
+	int joystick_id_6() const { return int_value(WINOPTION_JOYSTICK_ID_6); }
+	int joystick_id_7() const { return int_value(WINOPTION_JOYSTICK_ID_7); }
+	int joystick_id_8() const { return int_value(WINOPTION_JOYSTICK_ID_8); }
 
 private:
 	static const options_entry s_option_entries[];

@@ -271,7 +271,7 @@ inline void neosprite_base_device::draw_fixed_layer_2pixels(UINT32*&pixel_addr, 
  *************************************/
 
 #define MAX_SPRITES_PER_SCREEN    (381)
-#define MAX_SPRITES_PER_LINE      (96)
+#define MAX_SPRITES_PER_LINE      (192)
 
 
 /* horizontal zoom table - verified on real hardware */
@@ -550,12 +550,14 @@ TIMER_CALLBACK_MEMBER(neosprite_base_device::sprite_line_timer_callback)
 {
 	int scanline = param;
 
-	/* we are at the beginning of a scanline -
-	   we need to draw the previous scanline and parse the sprites on the current one */
-	if (scanline != 0)
-		m_screen->update_partial(scanline - 1);
-
-	parse_sprites(scanline);
+	/* we are at the beginning of a scanline */
+	if (neogeo_raster_hack & 0x10)	/* raster register enabled */
+	{
+		if (strcmp(machine().system().name, "sengoku2") == 0)
+			m_screen->update_partial(scanline - 1);
+		else
+			m_screen->update_partial(scanline + 1);
+	}
 
 	/* let's come back at the beginning of the next line */
 	scanline = (scanline + 1) % NEOGEO_VTOTAL;

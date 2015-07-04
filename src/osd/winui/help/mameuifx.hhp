@@ -1,0 +1,18 @@
+[OPTIONS]
+Binary Index=No
+Compatibility=1.1 or later
+Compiled file=help.chm
+Contents file=mameuifx.hhc
+Default Window=Baseline
+Default topic=.\html\mameui_help.htm
+Display compile progress=No
+Full text search stop list file=stoplist.stp
+Full-text search=Yes
+Index file=mameuifx.hhk
+Language=0x409 English (United States)
+Title=MAMEUIFX Help
+
+[WINDOWS]
+Baseline="MAMEUIFX Help","mameuifx.hhc",,"html\mameui_help.htm",,,,,,0x22520,260,0x300c,[100,100,974,615],,,,,,,0
+
+[INFOTYPES]

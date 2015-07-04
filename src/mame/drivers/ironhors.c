@@ -20,20 +20,33 @@
  *
  *************************************/
 
-TIMER_DEVICE_CALLBACK_MEMBER(ironhors_state::irq)
+/* straight copied from gberet.c  and adapted */
+TIMER_DEVICE_CALLBACK_MEMBER(ironhors_state::interrupt_tick)
 {
-	int scanline = param;
+	UINT8 ticks_mask = ~m_interrupt_ticks & (m_interrupt_ticks + 1); // 0->1
+	m_interrupt_ticks++;
 
-	if (scanline == 240)
-	{
-		if (*m_interrupt_enable & 4)
-			m_maincpu->set_input_line(M6809_FIRQ_LINE, HOLD_LINE);
-	}
-	else if (((scanline+16) % 64) == 0)
-	{
-		if (*m_interrupt_enable & 1)
-			m_maincpu->set_input_line(INPUT_LINE_NMI, PULSE_LINE);
-	}
+	// NMI on d0
+	if (ticks_mask & m_interrupt_mask & 1)
+		m_maincpu->set_input_line(INPUT_LINE_NMI, ASSERT_LINE);
+
+	// IRQ on d4
+	if (ticks_mask & m_interrupt_mask<<2 & 16)
+		m_maincpu->set_input_line(M6809_FIRQ_LINE, ASSERT_LINE);
+}
+
+WRITE8_MEMBER(ironhors_state::irq_ctrl_w)
+{
+	/* bits 0/1/2 = interrupt enable */
+	UINT8 ack_mask = ~data & m_interrupt_mask; // 1->0
+
+	if (ack_mask & 1)
+		m_maincpu->set_input_line(INPUT_LINE_NMI, CLEAR_LINE);
+
+	if (ack_mask & 6)
+		m_maincpu->set_input_line(M6809_FIRQ_LINE, CLEAR_LINE);
+
+	m_interrupt_mask = data & 7;
 }
 
 WRITE8_MEMBER(ironhors_state::sh_irqtrigger_w)
@@ -58,7 +71,7 @@ WRITE8_MEMBER(ironhors_state::filter_w)
 static ADDRESS_MAP_START( master_map, AS_PROGRAM, 8, ironhors_state )
 	AM_RANGE(0x0000, 0x0002) AM_RAM
 	AM_RANGE(0x0003, 0x0003) AM_RAM_WRITE(charbank_w)
-	AM_RANGE(0x0004, 0x0004) AM_RAM AM_SHARE("int_enable")
+	AM_RANGE(0x0004, 0x0004) AM_WRITE(irq_ctrl_w)
 	AM_RANGE(0x0005, 0x001f) AM_RAM
 	AM_RANGE(0x0020, 0x003f) AM_RAM AM_SHARE("scroll")
 	AM_RANGE(0x0040, 0x005f) AM_RAM
@@ -113,7 +126,7 @@ static ADDRESS_MAP_START( farwest_master_map, AS_PROGRAM, 8, ironhors_state )
 
 
 	AM_RANGE(0x1800, 0x1800) AM_WRITE(sh_irqtrigger_w)
-	AM_RANGE(0x1a00, 0x1a00) AM_RAM AM_SHARE("int_enable")
+	AM_RANGE(0x1a00, 0x1a00) AM_WRITE(irq_enable_w)
 	AM_RANGE(0x1a01, 0x1a01) AM_RAM_WRITE(charbank_w)
 	AM_RANGE(0x1a02, 0x1a02) AM_WRITE(palettebank_w)
 	AM_RANGE(0x0000, 0x1bff) AM_ROM
@@ -345,6 +358,10 @@ void ironhors_state::machine_start()
 	save_item(NAME(m_palettebank));
 	save_item(NAME(m_charbank));
 	save_item(NAME(m_spriterambank));
+	save_item(NAME(m_interrupt_mask));
+	save_item(NAME(m_interrupt_ticks));
+	save_item(NAME(m_irq_enable));
+	save_item(NAME(m_nmi_enable));
 }
 
 void ironhors_state::machine_reset()
@@ -352,26 +369,27 @@ void ironhors_state::machine_reset()
 	m_palettebank = 0;
 	m_charbank = 0;
 	m_spriterambank = 0;
+	m_interrupt_mask = 0;
+	m_interrupt_ticks = 0;
+	m_irq_enable = 0;
+	m_nmi_enable = 0;
 }
 
 static MACHINE_CONFIG_START( ironhors, ironhors_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M6809,18432000/6)        /* 3.072 MHz??? mod by Shingo Suzuki 1999/10/15 */
+	MCFG_CPU_ADD("maincpu", M6809, MASTER_CLOCK/12)		/* guessed */
 	MCFG_CPU_PROGRAM_MAP(master_map)
-	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", ironhors_state, irq, "screen", 0, 1)
+	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", ironhors_state, interrupt_tick, "screen", 0, 16)
 
-	MCFG_CPU_ADD("soundcpu",Z80,18432000/6)      /* 3.072 MHz */
+	MCFG_CPU_ADD("soundcpu",Z80, MASTER_CLOCK/6)      	/* 3.072 MHz */
 	MCFG_CPU_PROGRAM_MAP(slave_map)
 	MCFG_CPU_IO_MAP(slave_io_map)
 
 
 	/* video hardware */
 	MCFG_SCREEN_ADD("screen", RASTER)
-	MCFG_SCREEN_REFRESH_RATE(30)
-	MCFG_SCREEN_VBLANK_TIME(ATTOSECONDS_IN_USEC(0))
-	MCFG_SCREEN_SIZE(32*8, 32*8)
-	MCFG_SCREEN_VISIBLE_AREA(1*8, 31*8-1, 2*8, 30*8-1)
+	MCFG_SCREEN_RAW_PARAMS(MASTER_CLOCK/3, 396, 8, 248, 256, 16, 240)
 	MCFG_SCREEN_UPDATE_DRIVER(ironhors_state, screen_update)
 	MCFG_SCREEN_PALETTE("palette")
 
@@ -383,7 +401,7 @@ static MACHINE_CONFIG_START( ironhors, ironhors_state )
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
 
-	MCFG_SOUND_ADD("ym2203", YM2203, 18432000/6)
+	MCFG_SOUND_ADD("ym2203", YM2203, MASTER_CLOCK/6)
 	MCFG_AY8910_PORT_A_WRITE_CB(WRITE8(ironhors_state, filter_w))
 
 	MCFG_SOUND_ROUTE_EX(0, "disc_ih", 1.0, 0)
@@ -397,20 +415,26 @@ static MACHINE_CONFIG_START( ironhors, ironhors_state )
 
 MACHINE_CONFIG_END
 
-TIMER_DEVICE_CALLBACK_MEMBER(ironhors_state::farwest_irq)
+WRITE8_MEMBER(ironhors_state::irq_enable_w)
 {
-	int scanline = param;
+	UINT8 mask = data & 0x07;		// check only bits 0,1,2
 
-	if ((scanline % 2) == 1)
-	{
-		if (*m_interrupt_enable & 4)
-			m_maincpu->set_input_line(M6809_FIRQ_LINE, HOLD_LINE);
-	}
-	else if ((scanline % 2) == 0)
-	{
-		if (*m_interrupt_enable & 1)
-			m_maincpu->set_input_line(INPUT_LINE_NMI, PULSE_LINE);
-	}
+	m_nmi_enable = mask & 0x01;		// bit 0 NMI
+	m_irq_enable = mask & 0x05;		// bit 2 IRQ
+	
+	// bit 4 is also used....
+}
+
+INTERRUPT_GEN_MEMBER(ironhors_state::farwest_irq)
+{
+	if (m_irq_enable)
+		m_maincpu->set_input_line(M6809_FIRQ_LINE, HOLD_LINE);
+}
+
+INTERRUPT_GEN_MEMBER(ironhors_state::farwest_irq_nmi)
+{
+	if (m_nmi_enable)
+		m_maincpu->set_input_line(INPUT_LINE_NMI, PULSE_LINE);
 }
 
 READ8_MEMBER(ironhors_state::farwest_soundlatch_r)
@@ -422,8 +446,9 @@ static MACHINE_CONFIG_DERIVED( farwest, ironhors )
 
 	MCFG_CPU_MODIFY("maincpu")
 	MCFG_CPU_PROGRAM_MAP(farwest_master_map)
-	MCFG_DEVICE_MODIFY("scantimer")
-	MCFG_TIMER_DRIVER_CALLBACK(ironhors_state, farwest_irq)
+	MCFG_CPU_VBLANK_INT_DRIVER("screen", ironhors_state, farwest_irq)
+	MCFG_CPU_PERIODIC_INT_DRIVER(ironhors_state, farwest_irq_nmi, 480)		/* 8*60, seems ok */
+	MCFG_DEVICE_REMOVE("scantimer")
 
 	MCFG_CPU_MODIFY("soundcpu")
 	MCFG_CPU_PROGRAM_MAP(farwest_slave_map)

@@ -468,7 +468,7 @@
  *
  *************************************/
 
-
+int neogeo_raster_hack = 0;
 
 // The display counter is automatically reloaded with the load register contents on scanline 224,
 // 1146 mclks from the rising edge of /HSYNC.
@@ -492,6 +492,7 @@ void neogeo_state::adjust_display_position_interrupt_timer()
 void neogeo_state::neogeo_set_display_position_interrupt_control( UINT16 data )
 {
 	m_display_position_interrupt_control = data;
+	neogeo_raster_hack = m_display_position_interrupt_control;
 }
 
 

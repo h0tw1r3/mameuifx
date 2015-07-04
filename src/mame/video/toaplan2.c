@@ -343,6 +343,50 @@ UINT32 toaplan2_state::screen_update_batsugun(screen_device &screen, bitmap_ind1
 	return 0;
 }
 
+void toaplan2_state::ese_fadeout()
+{
+	if (fadeout_stop == 1)
+	{
+		playing2 = 0xff;
+		fadeout_ready = 0;
+		fadeout_stop = 0;
+		sample_vol1 = 1.00;
+		m_samples->set_volume(0, 1.00);
+	}
+	
+	if (counter1 >= 20)
+	{
+		counter1 = 0;
+
+		if (fadeout_ready == 1)
+		{
+			sample_vol1 = sample_vol1 - 0.10;
+
+			if (sample_vol1 <= 0)
+				sample_vol1 = 0;
+
+			m_samples->set_volume(0, sample_vol1);
+		}
+
+		if (sample_vol1 == 0)
+		{
+			m_samples->stop(0);
+			fadeout_ready = 0;
+			fadeout_stop = 0;
+			sample_vol1 = 1.00;
+			m_samples->set_volume(0, 1.00);
+
+			if (playing2 != 0xff)
+			{
+				m_samples->start(0, playing2, 1);
+				playing1 = 0xff;
+				playing2 = 0xff;
+			}
+		}
+	}
+
+	counter1++;
+}
 
 UINT32 toaplan2_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
 {
@@ -353,6 +397,12 @@ UINT32 toaplan2_state::screen_update_toaplan2(screen_device &screen, bitmap_ind1
 	return 0;
 }
 
+UINT32 toaplan2_state::screen_update_toaplan2_samples(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
+{
+	screen_update_toaplan2(screen, bitmap, cliprect);
+	ese_fadeout();
+	return 0;
+}
 
 /* fixeightbl and bgareggabl do not use the lineselect or linescroll tables */
 UINT32 toaplan2_state::screen_update_bootleg(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
