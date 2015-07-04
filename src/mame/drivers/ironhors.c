@@ -380,7 +380,7 @@ void ironhors_state::machine_reset()
 static MACHINE_CONFIG_START( ironhors, ironhors_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M6809, MASTER_CLOCK/12)		/* guessed */
+	MCFG_CPU_ADD("maincpu", M6809, MASTER_CLOCK/6)		/* 3.072 MHz??? mod by Shingo Suzuki 1999/10/15 */
 	MCFG_CPU_PROGRAM_MAP(master_map)
 	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", ironhors_state, interrupt_tick, "screen", 0, 16)
 

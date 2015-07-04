@@ -2,7 +2,7 @@
 #include "commctrl.h"
 #include "richedit.h"
 #include "resource.h"
-#include "mamevers.rc"
+#include "arcadevers.rc"
 
 /////////////////////////////////////////////////////////////////////////////
 //

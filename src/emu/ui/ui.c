@@ -459,7 +459,7 @@ void ui_manager::update_and_render(render_container *container)
 		{
 			float mouse_y=-1,mouse_x=-1;
 			if (mouse_target->map_point_container(mouse_target_x, mouse_target_y, *container, mouse_x, mouse_y)) {
-				container->add_quad(mouse_x,mouse_y,mouse_x + 0.05f*container->manager().ui_aspect(container),mouse_y + 0.05f,UI_TEXT_COLOR,m_mouse_arrow_texture,PRIMFLAG_BLENDMODE(BLENDMODE_ALPHA));
+				container->add_quad(mouse_x,mouse_y,mouse_x + 0.05f*container->manager().ui_aspect(container),mouse_y + 0.05f,ARGB_WHITE,m_mouse_arrow_texture,PRIMFLAG_BLENDMODE(BLENDMODE_ALPHA));
 			}
 		}
 	}
@@ -1912,7 +1912,7 @@ static slider_state *slider_init(running_machine &machine)
 		{
 			void *param = (void *)&exec->device();
 			strprintf(str, "Overclock CPU %s", exec->device().tag());
-			*tailptr = slider_alloc(machine, str.c_str(), 10, 1000, 2000, 1, slider_overclock, param);
+			*tailptr = slider_alloc(machine, str.c_str(), 10, 1000, 4000, 10, slider_overclock, param);
 			tailptr = &(*tailptr)->next;
 		}
 	}

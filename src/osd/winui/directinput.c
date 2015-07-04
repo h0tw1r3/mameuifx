@@ -70,11 +70,7 @@ BOOL DirectInputInitialize()
 	if (hDLL == NULL)
 		return FALSE;
 
-#ifdef UNICODE
 	dic = (dic_proc)GetProcAddress((HINSTANCE)hDLL, "DirectInputCreateW");
-#else
-	dic = (dic_proc)GetProcAddress((HINSTANCE)hDLL, "DirectInputCreateA");
-#endif
 
 	if (dic == NULL)
 		return FALSE;

@@ -2,8 +2,9 @@ dofile("modules.lua")
 
 premake.make.linkoptions_after = false;
 _OPTIONS["STRIP_SYMBOLS"] = "1"
+_OPTIONS["DIRECTINPUT"] = "7"
 
-function maintargetosdoptions(_target)
+function maintargetosdoptions(_target,_subtarget)
 	kind "WindowedApp"
 
 	osdmodulestargetconf()
@@ -16,10 +17,10 @@ function maintargetosdoptions(_target)
 		}
 
 	configuration { "x64", "Release" }
-		targetsuffix "uifx64"
+		targetname "mameuifx"
 
 	configuration { "x32", "Release" }
-		targetsuffix "uifx32"
+		targetname "mameuifx32"
 
 	configuration { }
 
@@ -53,7 +54,7 @@ function maintargetosdoptions(_target)
 		MAME_DIR .. "src/osd/winui/mameui.rc",
 	}
 	dependency {
-		{ "$(OBJDIR)/mameui.res" ,  GEN_DIR  .. "/resource/" .. _target .. "vers.rc", true  },
+		{ "$(OBJDIR)/mameui.res" ,  GEN_DIR  .. "/resource/" .. "arcadevers.rc", true  },
 	}
 end
 

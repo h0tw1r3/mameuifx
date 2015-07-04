@@ -3579,6 +3579,7 @@ files {
 	MAME_DIR .. "src/mame/drivers/xtom3d.c",
 	MAME_DIR .. "src/mame/drivers/xyonix.c",
 	MAME_DIR .. "src/mame/video/xyonix.c",
+	MAME_DIR .. "src/mame/drivers/monaco.c",
 }
 end
 

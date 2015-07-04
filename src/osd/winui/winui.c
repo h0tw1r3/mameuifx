@@ -1528,9 +1528,9 @@ int CLIB_DECL SrcDriverDataCompareFunc(const void *arg1, const void *arg2)
 
 static void SetMainTitle(void)
 {
-	char buffer[100];
+	char buffer[256];
 
-	snprintf(buffer, ARRAY_LENGTH(buffer), "%s %s", MAMEUINAME, GetVersionString());
+	sprintf(buffer, "%s -ARCADES ONLY- %s", MAMEUINAME, GetVersionString());
 	win_set_window_text_utf8(hMain, buffer);
 }
 
@@ -1899,7 +1899,7 @@ static LRESULT CALLBACK MameWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 
 	case WM_SETFOCUS:
 		UpdateWindow(hMain);
-		SetFocus(hWndList);
+		SetFocus((HWND)wParam);
 		break;
 
 	case WM_SETTINGCHANGE:
@@ -2937,6 +2937,7 @@ static BOOL TreeViewNotify(LPNMHDR nm)
 			{
 				UpdateListView();
 				UpdateScreenShot();
+				SetFocus(hTreeView);
 			}
 		}
 		return TRUE;
