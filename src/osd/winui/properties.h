@@ -20,19 +20,13 @@
 #define AUDIT_PAGE      1
 
 /* Get title string to display in the top of the property page,
- * Called also in mui_audit.c
- */
-char * GameInfoTitle(OPTIONS_TYPE opt_type, UINT nIndex);
+ * Called also in mui_audit.c */
+char * GameInfoTitle(OPTIONS_TYPE opt_type, int nIndex);
 /* Called in winui.c to create the property page */
 void InitPropertyPage(HINSTANCE hInst, HWND hWnd, HICON hIcon, OPTIONS_TYPE opt_type, int folder_id, int game_num);
 void InitPropertyPageToPage(HINSTANCE hInst, HWND hWnd, HICON hIcon, OPTIONS_TYPE opt_type, int folder_id, int game_num, int start_page);
 void InitDefaultPropertyPage(HINSTANCE hInst, HWND hWnd);
-/* Get Game status text string */
-const char *GameInfoStatus(int driver_index);
-/* Get Game status bar text string */
-const char *GameInfoStatusBar(int driver_index);
 
-/* Property sheet info for layout.c */
 typedef struct
 {
 	BOOL bOnDefaultPage;
@@ -41,9 +35,8 @@ typedef struct
 	DLGPROC pfnDlgProc;
 } PROPERTYSHEETINFO;
 
-extern const PROPERTYSHEETINFO g_propSheets[];
 INT_PTR CALLBACK GamePropertiesDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lParam);
-INT_PTR CALLBACK GameOptionsProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lParam);
+INT_PTR CALLBACK GameOptionsDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lParam);
 void ModifyPropertySheetForTreeSheet(HWND);
 
 #endif

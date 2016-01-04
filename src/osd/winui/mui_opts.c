@@ -19,42 +19,16 @@
 
 ***************************************************************************/
 
-// standard windows headers
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <windowsx.h>
-#include <winreg.h>
-#include <commctrl.h>
-
-// standard C headers
-#include <stdio.h>
-#include <sys/stat.h>
-#include <math.h>
-#include <direct.h>
-#include <stddef.h>
-#include <tchar.h>
-
-// MAME/MAMEUI headers
-#include "emu.h"
-#include "emuopts.h"
-#include "bitmask.h"
 #include "winui.h"
-#include "mui_util.h"
-#include "treeview.h"
-#include "splitters.h"
-#include "mui_opts.h"
-#include "winutf8.h"
-#include "strconv.h"
-
 
 /***************************************************************************
     Internal function prototypes
  ***************************************************************************/
 
-static file_error LoadInterfaceFile(winui_options &opts, const char *filename);
-static file_error SaveInterfaceFile(winui_options &opts, winui_options *baseopts, const char *filename);
-static file_error LoadOptionsFile(windows_options &opts, const char *filename);
-static file_error SaveOptionsFile(windows_options &opts, windows_options *baseopts, const char *filename);
+static void LoadInterfaceFile(winui_options &opts, const char *filename);
+static void SaveInterfaceFile(winui_options &opts, const char *filename);
+static void LoadOptionsFile(windows_options &opts, const char *filename);
+static void SaveOptionsFile(windows_options &opts, const char *filename);
 static void LoadOptionsAndInterface(void);
 static void CusColorEncodeString(const COLORREF *value, char* str);
 static void CusColorDecodeString(const char* str, COLORREF *value);
@@ -67,7 +41,6 @@ static void TabFlagsDecodeString(const char *str, int *data);
 static DWORD DecodeFolderFlags(const char *buf);
 static const char * EncodeFolderFlags(DWORD value);
 static void ParseIniFile(windows_options &opts, const char *name);
-static void RemoveAllSourceOptions(void);
 
 /***************************************************************************
     Internal defines
@@ -75,12 +48,12 @@ static void RemoveAllSourceOptions(void);
 
 #define INTERFACE_INI_FILENAME 					"interface"
 #define GAMELIST_INI_FILENAME 					"gamelist"
-#define DIRECTORIES_INI_FILENAME				"directories"
 #define DEFAULT_INI_FILENAME 					"mame"
 
 #define MUIOPTION_VERSION						"version"
+#define MUIOPTION_EXIT_DIALOG					"confirm_exit"
 #define MUIOPTION_NOROMS_GAMES					"display_no_roms_games"
-#define MUIOPTION_TRAY_ICON						"disable_tray_icon"
+#define MUIOPTION_TRAY_ICON						"minimize_tray_icon"
 #define MUIOPTION_LIST_MODE						"list_mode"
 #define MUIOPTION_JOYSTICK_IN_INTERFACE			"joystick_in_gui_opts"
 #define MUIOPTION_KEYBOARD_IN_INTERFACE			"keyboard_in_gui_opts"
@@ -89,7 +62,6 @@ static void RemoveAllSourceOptions(void);
 #define MUIOPTION_SCREENSHOT_BORDER_SIZE		"screenshot_bordersize"
 #define MUIOPTION_SCREENSHOT_BORDER_COLOR		"screenshot_bordercolor"
 #define MUIOPTION_INHERIT_FILTER				"inherit_filter"
-#define MUIOPTION_BROADCAST_GAME_NAME			"broadcast_game_name"
 #define MUIOPTION_DEFAULT_FOLDER_ID				"default_folder_id"
 #define MUIOPTION_SHOW_IMAGE_SECTION			"show_image_section"
 #define MUIOPTION_SHOW_FOLDER_SECTION			"show_folder_section"
@@ -133,6 +105,7 @@ static void RemoveAllSourceOptions(void);
 #define MUIOPTION_SCORES_DIRECTORY				"scores_directory"
 #define MUIOPTION_ICONS_DIRECTORY				"icons_directory"
 #define MUIOPTION_FOLDER_DIRECTORY				"folder_directory"
+#define MUIOPTION_MOVIES_DIRECTORY				"movies_directory"
 #define MUIOPTION_AUDIO_DIRECTORY				"audio_directory"
 #define MUIOPTION_GUI_DIRECTORY					"gui_ini_directory"
 #define MUIOPTION_DATS_DIRECTORY				"datafile_directory"
@@ -190,9 +163,12 @@ static void RemoveAllSourceOptions(void);
     Internal variables
  ***************************************************************************/
 
-static winui_options gui_opts;
-static gamelist_options game_opts;
-static windows_options core_opts;
+static char buf[80];
+static BOOL RequiredDriverCacheStatus = FALSE;
+static winui_options gui_opts;			// INTERFACE.INI options
+static gamelist_options game_opts;		// GAMELIST.INI options
+static windows_options core_opts;		// MAME.INI default options
+static windows_options save_opts;		// MAME.INI current options
 
 // UI options in INTERFACE.INI
 const options_entry winui_options::s_option_entries[] =
@@ -241,9 +217,9 @@ const options_entry winui_options::s_option_entries[] =
 	{ NULL,									NULL,       OPTION_HEADER,    	"INTERFACE OPTIONS" },
 	{ MUIOPTION_NOROMS_GAMES,       		"1",        OPTION_BOOLEAN,   	NULL },
 	{ MUIOPTION_TRAY_ICON,        			"0",        OPTION_BOOLEAN,   	NULL },
+	{ MUIOPTION_EXIT_DIALOG,        		"1",        OPTION_BOOLEAN,   	NULL },
 	{ MUIOPTION_JOYSTICK_IN_INTERFACE,		"1",        OPTION_BOOLEAN,   	NULL },
 	{ MUIOPTION_KEYBOARD_IN_INTERFACE,		"0",        OPTION_BOOLEAN,   	NULL },
-	{ MUIOPTION_BROADCAST_GAME_NAME,		"0",        OPTION_BOOLEAN,   	NULL },
 	{ MUIOPTION_HIDE_MOUSE,					"0",        OPTION_BOOLEAN,   	NULL },
 	{ MUIOPTION_INHERIT_FILTER,				"0",        OPTION_BOOLEAN,   	NULL },
 	{ MUIOPTION_USE_BROKEN_ICON,			"0",        OPTION_BOOLEAN,   	NULL },
@@ -263,6 +239,7 @@ const options_entry winui_options::s_option_entries[] =
 	{ MUIOPTION_SCORES_DIRECTORY,			"scores",   OPTION_STRING,    	NULL },
 	{ MUIOPTION_FOLDER_DIRECTORY,			"folders",  OPTION_STRING,    	NULL },
 	{ MUIOPTION_ICONS_DIRECTORY,			"icons",    OPTION_STRING,    	NULL },
+	{ MUIOPTION_MOVIES_DIRECTORY,			"movies",   OPTION_STRING,    	NULL },
 	{ MUIOPTION_AUDIO_DIRECTORY,			"audio",    OPTION_STRING,    	NULL },
 	{ MUIOPTION_GUI_DIRECTORY,				"gui",    	OPTION_STRING,    	NULL },
 	{ MUIOPTION_DATS_DIRECTORY,				"dats",    	OPTION_STRING,    	NULL },
@@ -412,12 +389,12 @@ static void options_set_color(winui_options &opts, const char *name, COLORREF va
 
 	if (value == (COLORREF) - 1)
 	{
-		snprintf(value_str, ARRAY_LENGTH(value_str), "%d", (int) value);
+		snprintf(value_str, ARRAY_LENGTH(value_str), "%d", (int)value);
 	}
 	else
 	{
-		snprintf(value_str, ARRAY_LENGTH(value_str), "%d,%d,%d", (((int) value) >>  0) & 0xFF,
-			(((int) value) >>  8) & 0xFF, (((int) value) >> 16) & 0xFF);
+		snprintf(value_str, ARRAY_LENGTH(value_str), "%d,%d,%d", (((int)value) >>  0) & 0xFF,
+			(((int)value) >>  8) & 0xFF, (((int)value) >> 16) & 0xFF);
 	}
 	
 	std::string error_string;
@@ -486,6 +463,18 @@ void SetDisplayNoRomsGames (BOOL value)
 BOOL GetDisplayNoRomsGames (void)
 {
 	return gui_opts.bool_value(MUIOPTION_NOROMS_GAMES);
+}
+
+void SetExitDialog (BOOL value)
+{
+	std::string error_string;
+	gui_opts.set_value(MUIOPTION_EXIT_DIALOG, value, OPTION_PRIORITY_CMDLINE, error_string);
+    assert(error_string.empty());
+}
+
+BOOL GetExitDialog (void)
+{
+	return gui_opts.bool_value(MUIOPTION_EXIT_DIALOG);
 }
 
 void SetMinimizeTrayIcon (BOOL value)
@@ -594,18 +583,6 @@ BOOL GetUseBrokenIcon(void)
 	return gui_opts.bool_value(MUIOPTION_USE_BROKEN_ICON);
 }
 
-void SetBroadcast(BOOL broadcast)
-{
-	std::string error_string;
-	gui_opts.set_value(MUIOPTION_BROADCAST_GAME_NAME, broadcast, OPTION_PRIORITY_CMDLINE, error_string);
-	assert(error_string.empty());
-}
-
-BOOL GetBroadcast(void)
-{
-	return gui_opts.bool_value( MUIOPTION_BROADCAST_GAME_NAME);
-}
-
 void SetSavedFolderID(int val)
 {
 	std::string error_string;
@@ -644,7 +621,7 @@ BOOL GetShowFolderList(void)
 
 static void GetsShowFolderFlags(LPBITS bits)
 {
-	char s[2000];
+	char s[1024];
 	extern const FOLDERDATA g_folderData[];
 	char *token;
 	int j;
@@ -820,7 +797,7 @@ void SetCustomColor(int iIndex, COLORREF uColor)
 {
 	const char *custom_color_string;
 	COLORREF custom_color[256];
-	char buffer[10000];
+	char buffer[256];
 
 	custom_color_string = gui_opts.value( MUIOPTION_CUSTOM_COLOR);
 	CusColorDecodeString(custom_color_string, custom_color);
@@ -847,7 +824,7 @@ COLORREF GetCustomColor(int iIndex)
 
 void SetListFont(const LOGFONT *font)
 {
-	char font_string[10000];
+	char font_string[256];
 	FontEncodeString(font, font_string);
 	std::string error_string;
 	gui_opts.set_value(MUIOPTION_LIST_FONT, font_string, OPTION_PRIORITY_CMDLINE, error_string);
@@ -868,7 +845,7 @@ void GetListFont(LOGFONT *font)
 
 void SetHistoryFont(const LOGFONT *font)
 {
-	char font_string[10000];
+	char font_string[256];
 	FontEncodeString(font, font_string);
 	std::string error_string;
 	gui_opts.set_value(MUIOPTION_HISTORY_FONT, font_string, OPTION_PRIORITY_CMDLINE, error_string);
@@ -883,7 +860,7 @@ void GetHistoryFont(LOGFONT *font)
 
 void SetTreeFont(const LOGFONT *font)
 {
-	char font_string[10000];
+	char font_string[2560];
 	FontEncodeString(font, font_string);
 	std::string error_string;
 	gui_opts.set_value(MUIOPTION_TREE_FONT, font_string, OPTION_PRIORITY_CMDLINE, error_string);
@@ -971,7 +948,7 @@ void SetShowTab(int tab,BOOL show)
 {
 	const char *show_tabs_string;
 	int show_tab_flags;
-	char buffer[10000];
+	char buffer[256];
 
 	show_tabs_string = gui_opts.value( MUIOPTION_HIDE_TABS);
 	TabFlagsDecodeString(show_tabs_string, &show_tab_flags);
@@ -1022,7 +999,7 @@ void SetHistoryTab(int tab, BOOL show)
 
 void SetColumnWidths(int width[])
 {
-	char column_width_string[10000];
+	char column_width_string[256];
 	ColumnEncodeStringWithCount(width, column_width_string, COLUMN_MAX);
 	std::string error_string;
 	gui_opts.set_value(MUIOPTION_COLUMN_WIDTHS, column_width_string, OPTION_PRIORITY_CMDLINE, error_string);
@@ -1040,7 +1017,7 @@ void SetSplitterPos(int splitterId, int pos)
 {
 	const char *splitter_string;
 	int *splitter;
-	char buffer[10000];
+	char buffer[256];
 
 	if (splitterId < GetSplitterCount())
 	{
@@ -1052,7 +1029,7 @@ void SetSplitterPos(int splitterId, int pos)
 		std::string error_string;
 		gui_opts.set_value(MUIOPTION_SPLITTERS, buffer, OPTION_PRIORITY_CMDLINE, error_string);
 		assert(error_string.empty());
-		osd_free(splitter);
+		free(splitter);
 	}
 }
 
@@ -1069,17 +1046,17 @@ int GetSplitterPos(int splitterId)
 	if (splitterId < GetSplitterCount())
 	{
 		value = splitter[splitterId];
-		osd_free(splitter);
+		free(splitter);
 		return value;
 	}
 	
-	osd_free(splitter);
+	free(splitter);
 	return -1; /* Error */
 }
 
 void SetColumnOrder(int order[])
 {
-	char column_order_string[10000];
+	char column_order_string[256];
 	ColumnEncodeStringWithCount(order, column_order_string, COLUMN_MAX);
 	std::string error_string;
 	gui_opts.set_value(MUIOPTION_COLUMN_ORDER, column_order_string, OPTION_PRIORITY_CMDLINE, error_string);
@@ -1095,7 +1072,7 @@ void GetColumnOrder(int order[])
 
 void SetColumnShown(int shown[])
 {
-	char column_shown_string[10000];
+	char column_shown_string[256];
 	ColumnEncodeStringWithCount(shown, column_shown_string, COLUMN_MAX);
 	std::string error_string;
 	gui_opts.set_value(MUIOPTION_COLUMN_SHOWN, column_shown_string, OPTION_PRIORITY_CMDLINE, error_string);
@@ -1396,6 +1373,18 @@ void SetPcbDir(const char *path)
 	assert(error_string.empty());
 }
 
+const char * GetMoviesDir(void)
+{
+	return gui_opts.value(MUIOPTION_MOVIES_DIRECTORY);
+}
+
+void SetMoviesDir(const char *path)
+{
+	std::string error_string;
+	gui_opts.set_value(MUIOPTION_MOVIES_DIRECTORY, path, OPTION_PRIORITY_CMDLINE, error_string);
+	assert(error_string.empty());
+}
+
 const char * GetVideoDir(void)
 {
 	return core_opts.value(OPTION_VIDEO_DIRECTORY);
@@ -1505,24 +1494,6 @@ void SetFolderDir(const char* path)
 	assert(error_string.empty());
 }
 
-void ResetInterface(void)
-{
-	gui_opts.revert(OPTION_PRIORITY_HIGH);
-	SaveInterface();
-}
-
-void ResetGameDefaults(void)
-{
-	core_opts.revert(OPTION_PRIORITY_CMDLINE);
-	SaveOptions(OPTIONS_GLOBAL, core_opts, 1);
-}
-
-void ResetAllGameOptions(void)
-{
-	/* Walk the ini/source folder deleting all ini's. */
-	RemoveAllSourceOptions();
-}
-
 int GetRomAuditResults(int driver_index)
 {
 	return game_opts.rom(driver_index);
@@ -1568,12 +1539,14 @@ void GetTextPlayTime(int driver_index, char *buf)
 {
 	int hour, minute, second;
 	int temp = GetPlayTime(driver_index);
+	char tmp[200];
 	
 	hour = temp / 3600;
 	temp = temp - 3600 * hour;
 	minute = temp / 60;
 	second = temp - 60 * minute;
-	sprintf(buf, "%d:%02d:%02d", hour, minute, second);
+	snprintf(tmp, ARRAY_LENGTH(tmp), "%d:%02d:%02d", hour, minute, second);
+	strcpy(buf, tmp);
 }
 
 void ResetPlayTime(int driver_index)
@@ -1932,12 +1905,12 @@ static void  CusColorEncodeString(const COLORREF *value, char* str)
 	int i;
 	char tmpStr[256];
 
-	sprintf(tmpStr, "%u", (int) value[0]);
+	snprintf(tmpStr, ARRAY_LENGTH(tmpStr), "%u", (int) value[0]);
 	strcpy(str, tmpStr);
 
 	for (i = 1; i < 16; i++)
 	{
-		sprintf(tmpStr, ",%u", (unsigned) value[i]);
+		snprintf(tmpStr, ARRAY_LENGTH(tmpStr), ",%u", (unsigned) value[i]);
 		strcat(str, tmpStr);
 	}
 }
@@ -1968,16 +1941,15 @@ static void CusColorDecodeString(const char* str, COLORREF *value)
 void ColumnEncodeStringWithCount(const int *value, char *str, int count)
 {
 	int i;
-	char buffer[100];
+	char buffer[256];
 
-	snprintf(buffer,sizeof(buffer),"%d",value[0]);
-
+	snprintf(buffer, ARRAY_LENGTH(buffer),"%d", value[0]);
 	strcpy(str,buffer);
 
     for (i = 1; i < count; i++)
 	{
-		snprintf(buffer,sizeof(buffer),",%d",value[i]);
-		strcat(str,buffer);
+		snprintf(buffer, ARRAY_LENGTH(buffer),",%d", value[i]);
+		strcat(str, buffer);
 	}
 }
 
@@ -1985,7 +1957,7 @@ void ColumnDecodeStringWithCount(const char* str, int *value, int count)
 {
 	int i;
 	char *s, *p;
-	char tmpStr[100];
+	char tmpStr[256];
 
 	if (str == NULL)
 		return;
@@ -2010,14 +1982,14 @@ void ColumnDecodeStringWithCount(const char* str, int *value, int count)
 static void SplitterEncodeString(const int *value, char* str)
 {
 	int i;
-	char tmpStr[100];
+	char tmpStr[256];
 
-	sprintf(tmpStr, "%d", value[0]);
+	snprintf(tmpStr, ARRAY_LENGTH(tmpStr), "%d", value[0]);
 	strcpy(str, tmpStr);
 
 	for (i = 1; i < GetSplitterCount(); i++)
 	{
-		sprintf(tmpStr, ",%d", value[i]);
+		snprintf(tmpStr, ARRAY_LENGTH(tmpStr), ",%d", value[i]);
 		strcat(str, tmpStr);
 	}
 }
@@ -2026,7 +1998,7 @@ static void SplitterDecodeString(const char *str, int *value)
 {
 	int i;
 	char *s, *p;
-	char tmpStr[100];
+	char tmpStr[256];
 
 	strcpy(tmpStr, str);
 	p = tmpStr;
@@ -2075,7 +2047,7 @@ static void FontDecodeString(const char *str, LOGFONT *f)
 			return;
 		
 		_tcscpy(f->lfFaceName, t_ptr);
-		osd_free(t_ptr);
+		free(t_ptr);
 	}
 }
 
@@ -2083,11 +2055,12 @@ static void FontDecodeString(const char *str, LOGFONT *f)
 static void FontEncodeString(const LOGFONT *f, char *str)
 {
 	char* utf8_FaceName = utf8_from_tstring(f->lfFaceName);
+	char tmp[200];
 
 	if(!utf8_FaceName)
 		return;
 
-	sprintf(str, "%li,%li,%li,%li,%li,%i,%i,%i,%i,%i,%i,%i,%i,%s",
+	snprintf(tmp, ARRAY_LENGTH(tmp), "%li,%li,%li,%li,%li,%i,%i,%i,%i,%i,%i,%i,%i,%s",
 			f->lfHeight,
 			f->lfWidth,
 			f->lfEscapement,
@@ -2102,8 +2075,8 @@ static void FontEncodeString(const LOGFONT *f, char *str)
 			f->lfQuality,
 			f->lfPitchAndFamily,
 			utf8_FaceName);
-
-	osd_free(utf8_FaceName);
+	strcpy(str, tmp);
+	free(utf8_FaceName);
 }
 
 static void TabFlagsEncodeString(int data, char *str)
@@ -2130,7 +2103,7 @@ static void TabFlagsEncodeString(int data, char *str)
 
 static void TabFlagsDecodeString(const char *str, int *data)
 {
-	char s[2000];
+	char s[1000];
 	char *token;
 	int j;
 
@@ -2159,7 +2132,7 @@ static void TabFlagsDecodeString(const char *str, int *data)
 		*data = (1 << TAB_SCREENSHOT);
 }
 
-static file_error LoadInterfaceFile(winui_options &opts, const char *filename)
+static void LoadInterfaceFile(winui_options &opts, const char *filename)
 {
 	file_error filerr;
 	core_file *file;
@@ -2172,11 +2145,9 @@ static file_error LoadInterfaceFile(winui_options &opts, const char *filename)
 		opts.parse_ini_file(*file, OPTION_PRIORITY_CMDLINE, OPTION_PRIORITY_CMDLINE, error_string);
 		core_fclose(file);
 	}
-	
-	return filerr;
 }
 
-static file_error LoadOptionsFile(windows_options &opts, const char *filename)
+static void LoadOptionsFile(windows_options &opts, const char *filename)
 {
 	file_error filerr;
 	core_file *file;
@@ -2189,11 +2160,9 @@ static file_error LoadOptionsFile(windows_options &opts, const char *filename)
 		opts.parse_ini_file(*file, OPTION_PRIORITY_CMDLINE, OPTION_PRIORITY_CMDLINE, error_string);
 		core_fclose(file);
 	}
-	
-	return filerr;
 }
 
-static file_error SaveInterfaceFile(winui_options &opts, winui_options *baseopts, const char *filename)
+static void SaveInterfaceFile(winui_options &opts, const char *filename)
 {
 	file_error filerr;
 	core_file *file;
@@ -2203,16 +2172,13 @@ static file_error SaveInterfaceFile(winui_options &opts, winui_options *baseopts
 	if (filerr == FILERR_NONE)
 	{
 		std::string inistring;
-		//inistring.expand(8 * 1024);
-		opts.output_ini(inistring, baseopts);
+		opts.output_ini(inistring);
 		core_fputs(file, inistring.c_str());
 		core_fclose(file);
 	}
-	
-	return filerr;
 }
 
-static file_error SaveOptionsFile(windows_options &opts, windows_options *baseopts, const char *filename)
+static void SaveOptionsFile(windows_options &opts, const char *filename)
 {
 	file_error filerr;
 	core_file *file;
@@ -2222,13 +2188,10 @@ static file_error SaveOptionsFile(windows_options &opts, windows_options *baseop
 	if (filerr == FILERR_NONE)
 	{
 		std::string inistring;
-		//inistring.expand(8 * 1024);
-		opts.output_ini(inistring, baseopts);
+		opts.output_ini(inistring);
 		core_fputs(file, inistring.c_str());
 		core_fclose(file);
 	}
-	
-	return filerr;
 }
 
 /* Register access functions below */
@@ -2240,8 +2203,8 @@ static void LoadOptionsAndInterface(void)
 	// parse INTERFACE.INI
 	std::string intername = std::string(GetGuiDir()).append(PATH_SEPARATOR).append(INTERFACE_INI_FILENAME).append(".ini");
 	LoadInterfaceFile(gui_opts, intername.c_str());
-	// parse DIRECTORIES.INI
-	std::string filename = std::string(GetGuiDir()).append(PATH_SEPARATOR).append(DIRECTORIES_INI_FILENAME).append(".ini");
+	// parse MAME.INI
+	std::string filename = std::string(GetIniDir()).append(PATH_SEPARATOR).append(DEFAULT_INI_FILENAME).append(".ini");
 	LoadOptionsFile(core_opts, filename.c_str());
 }
 
@@ -2272,7 +2235,7 @@ const char * GetFolderNameByID(UINT nID)
 {
 	UINT i;
 	extern const FOLDERDATA g_folderData[];
-	extern LPEXFOLDERDATA ExtraFolderData[];
+	extern const LPEXFOLDERDATA ExtraFolderData[];
 
 	for (i = 0; i < MAX_EXTRA_FOLDERS * MAX_EXTRA_SUBFOLDERS; i++)
 	{
@@ -2323,10 +2286,9 @@ static DWORD DecodeFolderFlags(const char *buf)
 /* Encode the flags into a string */
 static const char * EncodeFolderFlags(DWORD value)
 {
-	static char buf[40];
 	int shift = 0;
 
-	memset(buf, '\0', sizeof(buf));
+	memset(&buf, 0, sizeof(buf));
 
 	while ((1 << shift) & F_MASK) 
 	{
@@ -2471,13 +2433,13 @@ void SaveInterface(void)
 {
 	AddFolderFlags(gui_opts);
 	std::string filename = std::string(GetGuiDir()).append(PATH_SEPARATOR).append(INTERFACE_INI_FILENAME).append(".ini");
-	SaveInterfaceFile(gui_opts, NULL, filename.c_str());
+	SaveInterfaceFile(gui_opts, filename.c_str());
 }
 
-void SaveDirectories(void)
+void SaveGameDefaults(void)
 {
-	std::string filename = std::string(GetGuiDir()).append(PATH_SEPARATOR).append(DIRECTORIES_INI_FILENAME).append(".ini");
-	SaveOptionsFile(core_opts, NULL, filename.c_str());
+	LoadOptions(save_opts, OPTIONS_GLOBAL, GLOBAL_OPTIONS);
+	SaveOptions(OPTIONS_GLOBAL, save_opts, GLOBAL_OPTIONS);
 }
 
 void SaveGameList(void)
@@ -2486,9 +2448,53 @@ void SaveGameList(void)
 	game_opts.save_file(filename.c_str());
 }
 
-const char * GetVersionString(void)
+void ResetInterface(void)
 {
-	return build_version;
+	gui_opts.revert(OPTION_PRIORITY_CMDLINE);
+	SaveInterface();
+}
+
+void ResetGameDefaults(void)
+{
+	core_opts.revert(OPTION_PRIORITY_CMDLINE);
+	SaveOptions(OPTIONS_GLOBAL, core_opts, GLOBAL_OPTIONS);
+}
+
+void ResetAllGameOptions(void)
+{
+	WIN32_FIND_DATA FindFileData;
+	HANDLE hFindFile;
+	char* utf8_filename;
+	int i;
+	
+	for (i = 0; i < driver_list::total(); i++)
+	{
+		std::string filename = std::string(GetIniDir()).append(PATH_SEPARATOR).append(driver_list::driver(i).name).append(".ini");
+		osd_rmfile(filename.c_str());
+	}
+
+    /* Easiest to just open the ini/source folder if it exists,
+	then remove all the files in it that end in ini. */
+	std::string pathname = std::string(GetIniDir()).append(PATH_SEPARATOR).append("source");
+	std::string match = std::string(pathname.c_str()).append(PATH_SEPARATOR).append("*.ini");
+	
+	if ((hFindFile = win_find_first_file_utf8(match.c_str(), &FindFileData)) != INVALID_HANDLE_VALUE)
+	{
+		utf8_filename = utf8_from_tstring(FindFileData.cFileName);
+		std::string match = std::string(pathname.c_str()).append(PATH_SEPARATOR).append(utf8_filename);
+		free(utf8_filename);
+		osd_rmfile(match.c_str());
+
+		while (FindNextFile(hFindFile, &FindFileData) != 0)
+		{
+			utf8_filename = utf8_from_tstring(FindFileData.cFileName);
+			std::string match = std::string(pathname.c_str()).append(PATH_SEPARATOR).append(utf8_filename);
+			free(utf8_filename);
+			osd_rmfile(match.c_str());
+		}
+
+		FindClose(hFindFile);
+	}
 }
 
 /* ParseIniFile - parse a single INI file */
@@ -2623,42 +2629,13 @@ void SaveOptions(OPTIONS_TYPE opt_type, windows_options &opts, int game_num)
 	{
 		std::string filepath = std::string(GetIniDir()).append(PATH_SEPARATOR).append(filename.c_str()).append(".ini");
 		SetDirectories(opts);
-		SaveOptionsFile(opts, NULL, filepath.c_str());
+		SaveOptionsFile(opts, filepath.c_str());
 	}
 }
 
-/* Remove all the srcname.ini files from inipath/source directory. */
-static void RemoveAllSourceOptions(void) 
+const char * GetVersionString(void)
 {
-	WIN32_FIND_DATA findFileData;
-	HANDLE hFindFile;
-	char* utf8_filename;
-
-	/*
-    * Easiest to just open the ini/source folder if it exists,
-    * then remove all the files in it that end in ini.
-    */
-	std::string pathname = std::string(GetIniDir()).append(PATH_SEPARATOR).append("source");
-	std::string match = std::string(pathname.c_str()).append(PATH_SEPARATOR).append("*.ini");
-	
-	if ((hFindFile = win_find_first_file_utf8(match.c_str(), &findFileData)) != INVALID_HANDLE_VALUE)
-	{
-		utf8_filename = utf8_from_tstring(findFileData.cFileName);
-		std::string match = std::string(pathname.c_str()).append(PATH_SEPARATOR).append(utf8_filename);
-		osd_free(utf8_filename);
-		osd_rmfile(match.c_str());
-
-		while (0 != FindNextFile(hFindFile, &findFileData))
-		{
-			utf8_filename = utf8_from_tstring(findFileData.cFileName);
-			std::string match = std::string(pathname.c_str()).append(PATH_SEPARATOR).append(utf8_filename);
-			osd_free(utf8_filename);
-			osd_rmfile(match.c_str());
-		}
-
-		FindClose(hFindFile);
-
-	}
+	return build_version;
 }
 
 int GetDriverCache(int driver_index)
@@ -2671,16 +2648,36 @@ void SetDriverCache(int driver_index, int val)
 	game_opts.cache(driver_index, val);
 }
 
-BOOL RequiredDriverCache(void)
+void SetRequiredDriverCacheStatus(void)
+{
+	static bool bFirst = true;
+
+	if (bFirst)
+	{
+		RequiredDriverCacheStatus = RequiredDriverCache(1);
+		bFirst = false;
+	}
+}
+BOOL GetRequiredDriverCacheStatus(void)
+{
+	SetRequiredDriverCacheStatus();
+
+	return RequiredDriverCacheStatus;
+}
+
+BOOL RequiredDriverCache(int check)
 {
 	BOOL ret = false;
 
 	if (strcmp(gui_opts.value(MUIOPTION_VERSION), GetVersionString()) != 0)
 		ret = true;
 
-	std::string error_string;
-	gui_opts.set_value(MUIOPTION_VERSION, GetVersionString(), OPTION_PRIORITY_CMDLINE, error_string);
-	assert(error_string.empty());
-
+	if (!check)
+	{
+		std::string error_string;
+		gui_opts.set_value(MUIOPTION_VERSION, GetVersionString(), OPTION_PRIORITY_CMDLINE, error_string);
+		assert(error_string.empty());
+	}
+	
 	return ret;
 }

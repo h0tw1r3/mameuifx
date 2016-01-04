@@ -29,22 +29,28 @@
 
 WRITE16_MEMBER(darkseal_state::control_w)
 {
-	switch (offset<<1) {
-	case 6: /* DMA flag */
-		m_spriteram->copy();
-		return;
-	case 8: /* Sound CPU write */
-		soundlatch_byte_w(space, 0, data & 0xff);
-		m_audiocpu->set_input_line(0, HOLD_LINE);
-		return;
-	case 0xa: /* IRQ Ack (VBL) */
-		return;
+	switch (offset << 1) 
+	{
+		case 6: /* DMA flag */
+			m_spriteram->copy();
+			break;
+
+		case 8: /* Sound CPU write */
+			if (ACCESSING_BITS_0_7)
+			{
+				soundlatch_byte_w(space, 0, data & 0xff);
+				m_audiocpu->set_input_line(0, HOLD_LINE);
+			}
+			break;
+
+		case 0xa: /* IRQ Ack (VBL) */
+			break;
 	}
 }
 
 READ16_MEMBER(darkseal_state::control_r)
 {
-	switch (offset<<1)
+	switch (offset << 1)
 	{
 		case 0:
 			return ioport("DSW")->read();
@@ -92,7 +98,7 @@ static ADDRESS_MAP_START( sound_map, AS_PROGRAM, 8, darkseal_state )
 	AM_RANGE(0x130000, 0x130001) AM_DEVREADWRITE("oki2", okim6295_device, read, write)
 	AM_RANGE(0x140000, 0x140001) AM_READ(soundlatch_byte_r)
 	AM_RANGE(0x1f0000, 0x1f1fff) AM_RAMBANK("bank8")
-	AM_RANGE(0x1fec00, 0x1fec01) AM_DEVWRITE("audiocpu", h6280_device, timer_w)
+//	AM_RANGE(0x1fec00, 0x1fec01) AM_DEVWRITE("audiocpu", h6280_device, timer_w)
 	AM_RANGE(0x1ff400, 0x1ff403) AM_DEVWRITE("audiocpu", h6280_device, irq_status_w)
 ADDRESS_MAP_END
 

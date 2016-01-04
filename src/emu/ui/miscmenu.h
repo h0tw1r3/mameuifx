@@ -95,7 +95,7 @@ public:
 	virtual void handle();
 
 private:
-	int refresh;
+	float refresh;
 };
 
 #endif  /* __UI_MISCMENU_H__ */

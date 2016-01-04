@@ -622,8 +622,6 @@ To Do:
 #include "sound/3812intf.h"
 
 
-int tsundere = 0;
-
 const char *const samesame_sample_names[] =
 {
 	"*samesame",
@@ -2872,14 +2870,14 @@ DRIVER_INIT_MEMBER(toaplan1_state,demonwld)
 DRIVER_INIT_MEMBER(toaplan1_state,fireshrk)
 {
 	toaplan1_driver_savestate();
-	tsundere = 1;
+	m_fadeout = 1;
 }
 
 DRIVER_INIT_MEMBER(toaplan1_state,vimana)
 {
 	toaplan1_driver_savestate();
 	vimana_driver_savestate();
-	tsundere = 2;
+	m_fadeout = 2;
 }
 
 

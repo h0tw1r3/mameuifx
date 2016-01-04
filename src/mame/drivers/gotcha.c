@@ -260,11 +260,11 @@ void gotcha_state::machine_reset()
 static MACHINE_CONFIG_START( gotcha, gotcha_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, XTAL_14_31818MHz)    /* 14.31818 MHz */
+	MCFG_CPU_ADD("maincpu", M68000,14318180)    /* 14.31818 MHz */
 	MCFG_CPU_PROGRAM_MAP(gotcha_map)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", gotcha_state,  irq6_line_hold)
 
-	MCFG_CPU_ADD("audiocpu", Z80, XTAL_12MHz/2)   /* 6 MHz */
+	MCFG_CPU_ADD("audiocpu", Z80,6000000)   /* 6 MHz */
 	MCFG_CPU_PROGRAM_MAP(sound_map)
 //	MCFG_CPU_VBLANK_INT_DRIVER("screen", gotcha_state,  nmi_line_pulse)
 
@@ -293,12 +293,12 @@ static MACHINE_CONFIG_START( gotcha, gotcha_state )
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
 
-	MCFG_YM2151_ADD("ymsnd", XTAL_14_31818MHz/4)
+	MCFG_YM2151_ADD("ymsnd", 14318180/4)
 	MCFG_YM2151_IRQ_HANDLER(INPUTLINE("audiocpu", 0))
 	MCFG_SOUND_ROUTE(0, "mono", 0.80)
 	MCFG_SOUND_ROUTE(1, "mono", 0.80)
 
-	MCFG_OKIM6295_ADD("oki", XTAL_4_096MHz/4, OKIM6295_PIN7_HIGH)
+	MCFG_OKIM6295_ADD("oki", 1000000, OKIM6295_PIN7_HIGH)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.60)
 MACHINE_CONFIG_END
 

@@ -2617,7 +2617,7 @@ static MACHINE_CONFIG_DERIVED( drifto94, ssv )
 
 	/* video hardware */
 	MCFG_SCREEN_MODIFY("screen")
-	MCFG_SCREEN_VISIBLE_AREA(0, (0xcd-0x25)*2-1, 0, (0x101-0x13)-1)
+	MCFG_SCREEN_VISIBLE_AREA(0, 336-1, 0, 240-1)
 MACHINE_CONFIG_END
 
 
@@ -2633,7 +2633,7 @@ static MACHINE_CONFIG_DERIVED( gdfs, ssv )
 
 	/* video hardware */
 	MCFG_SCREEN_MODIFY("screen")
-	MCFG_SCREEN_VISIBLE_AREA(0, (0xd5-0x2c)*2-1, 0, (0x102-0x12)-1)
+	MCFG_SCREEN_VISIBLE_AREA(0, 336-1, 0, 240-1)
 	MCFG_SCREEN_UPDATE_DRIVER(ssv_state, screen_update_gdfs)
 
 	MCFG_DEVICE_ADD("st0020_spr", ST0020_SPRITES, 0)
@@ -2653,7 +2653,7 @@ static MACHINE_CONFIG_DERIVED( hypreact, ssv )
 
 	/* video hardware */
 	MCFG_SCREEN_MODIFY("screen")
-	MCFG_SCREEN_VISIBLE_AREA(0, (0xcb-0x22)*2-1, 0, (0xfe - 0x0e)-1)
+	MCFG_SCREEN_VISIBLE_AREA(8, (336-8)-1, 8, (240-8)-1)
 MACHINE_CONFIG_END
 
 
@@ -2665,7 +2665,7 @@ static MACHINE_CONFIG_DERIVED( hypreac2, ssv )
 
 	/* video hardware */
 	MCFG_SCREEN_MODIFY("screen")
-	MCFG_SCREEN_VISIBLE_AREA(0, (0xcb-0x22)*2-1, 0, (0xfe - 0x0e)-1)
+	MCFG_SCREEN_VISIBLE_AREA(0, 336-1, 0, 240-1)
 MACHINE_CONFIG_END
 
 
@@ -2677,7 +2677,7 @@ static MACHINE_CONFIG_DERIVED( janjans1, ssv )
 
 	/* video hardware */
 	MCFG_SCREEN_MODIFY("screen")
-	MCFG_SCREEN_VISIBLE_AREA(0, (0xcb-0x23)*2-1, 0, (0xfe - 0x0e)-1)
+	MCFG_SCREEN_VISIBLE_AREA(0, 336-1, 0, 240-1)
 MACHINE_CONFIG_END
 
 
@@ -2689,7 +2689,7 @@ static MACHINE_CONFIG_DERIVED( keithlcy, ssv )
 
 	/* video hardware */
 	MCFG_SCREEN_MODIFY("screen")
-	MCFG_SCREEN_VISIBLE_AREA(0, (0xcd-0x25)*2-1, 0, (0x101 - 0x13)-1)
+	MCFG_SCREEN_VISIBLE_AREA(0, 336-1, 0, 240-1)
 MACHINE_CONFIG_END
 
 
@@ -2703,7 +2703,7 @@ static MACHINE_CONFIG_DERIVED( meosism, ssv )
 
 	/* video hardware */
 	MCFG_SCREEN_MODIFY("screen")
-	MCFG_SCREEN_VISIBLE_AREA(0, (0xd5-0x2c)*2-1, 0, (0xfe - 0x12)-1)
+	MCFG_SCREEN_VISIBLE_AREA(0, 336-1, 0, 236-1)
 MACHINE_CONFIG_END
 
 
@@ -2715,7 +2715,7 @@ static MACHINE_CONFIG_DERIVED( mslider, ssv )
 
 	/* video hardware */
 	MCFG_SCREEN_MODIFY("screen")
-	MCFG_SCREEN_VISIBLE_AREA(0, (0xd6-0x26)*2-1, 0, (0xfe - 0x0e)-1)
+	MCFG_SCREEN_VISIBLE_AREA(0, 352-1, 0, 240-1)
 MACHINE_CONFIG_END
 
 
@@ -2727,7 +2727,7 @@ static MACHINE_CONFIG_DERIVED( ryorioh, ssv )
 
 	/* video hardware */
 	MCFG_SCREEN_MODIFY("screen")
-	MCFG_SCREEN_VISIBLE_AREA(0, (0xcb-0x23)*2-1, 0, (0xfe - 0x0e)-1)
+	MCFG_SCREEN_VISIBLE_AREA(0, 336-1, 0, 240-1)
 MACHINE_CONFIG_END
 
 static MACHINE_CONFIG_DERIVED( vasara, ssv )
@@ -2738,7 +2738,7 @@ static MACHINE_CONFIG_DERIVED( vasara, ssv )
 
 	/* video hardware */
 	MCFG_SCREEN_MODIFY("screen")
-	MCFG_SCREEN_VISIBLE_AREA(0, (0xcc-0x24)*2-1, 0,(0xfe - 0x0e)-1)
+	MCFG_SCREEN_VISIBLE_AREA(0, 336-1, 0, 240-1)
 MACHINE_CONFIG_END
 
 static MACHINE_CONFIG_DERIVED( srmp4, ssv )
@@ -2749,7 +2749,7 @@ static MACHINE_CONFIG_DERIVED( srmp4, ssv )
 
 	/* video hardware */
 	MCFG_SCREEN_MODIFY("screen")
-	MCFG_SCREEN_VISIBLE_AREA(0, (0xd4-0x2c)*2-1, 0, (0x102 - 0x12)-1)
+	MCFG_SCREEN_VISIBLE_AREA(0, 336-1, 0, 240-1)
 MACHINE_CONFIG_END
 
 
@@ -2761,7 +2761,7 @@ static MACHINE_CONFIG_DERIVED( srmp7, ssv )
 
 	/* video hardware */
 	MCFG_SCREEN_MODIFY("screen")
-	MCFG_SCREEN_VISIBLE_AREA(0, (0xd4-0x2c)*2-1, 0, (0xfd - 0x0e)-1)
+	MCFG_SCREEN_VISIBLE_AREA(0, 336-1, 0, 240-1)
 MACHINE_CONFIG_END
 
 
@@ -2781,7 +2781,7 @@ static MACHINE_CONFIG_DERIVED( stmblade, ssv )
 	MCFG_NVRAM_ADD_0FILL("nvram")
 	/* video hardware */
 	MCFG_SCREEN_MODIFY("screen")
-	MCFG_SCREEN_VISIBLE_AREA(0, (0xd6-0x26)*2-1, 0, (0xfe - 0x0e)-1)
+	MCFG_SCREEN_VISIBLE_AREA(0, 352-1, 0, 240-1)
 MACHINE_CONFIG_END
 
 
@@ -2793,7 +2793,7 @@ static MACHINE_CONFIG_DERIVED( survarts, ssv )
 
 	/* video hardware */
 	MCFG_SCREEN_MODIFY("screen")
-	MCFG_SCREEN_VISIBLE_AREA(0, (0xd4-0x2c)*2-1, 0, (0x102 - 0x12)-1)
+	MCFG_SCREEN_VISIBLE_AREA(0, 336-1, 0, 240-1)
 MACHINE_CONFIG_END
 
 
@@ -2802,7 +2802,7 @@ static MACHINE_CONFIG_DERIVED( dynagear, survarts )
 	/* basic machine hardware */
 	/* video hardware */
 	MCFG_SCREEN_MODIFY("screen")
-	MCFG_SCREEN_VISIBLE_AREA(0, (0xd4-0x2c)*2-1, 0, (0x102 - 0x12)-1)
+	MCFG_SCREEN_VISIBLE_AREA(8, (336-8)-1, 0, 240-1)
 MACHINE_CONFIG_END
 
 
@@ -2816,7 +2816,7 @@ static MACHINE_CONFIG_DERIVED( eaglshot, ssv )
 
 	/* video hardware */
 	MCFG_SCREEN_MODIFY("screen")
-	MCFG_SCREEN_VISIBLE_AREA(0, (0xca - 0x2a)*2-1, 0, (0xf6 - 0x16)-1)
+	MCFG_SCREEN_VISIBLE_AREA(0, (336-16)-1, 0, (240-16)-1)
 	MCFG_SCREEN_UPDATE_DRIVER(ssv_state, screen_update_eaglshot)
 
 	MCFG_GFXDECODE_MODIFY("gfxdecode", eaglshot)
@@ -2834,7 +2834,7 @@ static MACHINE_CONFIG_DERIVED( sxyreact, ssv )
 
 	/* video hardware */
 	MCFG_SCREEN_MODIFY("screen")
-	MCFG_SCREEN_VISIBLE_AREA(0, (0xcb - 0x22)*2-1, 0, (0xfe - 0x0e)-1)
+	MCFG_SCREEN_VISIBLE_AREA(0, 336-1, 0, 240-1)
 MACHINE_CONFIG_END
 
 static MACHINE_CONFIG_DERIVED( sxyreac2, ssv )
@@ -2847,7 +2847,7 @@ static MACHINE_CONFIG_DERIVED( sxyreac2, ssv )
 
 	/* video hardware */
 	MCFG_SCREEN_MODIFY("screen")
-	MCFG_SCREEN_VISIBLE_AREA(0, (0xcb - 0x23)*2-1, 0, (0xfe - 0x0e)-1)
+	MCFG_SCREEN_VISIBLE_AREA(0, 336-1, 0, 240-1)
 MACHINE_CONFIG_END
 
 static MACHINE_CONFIG_DERIVED( cairblad, ssv )
@@ -2860,7 +2860,7 @@ static MACHINE_CONFIG_DERIVED( cairblad, ssv )
 
 	/* video hardware */
 	MCFG_SCREEN_MODIFY("screen")
-	MCFG_SCREEN_VISIBLE_AREA(0, (0xcb - 0x22)*2-1, 0, (0xfe - 0x0e)-1)
+	MCFG_SCREEN_VISIBLE_AREA(0, 336-1, 0, 240-1)
 MACHINE_CONFIG_END
 
 static MACHINE_CONFIG_DERIVED( twineag2, ssv )
@@ -2877,7 +2877,7 @@ static MACHINE_CONFIG_DERIVED( twineag2, ssv )
 
 	/* video hardware */
 	MCFG_SCREEN_MODIFY("screen")
-	MCFG_SCREEN_VISIBLE_AREA(0, (0xd4 - 0x2c)*2-1, 0, (0x102 - 0x12)-1)
+	MCFG_SCREEN_VISIBLE_AREA(0, 336-1, 0, 240-1)
 MACHINE_CONFIG_END
 
 
@@ -2889,7 +2889,7 @@ static MACHINE_CONFIG_DERIVED( ultrax, ssv )
 
 	/* video hardware */
 	MCFG_SCREEN_MODIFY("screen")
-	MCFG_SCREEN_VISIBLE_AREA(0, (0xd4 - 0x2c)*2-1, 0, (0x102 - 0x12)-1)
+	MCFG_SCREEN_VISIBLE_AREA(0, 336-1, 0, 240-1)
 MACHINE_CONFIG_END
 
 static MACHINE_CONFIG_DERIVED( jsk, ssv )
@@ -2903,7 +2903,7 @@ static MACHINE_CONFIG_DERIVED( jsk, ssv )
 
 	/* video hardware */
 	MCFG_SCREEN_MODIFY("screen")
-	MCFG_SCREEN_VISIBLE_AREA(0, (0xca - 0x22)*2-1, 0, (0xfe - 0x0e)-1)
+	MCFG_SCREEN_VISIBLE_AREA(0, 336-1, 0, 240-1)
 MACHINE_CONFIG_END
 
 

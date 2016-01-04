@@ -101,7 +101,6 @@ static slider_state *slider_list;
 static slider_state *slider_current;
 
 
-static int show_time = 0;
 /***************************************************************************
     FUNCTION PROTOTYPES
 ***************************************************************************/
@@ -230,8 +229,6 @@ ui_manager::ui_manager(running_machine &machine)
 	ui_menu::init(machine);
 	ui_gfx_init(machine);
 
-	show_time = 0;
-
 	// reset instance variables
 	m_font = NULL;
 	m_handler_callback = NULL;
@@ -243,6 +240,7 @@ ui_manager::ui_manager(running_machine &machine)
 	m_popup_text_end = 0;
 	m_use_natural_keyboard = false;
 	m_mouse_arrow_texture = NULL;
+	m_show_time = false;
 
 	// more initialization
 	set_handler(handler_messagebox, 0);
@@ -1528,7 +1526,7 @@ UINT32 ui_manager::handler_ingame(running_machine &machine, render_container *co
 		machine.ui().draw_text_full(container, text, 0.0f, 0.0f, 1.0f, JUSTIFY_LEFT, WRAP_WORD, DRAW_OPAQUE, ARGB_WHITE, ARGB_BLACK, NULL, NULL);
 	}
 
-	if (show_time)
+	if (machine.ui().show_time())
 		ui_display_time(machine, container);
 
 	// if we're single-stepping, pause now
@@ -1699,14 +1697,14 @@ UINT32 ui_manager::handler_ingame(running_machine &machine, render_container *co
 	// toggle autofire
 	if (ui_input_pressed(machine, IPT_UI_TOGGLE_AUTOFIRE))
 	{
+		int autofire_toggle = machine.ioport().get_autofire_toggle();
 		autofire_toggle ^= 1;
+		machine.ioport().set_autofire_toggle(autofire_toggle);
 		popmessage("Autofire %s", autofire_toggle ? "Disabled" : "Enabled");
 	}
 	
 	if (ui_input_pressed(machine, IPT_UI_SHOW_TIME))
-	{
-		show_time ^= 1;
-	}
+		machine.ui().set_show_time(!machine.ui().show_time());
 
 	// check for fast forward
 	if (machine.ioport().type_pressed(IPT_UI_FAST_FORWARD))

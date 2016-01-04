@@ -23,13 +23,13 @@ typedef struct _mybitmapinfo
 	int bmColors;
 } MYBITMAPINFO, *LPMYBITMAPINFO;
 
-extern BOOL LoadScreenShot(int nGame, int nType);
-extern HANDLE GetScreenShotHandle(void);
-extern int GetScreenShotWidth(void);
-extern int GetScreenShotHeight(void);
-extern void FreeScreenShot(void);
-extern BOOL ScreenShotLoaded(void);
-extern BOOL LoadDIB(const char *filename, HGLOBAL *phDIB, HPALETTE *pPal, BOOL flyer);
-extern HBITMAP DIBToDDB(HDC hDC, HANDLE hDIB, LPMYBITMAPINFO desc);
+BOOL LoadScreenShot(int nGame, int nType);
+HANDLE GetScreenShotHandle(void);
+int GetScreenShotWidth(void);
+int GetScreenShotHeight(void);
+void FreeScreenShot(void);
+BOOL ScreenShotLoaded(void);
+BOOL LoadDIB(const char *filename, HGLOBAL *phDIB, HPALETTE *pPal, BOOL flyer);
+HBITMAP DIBToDDB(HDC hDC, HANDLE hDIB, LPMYBITMAPINFO desc);
 
 #endif

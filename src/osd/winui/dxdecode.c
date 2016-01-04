@@ -11,18 +11,8 @@
 
  ***************************************************************************/
 
-// standard windows headers
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
+#include "winui.h"
 #include <ddraw.h>
-
-// standard C headers
-#include <stdio.h>
-
-// MAME/MAMEUI headers
-#include "directinput.h"
-#include "dxdecode.h"
-
 
 /***************************************************************/
 
@@ -188,6 +178,6 @@ const char * DirectXDecodeError(HRESULT errorval)
 		}
 	}
 	
-	sprintf(tmp, "UNKNOWN: 0x%x", (unsigned int)errorval);
+	snprintf(tmp, ARRAY_LENGTH(tmp), "UNKNOWN: 0x%x", (unsigned int)errorval);
 	return tmp;
 }

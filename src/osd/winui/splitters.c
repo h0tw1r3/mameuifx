@@ -22,19 +22,7 @@
 ***************************************************************************/
 
 
-// standard windows headers
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <windowsx.h>
-#include <commctrl.h>
-#include <stdlib.h>
-
-// MAME/MAMEUI headers
-#include "splitters.h"
-#include "mui_opts.h"
-#include "resource.h"
 #include "winui.h"
-
 
 /* Local Variables */
 static int firstTime = TRUE;
@@ -45,6 +33,14 @@ static HZSPLITTER *splitter;
 static LPHZSPLITTER lpCurSpltr = 0;
 static HCURSOR hSplitterCursor = 0;
 int *nSplitterOffset;
+
+extern const SPLITTERINFO g_splitterInfo[] =
+{
+	{ 0.5,	IDC_SPLITTER,	IDC_TREE,	IDC_LIST,		AdjustSplitter1Rect },
+	{ 0.5,	IDC_SPLITTER2,	IDC_LIST,	IDC_SSFRAME,	AdjustSplitter2Rect },
+	{ -1 }
+};
+
 
 BOOL InitSplitters(void)
 {
@@ -76,13 +72,13 @@ void SplittersExit(void)
 {
 	if (splitter)
 	{
-		osd_free(splitter);
+		free(splitter);
 		splitter = NULL;
 	}
 	
 	if (nSplitterOffset)
 	{
-		osd_free(nSplitterOffset);
+		free(nSplitterOffset);
 		nSplitterOffset = NULL;
 	}
 }
@@ -238,7 +234,6 @@ static void OnInvertTracker(HWND hWnd, const RECT *rect)
 		SelectObject(hDC, hOldBrush);
 	
 	ReleaseDC(hWnd, hDC);
-	DeleteBrush(hBrush);
 }
 
 static void StartTracking(HWND hWnd, UINT hitArea)

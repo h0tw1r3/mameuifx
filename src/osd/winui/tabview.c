@@ -11,22 +11,7 @@
 
  ***************************************************************************/
 
-// standard windows headers
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <windowsx.h>
-#include <shellapi.h>
-#include <commctrl.h>
-#include <commdlg.h>
-#include <wingdi.h>
-
-// MAME/MAMEUI headers
 #include "winui.h"
-#include "tabview.h"
-#include "emu.h"
-#include "mui_util.h"
-#include "strconv.h"
-
 
 struct TabViewInfo
 {
@@ -70,7 +55,7 @@ static LRESULT CALLBACK TabViewWndProc(HWND hWnd, UINT message, WPARAM wParam, L
 	switch(message)
 	{
 		case WM_DESTROY:
-			osd_free(pTabViewInfo);
+			free(pTabViewInfo);
 			SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG_PTR) pfnParentWndProc);
 			SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR) NULL);
 			break;
@@ -262,7 +247,7 @@ void TabView_Reset(HWND hWndTabView)
 	pTabViewInfo = GetTabViewInfo(hWndTabView);
 	(void)TabCtrl_DeleteAllItems(hWndTabView);
 
-	memset(&tci, 0, sizeof(tci));
+	memset(&tci, 0, sizeof(TCITEM));
 	tci.mask = TCIF_TEXT | TCIF_IMAGE;
 	tci.cchTextMax = 20;
 
@@ -278,7 +263,7 @@ void TabView_Reset(HWND hWndTabView)
 			tci.pszText = t_text;
 			tci.iImage = i;
 			(void)TabCtrl_InsertItem(hWndTabView, i, &tci);
-			osd_free(t_text);
+			free(t_text);
 		}
 	}
 	

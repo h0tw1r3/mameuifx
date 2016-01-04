@@ -19,32 +19,7 @@
 
 ***************************************************************************/
 
-// standard windows headers
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <windowsx.h>
-#include <shellapi.h>
-#include <commctrl.h>
-#include <commdlg.h>
-#include <uxtheme.h>
-
-// standard C headers
-#include <string.h>
-#include <tchar.h>
-#include <stdlib.h>
-
-// MAMEUI headers
-#include "bitmask.h"
-#include "treeview.h"
-#include "resource.h"
-#include "mui_opts.h"
-#include "mui_util.h"
 #include "winui.h"
-#include "properties.h"  // For GetHelpIDs
-
-// MAME headers
-#include "strconv.h"
-#include "winutf8.h"
 
 #ifndef TVS_EX_DOUBLEBUFFER
 #define TVS_EX_DOUBLEBUFFER 0x0004
@@ -129,7 +104,7 @@ INT_PTR CALLBACK ResetDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lPar
 		CenterWindow(hDlg);
         hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_MAMEUI_ICON));
         SendMessage(hDlg, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
-		hBrush = GetSysColorBrush(COLOR_WINDOW);
+		hBrush = CreateSolidBrush(RGB(224, 223, 227));
 		DisableVisualStylesReset(hDlg);
 		return TRUE;
 
@@ -138,7 +113,7 @@ INT_PTR CALLBACK ResetDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lPar
 		
 	case WM_CTLCOLORSTATIC:
 	case WM_CTLCOLORBTN:
-		hDC=(HDC)wParam;
+		hDC = (HDC)wParam;
 		SetBkMode(hDC, TRANSPARENT);
 		SetTextColor(hDC, GetSysColor(COLOR_WINDOWTEXT));
 		return (LRESULT) hBrush;
@@ -193,15 +168,15 @@ INT_PTR CALLBACK ResetDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lPar
 					if (resetUI)
 					{
 						ResetInterface();
-						DeleteObject(hBrush);
 						DestroyIcon(hIcon);
+						DeleteObject(hBrush);
 						EndDialog(hDlg, 1);
 						return TRUE;
 					} 
 					else 
 					{
-						DeleteObject(hBrush);
 						DestroyIcon(hIcon);
+						DeleteObject(hBrush);
 						EndDialog(hDlg, 0);
 						return TRUE;
 					}
@@ -233,9 +208,24 @@ static UINT_PTR CALLBACK CCHookProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM l
 			CenterWindow(hDlg);
         	hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_MAMEUI_ICON));
         	SendMessage(hDlg, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+			hBrush = CreateSolidBrush(RGB(224, 223, 227));
 			break;
-	}
 	
+		case WM_CTLCOLORDLG:
+			return (LRESULT) hBrush;	
+		
+		case WM_CTLCOLORSTATIC:
+		case WM_CTLCOLORBTN:
+			hDC = (HDC)wParam;
+			SetBkMode(hDC, TRANSPARENT);
+			return (LRESULT) hBrush;
+			
+		case WM_DESTROY:
+			DestroyIcon(hIcon);
+			DeleteObject(hBrush);
+			return TRUE;
+	}
+
 	return FALSE;
 }
 
@@ -257,13 +247,13 @@ INT_PTR CALLBACK InterfaceDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 		CenterWindow(hDlg);
         hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_MAMEUI_ICON));
         SendMessage(hDlg, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
-		hBrush = GetSysColorBrush(COLOR_WINDOW);
+		hBrush = CreateSolidBrush(RGB(224, 223, 227));
 		DisableVisualStylesInterface(hDlg);
 		Button_SetCheck(GetDlgItem(hDlg, IDC_JOY_GUI), GetJoyGUI());
 		Button_SetCheck(GetDlgItem(hDlg, IDC_KEY_GUI), GetKeyGUI());
-		Button_SetCheck(GetDlgItem(hDlg, IDC_BROADCAST), GetBroadcast());
 		Button_SetCheck(GetDlgItem(hDlg, IDC_DISABLE_TRAY_ICON), GetMinimizeTrayIcon());
 		Button_SetCheck(GetDlgItem(hDlg, IDC_DISPLAY_NO_ROMS), GetDisplayNoRomsGames());
+		Button_SetCheck(GetDlgItem(hDlg, IDC_EXIT_DIALOG), GetExitDialog());
 		Button_SetCheck(GetDlgItem(hDlg, IDC_USE_BROKEN_ICON), GetUseBrokenIcon());
 		Button_SetCheck(GetDlgItem(hDlg, IDC_HIDE_MOUSE), GetHideMouseOnStartup());
 		Button_SetCheck(GetDlgItem(hDlg, IDC_STRETCH_SCREENSHOT_LARGER), GetStretchScreenShotLarger());
@@ -273,7 +263,7 @@ INT_PTR CALLBACK InterfaceDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 		SendMessage(GetDlgItem(hDlg, IDC_CYCLETIMESEC), TBM_SETTICFREQ, 5, 0);
 		value = GetCycleScreenshot();
 		SendMessage(GetDlgItem(hDlg, IDC_CYCLETIMESEC), TBM_SETPOS, TRUE, value);
-		sprintf(buffer, "%i", value);		
+		snprintf(buffer, ARRAY_LENGTH(buffer), "%i", value);		
 		win_set_window_text_utf8(GetDlgItem(hDlg, IDC_CYCLETIMESECTXT), buffer);
 
 		for (i = 0; i < NUMHISTORYTAB; i++)
@@ -291,7 +281,7 @@ INT_PTR CALLBACK InterfaceDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 		SendMessage(GetDlgItem(hDlg, IDC_SCREENSHOT_BORDERSIZE), TBM_SETTICFREQ, 5, 0);
 		value = GetScreenshotBorderSize();
 		SendMessage(GetDlgItem(hDlg, IDC_SCREENSHOT_BORDERSIZE), TBM_SETPOS, TRUE, value);
-		sprintf(buffer, "%i", value);		
+		snprintf(buffer, ARRAY_LENGTH(buffer), "%i", value);		
 		win_set_window_text_utf8(GetDlgItem(hDlg, IDC_SCREENSHOT_BORDERSIZETXT), buffer);
 		break;
 
@@ -300,7 +290,7 @@ INT_PTR CALLBACK InterfaceDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 		
 	case WM_CTLCOLORSTATIC:
 	case WM_CTLCOLORBTN:
-		hDC=(HDC)wParam;
+		hDC = (HDC)wParam;
 		SetBkMode(hDC, TRANSPARENT);
 		SetTextColor(hDC, GetSysColor(COLOR_WINDOWTEXT));
 		return (LRESULT) hBrush;
@@ -339,9 +329,9 @@ INT_PTR CALLBACK InterfaceDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 		{
 			SetJoyGUI(Button_GetCheck(GetDlgItem(hDlg, IDC_JOY_GUI)));
 			SetKeyGUI(Button_GetCheck(GetDlgItem(hDlg, IDC_KEY_GUI)));
-			SetBroadcast(Button_GetCheck(GetDlgItem(hDlg, IDC_BROADCAST)));
 			SetMinimizeTrayIcon(Button_GetCheck(GetDlgItem(hDlg, IDC_DISABLE_TRAY_ICON)));
 			SetHideMouseOnStartup(Button_GetCheck(GetDlgItem(hDlg, IDC_HIDE_MOUSE)));
+			SetExitDialog(Button_GetCheck(GetDlgItem(hDlg, IDC_EXIT_DIALOG)));
 
 			if(Button_GetCheck(GetDlgItem(hDlg, IDC_RESET_PLAYCOUNT)))
 			{
@@ -409,8 +399,8 @@ INT_PTR CALLBACK InterfaceDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 			if (nCurSelection != CB_ERR)
 				nHistoryTab = ComboBox_GetItemData(GetDlgItem(hDlg, IDC_HISTORY_TAB), nCurSelection);
 
-			DeleteObject(hBrush);
 			DestroyIcon(hIcon);
+			DeleteObject(hBrush);
 			EndDialog(hDlg, 0);
 
 			if(GetHistoryTab() != nHistoryTab)
@@ -427,8 +417,8 @@ INT_PTR CALLBACK InterfaceDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 		}
 
 		case IDCANCEL :
-			DeleteObject(hBrush);
 			DestroyIcon(hIcon);
+			DeleteObject(hBrush);
 			EndDialog(hDlg, 0);
 			return TRUE;
 		}
@@ -453,7 +443,7 @@ INT_PTR CALLBACK FilterDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lPa
 		CenterWindow(hDlg);
         hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_MAMEUI_ICON));
         SendMessage(hDlg, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
-		hBrush = GetSysColorBrush(COLOR_WINDOW);
+		hBrush = CreateSolidBrush(RGB(224, 223, 227));
 		DisableVisualStylesFilters(hDlg);
 		LPTREEFOLDER folder = GetCurrentFolder();
 		LPTREEFOLDER lpParent = NULL;
@@ -602,8 +592,7 @@ INT_PTR CALLBACK FilterDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lPa
 		
 	case WM_CTLCOLORSTATIC:
 	case WM_CTLCOLORBTN:
-	case WM_CTLCOLOREDIT:
-		hDC=(HDC)wParam;
+		hDC = (HDC)wParam;
 		SetBkMode(hDC, TRANSPARENT);
 		SetTextColor(hDC, GetSysColor(COLOR_WINDOWTEXT));
 		return (LRESULT) hBrush;
@@ -667,7 +656,7 @@ INT_PTR CALLBACK AboutDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lPar
 	case WM_INITDIALOG:
 	{
 		CenterWindow(hDlg);
-		hBrush = GetSysColorBrush(COLOR_3DFACE);
+		hBrush = CreateSolidBrush(RGB(235, 233, 237));
 		HBITMAP hBmp = (HBITMAP)LoadImage(GetModuleHandle(NULL), MAKEINTRESOURCE(IDB_SPLASH), IMAGE_BITMAP, 0, 0, LR_SHARED);
 		SendMessage(GetDlgItem(hDlg, IDC_ABOUT), STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hBmp);
 		hFont = CreateFont(-11, 0, 0, 0, 400, 0, 0, 0, 0, 3, 2, 1, 34, TEXT("Verdana"));
@@ -678,7 +667,7 @@ INT_PTR CALLBACK AboutDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lPar
 		SetWindowFont(GetDlgItem(hDlg, IDC_TEXT4), hFont, TRUE);
 		SetWindowFont(GetDlgItem(hDlg, IDC_SICKFX), hFontFX, TRUE);
 		win_set_window_text_utf8(GetDlgItem(hDlg, IDC_BUILD), "Build time: "__DATE__" - "__TIME__"");
-		sprintf(tmp, "Version: %s", bare_build_version);
+		snprintf(tmp, ARRAY_LENGTH(tmp), "Version: %s", bare_build_version);
 		win_set_window_text_utf8(GetDlgItem(hDlg, IDC_BUILDVER), tmp);
 		return TRUE;
 	}
@@ -688,7 +677,7 @@ INT_PTR CALLBACK AboutDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lPar
 
 	case WM_CTLCOLORSTATIC:
 	case WM_CTLCOLORBTN:
-		hDC=(HDC)wParam;
+		hDC = (HDC)wParam;
 		SetBkMode(hDC, TRANSPARENT);
 		SetTextColor(hDC, GetSysColor(COLOR_WINDOWTEXT));
 
@@ -718,6 +707,7 @@ INT_PTR CALLBACK AddCustomFileDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPA
 		CenterWindow(hDlg);
         hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_MAMEUI_ICON));
         SendMessage(hDlg, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+		hBrush = CreateSolidBrush(RGB(224, 223, 227));
 
 		if (IsWindowsSevenOrHigher())
 			SendMessage(GetDlgItem(hDlg, IDC_CUSTOM_TREE), TVM_SETEXTENDEDSTYLE, TVS_EX_DOUBLEBUFFER, TVS_EX_DOUBLEBUFFER);
@@ -747,7 +737,7 @@ INT_PTR CALLBACK AddCustomFileDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPA
 
 				if (folders[i]->m_nParent == -1)
 				{
-					memset(&tvi, '\0', sizeof(tvi));
+					memset(&tvi, 0, sizeof(TVITEM));
 				    tvis.hParent = TVI_ROOT;
 					tvis.hInsertAfter = TVI_SORT;
 					tvi.mask = TVIF_TEXT | TVIF_PARAM | TVIF_IMAGE | TVIF_SELECTEDIMAGE;
@@ -794,7 +784,17 @@ INT_PTR CALLBACK AddCustomFileDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPA
 		win_set_window_text_utf8(GetDlgItem(hDlg, IDC_CUSTOMFILE_GAME), driver_list::driver(driver_index).description);
 		return TRUE;
 	}
-	case WM_COMMAND:
+	case WM_CTLCOLORDLG:
+		return (LRESULT) hBrush;	
+		
+	case WM_CTLCOLORSTATIC:
+	case WM_CTLCOLORBTN:
+		hDC = (HDC)wParam;
+		SetBkMode(hDC, TRANSPARENT);
+		SetTextColor(hDC, GetSysColor(COLOR_WINDOWTEXT));
+		return (LRESULT) hBrush;
+
+		case WM_COMMAND:
 		switch (GET_WM_COMMAND_ID(wParam, lParam))
 		{
 		case IDOK:
@@ -811,12 +811,14 @@ INT_PTR CALLBACK AddCustomFileDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPA
 		   	}
 
 			DestroyIcon(hIcon);
+			DeleteObject(hBrush);
 		   	EndDialog(hDlg, 0);
 		   	return TRUE;
 		}
 		
 		case IDCANCEL:
 			DestroyIcon(hIcon);
+			DeleteObject(hBrush);
 			EndDialog(hDlg, 0);
 			return TRUE;
 		}
@@ -907,18 +909,18 @@ static DWORD ValidateFilters(LPCFOLDERDATA lpFilterRecord, DWORD dwFlags)
 static void OnHScroll(HWND hWnd, HWND hWndCtl, UINT code, int pos)
 {
 	int value;
-	char tmp[4];
+	char tmp[8];
 
 	if (hWndCtl == GetDlgItem(hWnd, IDC_CYCLETIMESEC))
 	{
 		value = SendMessage(GetDlgItem(hWnd, IDC_CYCLETIMESEC), TBM_GETPOS, 0, 0);
-		sprintf(tmp, "%i", value);
+		snprintf(tmp, ARRAY_LENGTH(tmp), "%i", value);
 		win_set_window_text_utf8(GetDlgItem(hWnd, IDC_CYCLETIMESECTXT), tmp);
 	}
 	else if (hWndCtl == GetDlgItem(hWnd, IDC_SCREENSHOT_BORDERSIZE))
 	{
 		value = SendMessage(GetDlgItem(hWnd, IDC_SCREENSHOT_BORDERSIZE), TBM_GETPOS, 0, 0);
-		sprintf(tmp, "%i", value);
+		snprintf(tmp, ARRAY_LENGTH(tmp), "%i", value);
 		win_set_window_text_utf8(GetDlgItem(hWnd, IDC_SCREENSHOT_BORDERSIZETXT), tmp);
 	}
 }
@@ -927,9 +929,9 @@ static void DisableVisualStylesInterface(HWND hDlg)
 {
 	SetWindowTheme(GetDlgItem(hDlg, IDC_HIDE_MOUSE), L" ", L" ");
 	SetWindowTheme(GetDlgItem(hDlg, IDC_DISABLE_TRAY_ICON), L" ", L" ");
+	SetWindowTheme(GetDlgItem(hDlg, IDC_EXIT_DIALOG), L" ", L" ");
 	SetWindowTheme(GetDlgItem(hDlg, IDC_JOY_GUI), L" ", L" ");
 	SetWindowTheme(GetDlgItem(hDlg, IDC_KEY_GUI), L" ", L" ");
-	SetWindowTheme(GetDlgItem(hDlg, IDC_BROADCAST), L" ", L" ");
 	SetWindowTheme(GetDlgItem(hDlg, IDC_USE_BROKEN_ICON), L" ", L" ");
 	SetWindowTheme(GetDlgItem(hDlg, IDC_FILTER_INHERIT), L" ", L" ");
 	SetWindowTheme(GetDlgItem(hDlg, IDC_DISPLAY_NO_ROMS), L" ", L" ");
@@ -949,6 +951,7 @@ static void DisableVisualStylesReset(HWND hDlg)
 
 static void DisableVisualStylesFilters(HWND hDlg)
 {
+	SetWindowTheme(GetDlgItem(hDlg, IDC_FILTER_EDIT), L" ", L" ");
 	SetWindowTheme(GetDlgItem(hDlg, IDC_FILTER_VECTOR), L" ", L" ");
 	SetWindowTheme(GetDlgItem(hDlg, IDC_FILTER_CLONES), L" ", L" ");
 	SetWindowTheme(GetDlgItem(hDlg, IDC_FILTER_NONWORKING), L" ", L" ");

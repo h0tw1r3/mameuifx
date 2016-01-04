@@ -13,16 +13,7 @@
 
 /* bitmask.c - Bitmask support routines - MSH 11/19/1998 */
 
-// standard windows headers
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-
-// standard C headers
-#include <stdlib.h> /* For malloc and free */
-
-// MAME/MAMEUI headers
-#include "bitmask.h"
-#include "emu.h"
+#include "winui.h"
 
 /* Bit routines */
 static UCHAR maskTable[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
@@ -35,7 +26,7 @@ static UCHAR maskTable[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
 LPBITS NewBits(UINT nLength)
 {
 	LPBITS lpBits = 0;
-	UINT nSize = (nLength+7) / 8;
+	UINT nSize = (nLength + 7) / 8;
 
 	lpBits = (LPBITS)malloc(sizeof(BITS));
 	
@@ -45,12 +36,12 @@ LPBITS NewBits(UINT nLength)
 		
 		if (lpBits->m_lpBits)
 		{
-			memset(lpBits->m_lpBits, '\0', nSize);
+			memset(lpBits->m_lpBits, 0, nSize);
 			lpBits->m_nSize = nSize;
 		}
 		else
 		{
-			osd_free(lpBits);
+			free(lpBits);
 			lpBits = 0;
 		}
 	}
@@ -64,9 +55,9 @@ void DeleteBits(LPBITS lpBits)
 		return;
 
 	if (lpBits->m_nSize && lpBits->m_lpBits)
-		osd_free(lpBits->m_lpBits);
+		free(lpBits->m_lpBits);
 
-	osd_free(lpBits);
+	free(lpBits);
 }
 
 /* Test the 'nBit'th bit */
@@ -127,7 +118,7 @@ void ClearBit(LPBITS lpBits, UINT nBit)
 void SetAllBits(LPBITS lpBits, BOOL bSet)
 {
 	if (lpBits && lpBits->m_nSize != 0 && lpBits->m_lpBits)
-		memset(lpBits->m_lpBits, (!bSet) ? '\0' : '\xFF', lpBits->m_nSize);
+		memset(lpBits->m_lpBits, (!bSet) ? 0 : 0xff, lpBits->m_nSize);
 }
 
 /* Find next bit that matches 'bSet'

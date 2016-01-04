@@ -11,29 +11,7 @@
 
  ***************************************************************************/
 
-// standard windows headers
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <windowsx.h>
-#include <shellapi.h>
-#include <commctrl.h>
-#include <commdlg.h>
-#include <wingdi.h>
-
-// standard C headers
-#include <stdio.h>
-#include <ctype.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <time.h>
-#include <tchar.h>
-
-// MAME/MAMEUI headers
-#include "picker.h"
 #include "winui.h"
-#include "mui_util.h" // For dprintf
-#include "mui_opts.h"
-
 
 struct PickerInfo
 {
@@ -148,12 +126,12 @@ static void Picker_Free(struct PickerInfo *pPickerInfo)
 {
 	// Free up all resources associated with this picker structure
 	if (pPickerInfo->pnColumnsShown)
-		osd_free(pPickerInfo->pnColumnsShown);
+		free(pPickerInfo->pnColumnsShown);
 
 	if (pPickerInfo->pnColumnsOrder)
-		osd_free(pPickerInfo->pnColumnsOrder);
+		free(pPickerInfo->pnColumnsOrder);
 
-	osd_free(pPickerInfo);
+	free(pPickerInfo);
 }
 
 static LRESULT CALLBACK ListViewWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -239,12 +217,9 @@ static void Picker_InternalResetColumnDisplay(HWND hWnd, BOOL bFirstTime)
 
 	if (!bFirstTime)
 	{
-		DWORD style = GetWindowLong(hWnd, GWL_STYLE);
-		// switch the list view to LVS_REPORT style so column widths reported correctly
-		SetWindowLong(hWnd, GWL_STYLE, (GetWindowLong(hWnd, GWL_STYLE) & ~LVS_TYPEMASK) | LVS_REPORT);
 		// Retrieve each of the column widths
 		i = 0;
-		memset(&col, 0, sizeof(col));
+		memset(&col, 0, sizeof(LVCOLUMN));
 		col.mask = LVCF_WIDTH;
 
 		while(ListView_GetColumn(hWnd, 0, &col))
@@ -255,8 +230,6 @@ static void Picker_InternalResetColumnDisplay(HWND hWnd, BOOL bFirstTime)
 		}
 
 		pPickerInfo->pCallbacks->pfnSetColumnWidths(widths);
-		// restore old style
-		SetWindowLong(hWnd, GWL_STYLE, style);
 	}
 
 	nColumn = 0;
@@ -286,17 +259,18 @@ static void Picker_InternalResetColumnDisplay(HWND hWnd, BOOL bFirstTime)
 		}
 	}
 
+	(void)ListView_SetBkColor(hWnd, GetListBgColor());
 	(void)ListView_SetTextColor(hWnd, GetListFontColor());
 
 done:
 	if (widths)
-		osd_free(widths);
+		free(widths);
 	
 	if (order)
-		osd_free(order);
+		free(order);
 	
 	if (shown)
-		osd_free(shown);
+		free(shown);
 }
 
 void Picker_ResetColumnDisplay(HWND hWnd)
@@ -458,7 +432,7 @@ static BOOL PickerHitTest(HWND hWnd)
 	DWORD res = GetMessagePos();
 	LVHITTESTINFO htInfo;
 
-    memset(&htInfo, 0, sizeof(htInfo));
+    memset(&htInfo, 0, sizeof(LVHITTESTINFO));
 	p = MAKEPOINTS(res);
 	GetWindowRect(hWnd, &rect);
 	htInfo.pt.x = p.x - rect.left;
@@ -477,7 +451,7 @@ int Picker_GetSelectedItem(HWND hWnd)
 	if (nItem < 0)
 		return 0;
 
-	memset(&lvi, 0, sizeof(lvi));
+	memset(&lvi, 0, sizeof(LVITEM));
 	lvi.iItem = nItem;
 	lvi.mask = LVIF_PARAM;
 	(void)ListView_GetItem(hWnd, &lvi);
@@ -681,7 +655,7 @@ void Picker_Sort(HWND hWndPicker)
 	(void)ListView_SortItems(hWndPicker, Picker_CompareProc, (LPARAM) &params);
 	Picker_ResetHeaderSortIcon(hWndPicker);
 
-	memset(&lvfi, 0, sizeof(lvfi));
+	memset(&lvfi, 0, sizeof(LVFINDINFO));
 	lvfi.flags = LVFI_PARAM;
 	lvfi.lParam = Picker_GetSelectedItem(hWndPicker);
 	nItem = ListView_FindItem(hWndPicker, -1, &lvfi);
@@ -705,7 +679,7 @@ int Picker_InsertItemSorted(HWND hWndPicker, int nParam)
 	{
 		nMid = (nHigh + nLow) / 2;
 
-		memset(&lvi, 0, sizeof(lvi));
+		memset(&lvi, 0, sizeof(LVITEM));
 		lvi.mask = LVIF_PARAM;
 		lvi.iItem = nMid;
 		
@@ -723,7 +697,7 @@ int Picker_InsertItemSorted(HWND hWndPicker, int nParam)
 		}
 	}
 
-	memset(&lvi, 0, sizeof(lvi));
+	memset(&lvi, 0, sizeof(LVITEM));
 	lvi.mask     = LVIF_IMAGE | LVIF_TEXT | LVIF_PARAM;
 	lvi.iItem	 = nLow;
 	lvi.iSubItem = 0;
@@ -909,7 +883,7 @@ int Picker_GetNumColumns(HWND hWnd)
 		}
 	}
 
-	osd_free(shown);
+	free(shown);
 	return nColumnCount;
 }
 
@@ -978,13 +952,13 @@ BOOL Picker_SaveColumnWidths(HWND hWndPicker)
 
 done:
 	if (widths)
-		osd_free(widths);
+		free(widths);
 
 	if (order)
-		osd_free(order);
+		free(order);
 
 	if (tmpOrder)
-		osd_free(tmpOrder);
+		free(tmpOrder);
 
 	return bSuccess;
 }

@@ -18,21 +18,8 @@
  *      Token parsing by Neil Bradley
  *      Modifications and higher-level functions by John Butler
  ****************************************************************************/
-// standard windows headers
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
 
-// standard C headers
-#include <ctype.h>
-
-// MAME/MAMEUI headers
-#include "emu.h"
-#include "osdcomm.h"
-#include "datafile.h"
 #include "winui.h"
-#include "mui_util.h"
-#include "mui_opts.h"
-#include "sound/samples.h"
 
 #define MAX_TOKEN_LENGTH        256
 #define DATAFILE_TAG '$'
@@ -51,9 +38,10 @@ static const char *DATAFILE_TAG_END = "$end";
 /****************************************************************************
  *      private data for parsing functions
  ****************************************************************************/
-static emu_file *fp = NULL;                    	/* Our file pointer */
+static FILE *fp = NULL;							/* Our file pointer */
 static UINT64 dwFilePos;                     	/* file position */
 static int num_games;
+static char filename[MAX_PATH];
 
 /**************************************************************************
  **************************************************************************
@@ -70,12 +58,7 @@ static void ParseClose(void)
 {
 	/* If the file is open, time for fclose. */
 	if (fp)
-	{
-		fp->close();
-		global_free(fp);
-	}
-
-	fp = NULL;
+		fclose(fp);
 }
 
 /****************************************************************************
@@ -83,21 +66,18 @@ static void ParseClose(void)
  ****************************************************************************/
 static BOOL ParseOpen(const char *pszFilename)
 {
-	file_error filerr;
-
-	ParseClose();
-	/* Open file up in binary mode */
-	fp = global_alloc(emu_file(OPEN_FLAG_READ));
-	filerr = fp->open(pszFilename);
+	/* MAME core file parsing functions fail in recognizing UNICODE chars in UTF-8 without BOM, 
+	so it's better and faster use standard C fileio functions */
+	fp = fopen(pszFilename, "r");
 	
-	if (filerr != FILERR_NONE)
+	if (fp == NULL)
 		return FALSE;
 
 	/* Otherwise, prepare! */
 	dwFilePos = 0;
 	/* identify text file type first */
-	fp->getc();
-	fp->seek(dwFilePos, SEEK_SET);
+	fgetc(fp);
+	fseek(fp, dwFilePos, SEEK_SET);
 	return TRUE;
 }
 
@@ -106,12 +86,10 @@ static BOOL ParseOpen(const char *pszFilename)
  ****************************************************************************/
 static UINT8 ParseSeek(UINT64 offset, int whence)
 {
-	int result = fp->seek(offset, whence);
+	int result = fseek(fp, offset, whence);
 
 	if (result == 0)
-	{
-		dwFilePos = fp->tell();
-	}
+		dwFilePos = ftell(fp);
 	
 	return (UINT8)result;
 }
@@ -130,7 +108,7 @@ static UINT8 ParseSeek(UINT64 offset, int whence)
  *
  *      Returns 0 on error, or the number of index entries created.
  **************************************************************************/
-static int index_datafile(struct tDatafileIndex **_index)
+static int index_datafile(struct tDatafileIndex **_index, int source)
 {
 	struct tDatafileIndex *idx;
     int count = 0;
@@ -148,7 +126,7 @@ static int index_datafile(struct tDatafileIndex **_index)
 	if (!idx) 
 		return 0;
 
-	while (fp->gets(readbuf, 512))
+	while (fgets(readbuf, 512, fp))
 	{
 		/* DATAFILE_TAG_KEY identifies the driver */
 		if (!core_strnicmp(DATAFILE_TAG_KEY, readbuf, strlen(DATAFILE_TAG_KEY)))
@@ -170,12 +148,16 @@ static int index_datafile(struct tDatafileIndex **_index)
 					int len = pch - curpoint;
 					strncpy(name, curpoint, len);
 					name[len] = '\0';
-					game_index = GetGameNameIndex(name);
+					
+					if (!source)
+						game_index = GetGameNameIndex(name);
+					else
+						game_index = GetSrcDriverIndex(name);
 
 					if (game_index >= 0)
 					{
 						idx->driver = &driver_list::driver(game_index);
-						idx->offset = fp->tell();
+						idx->offset = ftell(fp);
 						idx++;
 						count++;
 					}
@@ -189,12 +171,16 @@ static int index_datafile(struct tDatafileIndex **_index)
 					int len = ends - curpoint;
 					strncpy(name, curpoint, len);
 					name[len] = '\0';
-					game_index = GetGameNameIndex(name);
+
+					if (!source)
+						game_index = GetGameNameIndex(name);
+					else
+						game_index = GetSrcDriverIndex(name);
 
 					if (game_index >= 0)
 					{
 						idx->driver = &driver_list::driver(game_index);
-						idx->offset = fp->tell();
+						idx->offset = ftell(fp);
 						idx++;
 						count++;
 					}
@@ -212,88 +198,6 @@ static int index_datafile(struct tDatafileIndex **_index)
     return count;
 }
 
-static int index_datafile_drivinfo(struct tDatafileIndex **_index)
-{
-	struct tDatafileIndex *idx;
-    int count = 0;
-  	char readbuf[512];
-	char name[40];
-	num_games = driver_list::total();
-	
-    /* rewind file */
-    if (ParseSeek (0L, SEEK_SET)) 
-		return 0;
-
-    /* allocate index */
-	idx = *_index = global_alloc_array(tDatafileIndex, (num_games + 1) * sizeof (struct tDatafileIndex));
-
-    if (!idx) 
-		return 0;
-
-	while (fp->gets(readbuf, 512))
-	{
- 		/* DATAFILE_TAG_KEY identifies the driver */
-		if (!core_strnicmp(DATAFILE_TAG_KEY, readbuf, strlen(DATAFILE_TAG_KEY)))
-		{
-			int game_index;
-			char *curpoint = &readbuf[strlen(DATAFILE_TAG_KEY) + 1];
-			char *pch;
-			char *ends = &readbuf[strlen(readbuf) - 1];
-			
-			while (curpoint < ends)
-			{
-				// search for comma
-				pch = strpbrk(curpoint, ",");
-				
-				// found it 
-				if (pch)
-				{
-					// copy data and validate driver
-					int len = pch - curpoint;
-					strncpy(name, curpoint, len);
-					name[len] = '\0';
-					game_index = GetSrcDriverIndex(name);
-
-					if (game_index >= 0)
-					{
-						idx->driver = &driver_list::driver(game_index);
-						idx->offset = fp->tell();
-						idx++;
-						count++;
-					}
-					
-					// update current point
-					curpoint = pch + 1;
-				}
-				// if comma not found, copy data while until reach the end of string
-				else if (!pch && curpoint < ends)
-				{
-					int len = ends - curpoint;
-					strncpy(name, curpoint, len);
-					name[len] = '\0';
-					game_index = GetSrcDriverIndex(name);
-
-					if (game_index >= 0)
-					{
-						idx->driver = &driver_list::driver(game_index);
-						idx->offset = fp->tell();
-						idx++;
-						count++;
-					}
-
-					// update current point
-					curpoint = ends;
-				}
-			}
-		}
-	}
-
-	/* mark end of index */
-    idx->offset = 0L;
-    idx->driver = 0;
-    return count;
-}
-
 /**************************************************************************
  *      load_datafile_text
  *
@@ -303,7 +207,7 @@ static int index_datafile_drivinfo(struct tDatafileIndex **_index)
  *
  *      Returns 0 if successful.
  **************************************************************************/
-static int load_datafile_text(const game_driver *drv, char *buffer, int bufsize, struct tDatafileIndex *idx, const char *tag, int source_file, int carriage)
+static int load_datafile_text(const game_driver *drv, char *buffer, int bufsize, struct tDatafileIndex *idx, const char *tag, int source_file, int mameinfo)
 {
 	char readbuf[16384];
 
@@ -340,7 +244,7 @@ static int load_datafile_text(const game_driver *drv, char *buffer, int bufsize,
 		return 1;
 
     /* read text until buffer is full or end of entry is encountered */
-	while (fp->gets(readbuf, 16384))
+	while (fgets(readbuf, 16384, fp))
 	{
 		if (!core_strnicmp(DATAFILE_TAG_END, readbuf, strlen(DATAFILE_TAG_END))) 
 			break;
@@ -351,21 +255,18 @@ static int load_datafile_text(const game_driver *drv, char *buffer, int bufsize,
 		if (strlen(buffer) + strlen(readbuf) > bufsize) 
 			break;
 		
-		if (carriage)
-		{
-			strcat(buffer, readbuf);
-			strcat(buffer, "\n");
-		}
-		else
+		if (mameinfo)
 		{
 			if (strtok(readbuf, "\r\n\r\n") != NULL)
-				strcat(buffer, readbuf);
-			else
 			{
-				strcat(buffer, readbuf);
-				strcat(buffer, "\n");
+				char *temp = strtok(readbuf, "\r\n\r\n");
+				strcat(buffer, temp);
 			}
+			else
+				strcat(buffer, readbuf);
 		}
+		else
+			strcat(buffer, readbuf);
 	}
 
 	return 0;
@@ -387,17 +288,16 @@ int load_driver_history(const game_driver *drv, char *buffer, int bufsize)
     int err = 0;
 
     *buffer = 0;
-	strcat(buffer, "HISTORY:\n");
-	std::string filename = std::string(GetDatsDir()).append(PATH_SEPARATOR).append("history.dat");
+	snprintf(filename, ARRAY_LENGTH(filename), "%s\\history.dat", GetDatsDir());
 	
     /* try to open history datafile */
-    if (ParseOpen(filename.c_str()))
+    if (ParseOpen(filename))
     {
 		/* create index if necessary */
         if (hist_idx)
 			history = 1;
         else
-            history = (index_datafile (&hist_idx) != 0);
+            history = (index_datafile (&hist_idx, 0) != 0);
 
         /* load history text (append)*/
         if (hist_idx)
@@ -408,7 +308,7 @@ int load_driver_history(const game_driver *drv, char *buffer, int bufsize)
 			
             do
             {
-                err = load_datafile_text(gdrv, buffer + len, bufsize - len, hist_idx, DATAFILE_TAG_BIO, 0, 1);
+                err = load_datafile_text(gdrv, buffer + len, bufsize - len, hist_idx, DATAFILE_TAG_BIO, 0, 0);
 				int g = driver_list::clone(*gdrv);
 
 				if (g!=-1) 
@@ -421,7 +321,7 @@ int load_driver_history(const game_driver *drv, char *buffer, int bufsize)
 				history = 0;
 		}
 
-        ParseClose ();
+        ParseClose();
    	}
 
 	strcat(buffer, "\n");
@@ -433,7 +333,7 @@ int load_driver_mameinfo(const game_driver *drv, char *buffer, int bufsize)
 	static struct tDatafileIndex *mame_idx = 0;
 	machine_config config(*drv, MameUIGlobal());
 	const game_driver *parent = NULL;
-	char name[300];
+	char name[512];
 	int mameinfo = 0;
 	int err = 0;
 	int i;
@@ -441,6 +341,7 @@ int load_driver_mameinfo(const game_driver *drv, char *buffer, int bufsize)
 	int is_bios = 0;
 
 	*buffer = 0;
+	snprintf(filename, ARRAY_LENGTH(filename), "%s\\mameinfo.dat", GetDatsDir());
 	strcat(buffer, "\nMAMEINFO:\n\n");
 
 	/* List the game info 'flags' */
@@ -476,16 +377,14 @@ int load_driver_mameinfo(const game_driver *drv, char *buffer, int bufsize)
 	if (drv->flags & GAME_IS_BIOS_ROOT)
 		is_bios = 1;
 
-	std::string filename = std::string(GetDatsDir()).append(PATH_SEPARATOR).append("mameinfo.dat");
-
 	/* try to open mameinfo datafile */
-	if (ParseOpen(filename.c_str()))
+	if (ParseOpen(filename))
 	{
 		/* create index if necessary */
 		if (mame_idx)
 			mameinfo = 1;
 		else
-			mameinfo = (index_datafile (&mame_idx) != 0);
+			mameinfo = (index_datafile (&mame_idx, 0) != 0);
 
 		/* load informational text (append) */
 		if (mame_idx)
@@ -496,7 +395,7 @@ int load_driver_mameinfo(const game_driver *drv, char *buffer, int bufsize)
 			
 			do
 			{
-				err = load_datafile_text(gdrv, buffer + len, bufsize - len, mame_idx, DATAFILE_TAG_MAME, 0, 0);
+				err = load_datafile_text(gdrv, buffer + len, bufsize - len, mame_idx, DATAFILE_TAG_MAME, 0, 1);
 				int g = driver_list::clone(*gdrv);
 
 				if (g!=-1) 
@@ -509,15 +408,15 @@ int load_driver_mameinfo(const game_driver *drv, char *buffer, int bufsize)
 				mameinfo = 0;
 		}
 
-		ParseClose ();
+		ParseClose();
 	}
 
 	/* GAME INFORMATIONS */
-	sprintf(name,"\nGAME: %s\n", drv->name);
+	snprintf(name, ARRAY_LENGTH(name), "\nGAME: %s\n", drv->name);
 	strcat(buffer, name);
-	sprintf(name,"%s", drv->description);
+	snprintf(name, ARRAY_LENGTH(name), "%s", drv->description);
 	strcat(buffer, name);
-	sprintf(name," (%s %s)\n\nCPU:\n", drv->manufacturer, drv->year);
+	snprintf(name, ARRAY_LENGTH(name), " (%s %s)\n\nCPU:\n", drv->manufacturer, drv->year);
 	strcat(buffer, name);
 	/* iterate over CPUs */
 	execute_interface_iterator iter(config.root_device());
@@ -526,9 +425,9 @@ int load_driver_mameinfo(const game_driver *drv, char *buffer, int bufsize)
 	while (cpu)
 	{
 		if (cpu->device().clock() >= 1000000)
-			sprintf(name,"%s %d.%06d MHz\n", cpu->device().name(), cpu->device().clock() / 1000000, cpu->device().clock() % 1000000);
+			snprintf(name, ARRAY_LENGTH(name), "%s %d.%06d MHz\n", cpu->device().name(), cpu->device().clock() / 1000000, cpu->device().clock() % 1000000);
 		else
-			sprintf(name,"%s %d.%03d kHz\n", cpu->device().name(), cpu->device().clock() / 1000, cpu->device().clock() % 1000);
+			snprintf(name, ARRAY_LENGTH(name), "%s %d.%03d kHz\n", cpu->device().name(), cpu->device().clock() / 1000, cpu->device().clock() % 1000);
 
 		strcat(buffer, name);
 		cpu = iter.next();
@@ -546,7 +445,7 @@ int load_driver_mameinfo(const game_driver *drv, char *buffer, int bufsize)
 		device_type sound_type_;
 		char tmpname[1024];
 
-		sprintf(tmpname,"%s",sound->device().name());
+		snprintf(tmpname, ARRAY_LENGTH(tmpname), "%s", sound->device().name());
 		sound_type_ = sound->device().type();
 		clock = sound->device().clock();
 		has_sound = 1;
@@ -562,7 +461,7 @@ int load_driver_mameinfo(const game_driver *drv, char *buffer, int bufsize)
 
 		if (count > 1)
 		{
-			sprintf(name,"%dx ",count);
+			snprintf(name, ARRAY_LENGTH(name), "%dx ",count);
 			strcat(buffer, name);
 		}
 
@@ -571,14 +470,14 @@ int load_driver_mameinfo(const game_driver *drv, char *buffer, int bufsize)
 		if (clock)
 		{
 			if (clock >= 1000000)
-				sprintf(name," %d.%06d MHz", clock / 1000000, clock % 1000000);
+				snprintf(name, ARRAY_LENGTH(name), " %d.%06d MHz", clock / 1000000, clock % 1000000);
 			else
-				sprintf(name," %d.%03d kHz", clock / 1000, clock % 1000);
+				snprintf(name, ARRAY_LENGTH(name), " %d.%03d kHz", clock / 1000, clock % 1000);
 
 			strcat(buffer, name);
 		}
 
-		strcat(buffer,"\n");
+		strcat(buffer, "\n");
 	}
 
 	if (has_sound)
@@ -587,9 +486,9 @@ int load_driver_mameinfo(const game_driver *drv, char *buffer, int bufsize)
 		int channels = iter.count();
 		
 		if(channels == 1)
-			sprintf(name,"%d Channel\n",channels);
+			snprintf(name, ARRAY_LENGTH(name), "%d Channel\n",channels);
 		else
-			sprintf(name,"%dx Channels\n",channels);
+			snprintf(name, ARRAY_LENGTH(name), "%dx Channels\n",channels);
 		
 		strcat(buffer, name);
 	}
@@ -599,24 +498,22 @@ int load_driver_mameinfo(const game_driver *drv, char *buffer, int bufsize)
 	const screen_device *screen = screeniter.first();
 	
 	if (screen == NULL)
-		strcat(buffer, "None\n");
+		strcat(buffer, "Screenless\n");
+	else if (screen->screen_type() == SCREEN_TYPE_VECTOR)
+		strcat(buffer,"Vector\n");
 	else
 	{
 		for (; screen != NULL; screen = screeniter.next())
 		{
 			if (drv->flags & ORIENTATION_SWAP_XY)
-				sprintf(name,"%d x %d (V)", screen->visible_area().height(), screen->visible_area().width());
+				snprintf(name, ARRAY_LENGTH(name), "%d x %d (V)", screen->visible_area().height(), screen->visible_area().width());
 			else
-				sprintf(name,"%d x %d (H)", screen->visible_area().width(), screen->visible_area().height());
+				snprintf(name, ARRAY_LENGTH(name), "%d x %d (H)", screen->visible_area().width(), screen->visible_area().height());
 
 			strcat(buffer, name);
-			sprintf(name," %f Hz", ATTOSECONDS_TO_HZ(screen->refresh_attoseconds()));
+			snprintf(name, ARRAY_LENGTH(name), " %f Hz", ATTOSECONDS_TO_HZ(screen->refresh_attoseconds()));
 			strcat(buffer, name);
-
-			if (screen->screen_type() == SCREEN_TYPE_VECTOR)
-				strcat(buffer," (vector)\n");
-			else
-				strcat(buffer," (raster)\n");
+			strcat(buffer, "\n");
 		}
 	}
 
@@ -651,11 +548,11 @@ int load_driver_mameinfo(const game_driver *drv, char *buffer, int bufsize)
 							}
 				}
 
-				sprintf(name,"%-16s \t", ROM_GETNAME(rom));
+				snprintf(name, ARRAY_LENGTH(name), "%-16s \t", ROM_GETNAME(rom));
 				strcat(buffer, name);
-				sprintf(name,"%07d \t", rom_file_size(rom));
+				snprintf(name, ARRAY_LENGTH(name), "%09d \t", rom_file_size(rom));
 				strcat(buffer, name);
-				sprintf(name,"%-10s", ROMREGION_GETTAG(region));
+				snprintf(name, ARRAY_LENGTH(name), "%-10s", ROMREGION_GETTAG(region));
 				strcat(buffer, name);
 				strcat(buffer, "\n");
 			}
@@ -668,7 +565,7 @@ int load_driver_mameinfo(const game_driver *drv, char *buffer, int bufsize)
 
 		if (sampiter.altbasename() != NULL)
 		{
-			sprintf(name,"\nSAMPLES (%s):\n", sampiter.altbasename());
+			snprintf(name, ARRAY_LENGTH(name), "\nSAMPLES (%s):\n", sampiter.altbasename());
 			strcat(buffer, name);
 		}
 
@@ -681,7 +578,7 @@ int load_driver_mameinfo(const game_driver *drv, char *buffer, int bufsize)
 				continue;
 
 			// output the sample name
-			sprintf(name,"%s.wav\n", samplename);
+			snprintf(name, ARRAY_LENGTH(name), "%s.wav\n", samplename);
 			strcat(buffer, name);
 		}
 	}
@@ -717,40 +614,46 @@ int load_driver_driverinfo(const game_driver *drv, char *buffer, int bufsize)
 	int drivinfo = 0;
 	int err;
 	int i;
+	char source_file[40];
+	char tmp[100];
+	std::string temp;
+	
+	core_filename_extract_base(temp, drv->source_file, FALSE);
+	strcpy(source_file, temp.c_str());
 
 	*buffer = 0;
+	snprintf(filename, ARRAY_LENGTH(filename), "%s\\mameinfo.dat", GetDatsDir());
 	/* Print source code file */
-	sprintf (buffer, "\n\nSOURCE: %s\n\n", drv->source_file + 32);
-
-	std::string filename = std::string(GetDatsDir()).append(PATH_SEPARATOR).append("mameinfo.dat");
+	snprintf(tmp, ARRAY_LENGTH(tmp), "\n\nSOURCE: %s\n\n", source_file);
+	strcat(buffer, tmp);
 
 	/* Try to open mameinfo datafile - driver section*/
-	if (ParseOpen(filename.c_str()))
+	if (ParseOpen(filename))
 	{
 		/* create index if necessary */
 		if (driv_idx)
 			drivinfo = 1;
 		else
-			drivinfo = (index_datafile_drivinfo (&driv_idx) != 0);
+			drivinfo = (index_datafile (&driv_idx, 1) != 0);
 
 		/* load informational text (append) */
 		if (driv_idx)
 		{
 			int len = strlen(buffer);
-			err = load_datafile_text(drv, buffer + len, bufsize - len, driv_idx, DATAFILE_TAG_DRIV, 1, 0);
+			err = load_datafile_text(drv, buffer + len, bufsize - len, driv_idx, DATAFILE_TAG_DRIV, 1, 1);
 			
 			if (err) 
 				drivinfo = 0;
 		}
 
-		ParseClose ();
+		ParseClose();
 	}
 
-	strcat(buffer,"\nGAMES SUPPORTED:\n");
+	strcat(buffer, "\nGAMES SUPPORTED:\n");
 	
 	for (i = 0; i < driver_list::total(); i++)
 	{
-		if (!strcmp (drv->source_file + 32, driver_list::driver(i).source_file + 32) && !(driver_list::driver(i).flags & GAME_IS_BIOS_ROOT)) 
+		if (!strcmp(source_file, GetDriverFilename(i)) && !(DriverIsBios(i)))
 		{
 			strcat(buffer, driver_list::driver(i).description);
 			strcat(buffer,"\n");
@@ -768,17 +671,17 @@ int load_driver_command(const game_driver *drv, char *buffer, int bufsize)
     int err = 0;
 
     *buffer = 0;
+	snprintf(filename, ARRAY_LENGTH(filename), "%s\\command.dat", GetDatsDir());
 	strcat(buffer, "\nCOMMAND:\n\n");
-	std::string filename = std::string(GetDatsDir()).append(PATH_SEPARATOR).append("command.dat");
 	
-	/* try to open story datafile */
-	if (ParseOpen(filename.c_str()))
+	/* try to open command datafile */
+	if (ParseOpen(filename))
 	{
 		/* create index if necessary */
 		if (cmd_idx)
 			command = 1;
 		else
-			command = (index_datafile (&cmd_idx) != 0);
+			command = (index_datafile (&cmd_idx, 0) != 0);
 
 		/* load informational text (append) */
 		if (cmd_idx)
@@ -789,7 +692,7 @@ int load_driver_command(const game_driver *drv, char *buffer, int bufsize)
 			
 			do
 			{
-				err = load_datafile_text(gdrv, buffer + len, bufsize - len, cmd_idx, DATAFILE_TAG_CMD, 0, 1);
+				err = load_datafile_text(gdrv, buffer + len, bufsize - len, cmd_idx, DATAFILE_TAG_CMD, 0, 0);
 				int g = driver_list::clone(*gdrv);
 
 				if (g!=-1) 
@@ -802,7 +705,7 @@ int load_driver_command(const game_driver *drv, char *buffer, int bufsize)
 				command = 0;
 		}
 
-		ParseClose ();
+		ParseClose();
 	}
 	
 	strcat(buffer, "\n\n");
@@ -816,16 +719,16 @@ int load_driver_scoreinfo(const game_driver *drv, char *buffer, int bufsize)
     int err = 0;
 
     *buffer = 0;
-	std::string filename = std::string(GetDatsDir()).append(PATH_SEPARATOR).append("story.dat");
+	snprintf(filename, ARRAY_LENGTH(filename), "%s\\story.dat", GetDatsDir());
 	
 	/* try to open story datafile */
-	if (ParseOpen(filename.c_str()))
+	if (ParseOpen(filename))
 	{
 		/* create index if necessary */
 		if (score_idx)
 			scoreinfo = 1;
 		else
-			scoreinfo = (index_datafile (&score_idx) != 0);
+			scoreinfo = (index_datafile (&score_idx, 0) != 0);
 
 		/* load informational text (append) */
 		if (score_idx)
@@ -836,7 +739,7 @@ int load_driver_scoreinfo(const game_driver *drv, char *buffer, int bufsize)
 			
 			do
 			{
-				err = load_datafile_text(gdrv, buffer + len, bufsize - len, score_idx, DATAFILE_TAG_SCORE, 0, 1);
+				err = load_datafile_text(gdrv, buffer + len, bufsize - len, score_idx, DATAFILE_TAG_SCORE, 0, 0);
 				int g = driver_list::clone(*gdrv);
 
 				if (g!=-1) 
@@ -849,7 +752,7 @@ int load_driver_scoreinfo(const game_driver *drv, char *buffer, int bufsize)
 				scoreinfo = 0;
 		}
 
-		ParseClose ();
+		ParseClose();
 	}
 
 	return (scoreinfo == 0);

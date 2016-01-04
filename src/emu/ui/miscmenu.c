@@ -541,8 +541,9 @@ ui_menu_autofire::ui_menu_autofire(running_machine &machine, render_container *c
 {
 	screen_device_iterator iter(machine.root_device());
 	const screen_device *screen = iter.first();
-	if (screen == 0)
-		refresh = 60;
+
+	if (screen == NULL)
+		refresh = 60.0;
 	else
 		refresh = ATTOSECONDS_TO_HZ(screen->refresh_attoseconds());
 }
@@ -553,6 +554,7 @@ ui_menu_autofire::~ui_menu_autofire()
 
 void ui_menu_autofire::handle()
 {
+	ioport_field *field;
 	bool changed = FALSE;
 
 	/* process the menu */
@@ -567,6 +569,8 @@ void ui_menu_autofire::handle()
 
 			if (selected_item == 0)
 			{
+				int autofire_delay = machine().ioport().get_autofire_delay();
+				
 				if (menu_event->iptkey == IPT_UI_LEFT)
 				{
 					autofire_delay--;
@@ -580,11 +584,13 @@ void ui_menu_autofire::handle()
 						autofire_delay = 30;
 				}
 
+				machine().ioport().set_autofire_delay(autofire_delay);
+				
 				changed = TRUE;
 			}
 			else
 			{
-				ioport_field *field = (ioport_field *)menu_event->itemref;
+				field = (ioport_field *)menu_event->itemref;
 				ioport_field::user_settings settings;
 				int selected_value;
 				field->get_user_settings(settings);
@@ -626,7 +632,7 @@ void ui_menu_autofire::populate()
 {
 	ioport_field *field;
 	ioport_port *port;
-	char temp_text[24];
+	char temp_text[32];
 
 	/* iterate over the input ports and add autofire toggle items */
 	for (port = machine().ioport().first_port(); port != NULL; port = port->next())
@@ -645,7 +651,8 @@ void ui_menu_autofire::populate()
 	}
 
 	/* add autofire delay item */
-	sprintf(temp_text, "%d = %.2fHz", autofire_delay, (float)refresh/autofire_delay);
+	int value = machine().ioport().get_autofire_delay();
+	sprintf(temp_text, "%d = %.2fHz", value, (float)refresh/value);
 	item_append("Autofire Delay", temp_text, MENU_FLAG_LEFT_ARROW | MENU_FLAG_RIGHT_ARROW, (void *)1);
 }
 

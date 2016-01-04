@@ -48,24 +48,6 @@ typedef struct
 
 typedef const FILTER_ITEM *LPCFILTER_ITEM;
 
-/***************************************************************************
-    Functions to build builtin folder lists
- ***************************************************************************/
-
-void CreateManufacturerFolders(int parent_index);
-void CreateYearFolders(int parent_index);
-void CreateSourceFolders(int parent_index);
-void CreateOrientationFolders(int parent_index);
-void CreateDeficiencyFolders(int parent_index);
-void CreateBIOSFolders(int parent_index);
-void CreateCPUFolders(int parent_index);
-void CreateSoundFolders(int parent_index);
-void CreateScreenFolders(int parent_index);
-void CreateFPSFolders(int parent_index);
-void CreateResolutionFolders(int parent_index);
-
-/***************************************************************************/
-
 /* TreeView structures */
 enum
 {
@@ -96,6 +78,8 @@ enum
 	FOLDER_RESOLUTION,
 	FOLDER_FPS,
 	FOLDER_SOURCE,
+	FOLDER_SAVESTATE,
+	FOLDER_DUMPING,
 	MAX_FOLDERS
 };
 
@@ -137,6 +121,12 @@ typedef struct
     int         m_nIconId;      	// negative icon index into the ImageList, or IDI_xxx resource id
     int         m_nSubIconId;   	// negative icon index into the ImageList, or IDI_xxx resource id
 } EXFOLDERDATA, *LPEXFOLDERDATA;
+
+typedef struct
+{
+	int		nResourceID;
+	LPCSTR	lpName;
+} TREEICON;
 
 void FreeFolders(void);
 void ResetFilters(void);

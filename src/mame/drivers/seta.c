@@ -7640,10 +7640,10 @@ TIMER_DEVICE_CALLBACK_MEMBER(seta_state::seta_interrupt_1_and_2)
 {
 	int scanline = param;
 
-	if(scanline == 240)
+	if(scanline == 0)
 		m_maincpu->set_input_line(1, HOLD_LINE);
 
-	if(scanline == 112)
+	if(scanline == 120)
 		m_maincpu->set_input_line(2, HOLD_LINE);
 }
 
@@ -7651,10 +7651,10 @@ TIMER_DEVICE_CALLBACK_MEMBER(seta_state::seta_interrupt_2_and_4)
 {
 	int scanline = param;
 
-	if(scanline == 240)
+	if(scanline == 0)
 		m_maincpu->set_input_line(2, HOLD_LINE);
 
-	if(scanline == 112)
+	if(scanline == 120)
 		m_maincpu->set_input_line(4, HOLD_LINE);
 }
 
@@ -7663,10 +7663,10 @@ TIMER_DEVICE_CALLBACK_MEMBER(seta_state::seta_sub_interrupt)
 {
 	int scanline = param;
 
-	if(scanline == 240)
+	if(scanline == 0)
 		m_subcpu->set_input_line(INPUT_LINE_NMI, PULSE_LINE);
 
-	if(scanline == 112)
+	if(scanline == 120)
 		m_subcpu->set_input_line(0, HOLD_LINE);
 }
 
@@ -7679,7 +7679,7 @@ TIMER_DEVICE_CALLBACK_MEMBER(seta_state::tndrcade_sub_interrupt)
 {
 	int scanline = param;
 
-	if(scanline == 240)
+	if(scanline == 0)
 		m_subcpu->set_input_line(INPUT_LINE_NMI, PULSE_LINE);
 
 	if((scanline % 16) == 0)
@@ -7839,7 +7839,7 @@ TIMER_DEVICE_CALLBACK_MEMBER(seta_state::calibr50_interrupt)
 	if((scanline % 64) == 0)
 		m_maincpu->set_input_line(4, HOLD_LINE);
 
-	if(scanline == 248)
+	if(scanline == 0)
 		m_maincpu->set_input_line(2, HOLD_LINE);
 }
 
@@ -8521,7 +8521,7 @@ static MACHINE_CONFIG_START( gundhara, seta_state )
 	MCFG_SCREEN_REFRESH_RATE(60)
 	MCFG_SCREEN_VBLANK_TIME(ATTOSECONDS_IN_USEC(0))
 	MCFG_SCREEN_SIZE(64*8, 32*8)
-	MCFG_SCREEN_VISIBLE_AREA(0*8, 48*8-1, 1*8, 31*8-1)
+	MCFG_SCREEN_VISIBLE_AREA(1*8, 47*8-1, 1*8, 31*8-1)
 	MCFG_SCREEN_UPDATE_DRIVER(seta_state, screen_update_seta)
 	MCFG_SCREEN_PALETTE("palette")
 

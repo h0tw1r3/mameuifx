@@ -19,28 +19,7 @@
 
 ***************************************************************************/
 
-// standard windows headers
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <windowsx.h>
-#include <commctrl.h>
-#include <richedit.h>
-#include <uxtheme.h>
-
-// standard C headers
-#include <stdio.h>
-#include <tchar.h>
-
-// MAME/MAMEUI headers
 #include "winui.h"
-#include "winutf8.h"
-#include "strconv.h"
-#include "audit.h"
-#include "resource.h"
-#include "mui_opts.h"
-#include "mui_util.h"
-#include "properties.h"
-
 
 /***************************************************************************
     function prototypes
@@ -50,7 +29,7 @@ static DWORD WINAPI AuditThreadProc(LPVOID hDlg);
 static INT_PTR CALLBACK AuditWindowProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lParam);
 static void ProcessNextRom(void);
 static void ProcessNextSample(void);
-static void CLIB_DECL DetailsPrintf(const char *fmt, ...) ATTR_PRINTF(1,2);
+static void DetailsPrintf(const char *fmt, ...);
 static const char * StatusString(int iStatus);
 
 /***************************************************************************
@@ -73,10 +52,8 @@ static HICON audit_icon = NULL;
 static HICON hIcon = NULL;
 static HBRUSH hBrush = NULL;
 static HDC hDC = NULL;
-static TCHAR *type;
 static CHARFORMAT font;
 static HANDLE hThread;
-static DWORD dwThreadID;
 static const char *ptr;
 
 /***************************************************************************
@@ -161,7 +138,7 @@ static DWORD WINAPI AuditThreadProc(LPVOID hDlg)
 	{
 		if (rom_index != -1)
 		{
-			sprintf(buffer, "Checking game... - %s", driver_list::driver(rom_index).name);
+			snprintf(buffer, ARRAY_LENGTH(buffer), "Checking game... - %s", driver_list::driver(rom_index).name);
 			win_set_window_text_utf8((HWND)hDlg, buffer);
 			ProcessNextRom();
 		}
@@ -169,7 +146,7 @@ static DWORD WINAPI AuditThreadProc(LPVOID hDlg)
 		{
 			if (sample_index != -1)
 			{
-				sprintf(buffer, "Checking game... - %s", driver_list::driver(sample_index).name);
+				snprintf(buffer, ARRAY_LENGTH(buffer), "Checking game... - %s", driver_list::driver(sample_index).name);
 				win_set_window_text_utf8((HWND)hDlg, buffer);
 				ProcessNextSample();
 			}
@@ -195,18 +172,15 @@ static INT_PTR CALLBACK AuditWindowProc(HWND hDlg, UINT Msg, WPARAM wParam, LPAR
 		CenterWindow(hDlg);
         hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_MAMEUI_ICON));
         SendMessage(hDlg, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
-		hBrush = GetSysColorBrush(COLOR_WINDOW);
+		hBrush = CreateSolidBrush(RGB(224, 223, 227));
 		
-		memset (&font, 0, sizeof(font));
+		memset (&font, 0, sizeof(CHARFORMAT));
 		font.cbSize	= sizeof(CHARFORMAT);
 		font.dwMask	= CFM_COLOR | CFM_FACE | CFM_SIZE;
 		font.yHeight = 160;
 		font.crTextColor = RGB(136, 0, 21);
 		font.bPitchAndFamily = 34;
-	
-		type = tstring_from_utf8("Tahoma");
-		_tcscpy(font.szFaceName, type);
-		osd_free(type);
+		wcscpy(font.szFaceName, TEXT("Lucida Console"));
 		
 		hAudit = hDlg;
 		SendMessage(GetDlgItem(hAudit, IDC_AUDIT_DETAILS), EM_SETBKGNDCOLOR, 0, GetSysColor(COLOR_WINDOW));
@@ -218,8 +192,7 @@ static INT_PTR CALLBACK AuditWindowProc(HWND hDlg, UINT Msg, WPARAM wParam, LPAR
 		SendMessage(GetDlgItem(hAudit, IDC_ROMS_PROGRESS), PBM_SETRANGE, 0, MAKELPARAM(0, driver_list::total()));
 		SendMessage(GetDlgItem(hAudit, IDC_SAMPLES_PROGRESS), PBM_SETRANGE, 0, MAKELPARAM(0, driver_list::total()));
 		rom_index = 0;
-		hThread = CreateThread(NULL, 0, AuditThreadProc, hDlg, 0, &dwThreadID);
-		SetThreadPriority(hThread, THREAD_PRIORITY_IDLE);
+		hThread = CreateThread(NULL, 0, AuditThreadProc, hDlg, 0, 0);
 		return 1;
 	
 	case WM_CTLCOLORDLG:
@@ -227,7 +200,7 @@ static INT_PTR CALLBACK AuditWindowProc(HWND hDlg, UINT Msg, WPARAM wParam, LPAR
 		
 	case WM_CTLCOLORSTATIC:
 	case WM_CTLCOLORBTN:
-		hDC=(HDC)wParam;
+		hDC = (HDC)wParam;
 		SetBkMode(hDC, TRANSPARENT);
 		SetTextColor(hDC, GetSysColor(COLOR_WINDOWTEXT));
 		
@@ -235,7 +208,7 @@ static INT_PTR CALLBACK AuditWindowProc(HWND hDlg, UINT Msg, WPARAM wParam, LPAR
 			SetTextColor(hDC, RGB(34, 177, 76));
 		
 		if ((HWND)lParam == GetDlgItem(hAudit, IDC_ROMS_INCORRECT))
-			SetTextColor(hDC, RGB(215, 204, 0));
+			SetTextColor(hDC, RGB(198, 188, 0));
 		
 		if ((HWND)lParam == GetDlgItem(hAudit, IDC_ROMS_NOTFOUND))
 			SetTextColor(hDC, RGB(237, 28, 36));
@@ -247,7 +220,7 @@ static INT_PTR CALLBACK AuditWindowProc(HWND hDlg, UINT Msg, WPARAM wParam, LPAR
 			SetTextColor(hDC, RGB(34, 177, 76));
 		
 		if ((HWND)lParam == GetDlgItem(hAudit, IDC_SAMPLES_INCORRECT))
-			SetTextColor(hDC, RGB(215, 204, 0));
+			SetTextColor(hDC, RGB(198, 188, 0));
 		
 		if ((HWND)lParam == GetDlgItem(hAudit, IDC_SAMPLES_NOTFOUND))
 			SetTextColor(hDC, RGB(237, 28, 36));
@@ -276,7 +249,7 @@ static INT_PTR CALLBACK AuditWindowProc(HWND hDlg, UINT Msg, WPARAM wParam, LPAR
 
 			DeleteObject(hBrush);
 			DestroyIcon(hIcon);
-			EndDialog(hAudit,0);
+			EndDialog(hAudit, 0);
 			break;
 		}
 		
@@ -301,31 +274,24 @@ INT_PTR CALLBACK GameAuditDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 	{
 	case WM_INITDIALOG:
 		{
-		buffer[0] = '\0';
-		details[0] = '\0';
-
+		memset(&buffer, 0, sizeof(buffer));
+		memset(&details, 0, sizeof(details));
 		ModifyPropertySheetForTreeSheet(hDlg);
-		FlushFileCaches();
 		hAudit = hDlg;
-		hBrush = GetSysColorBrush(COLOR_WINDOW);
+		hBrush = CreateSolidBrush(RGB(224, 223, 227));
 		win_set_window_text_utf8(GetDlgItem(hAudit, IDC_PROP_TITLE), GameInfoTitle(OPTIONS_GAME, rom_index));
 
-		memset (&font, 0, sizeof(font));
+		memset (&font, 0, sizeof(CHARFORMAT));
 		font.cbSize	= sizeof(CHARFORMAT);
 		font.dwMask	= CFM_COLOR | CFM_FACE | CFM_SIZE;
 		font.yHeight = 160;
 		font.crTextColor = RGB(59, 59, 59);
 		font.bPitchAndFamily = 34;
-	
-		type = tstring_from_utf8("Tahoma");
-		_tcscpy(font.szFaceName, type);
-		osd_free(type);
+		wcscpy(font.szFaceName, TEXT("Lucida Console"));
 
 		SendMessage(GetDlgItem(hAudit, IDC_ROM_DETAILS), EM_SETBKGNDCOLOR, 0, GetSysColor(COLOR_WINDOW));
 		SendMessage(GetDlgItem(hAudit, IDC_ROM_DETAILS), EM_SETCHARFORMAT, 0, (LPARAM)&font);
-
 		font.crTextColor = RGB(136, 0, 21);
-		
 		SendMessage(GetDlgItem(hAudit, IDC_AUDIT_DETAILS_PROP), EM_SETBKGNDCOLOR, 0, GetSysColor(COLOR_WINDOW));
 		SendMessage(GetDlgItem(hAudit, IDC_AUDIT_DETAILS_PROP), EM_SETCHARFORMAT, 0, (LPARAM)&font);
 		iStatus = MameUIVerifyRomSet(rom_index, 0);
@@ -360,10 +326,11 @@ INT_PTR CALLBACK GameAuditDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 		}
 		
 		win_set_window_text_utf8(GetDlgItem(hAudit, IDC_PROP_SAMPLES), lpStatus);
-		sprintf(buffer, "NAME                \tSIZE        CRC\n"
-			"-------------------------------------------------------------------\n");
+		snprintf(buffer, ARRAY_LENGTH(buffer), "NAME                SIZE       CRC\n"
+			"---------------------------------------\n");
 		strcat(details, buffer);
 		device_iterator deviter(config.root_device());
+
 		for (device_t *device = deviter.first(); device != NULL; device = deviter.next())
 			for (const rom_entry *region = rom_first_region(*device); region != NULL; region = rom_next_region(region))
 				for (const rom_entry *rom = rom_first_file(region); rom != NULL; rom = rom_next_file(rom))
@@ -375,7 +342,7 @@ INT_PTR CALLBACK GameAuditDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 					else
 						crctext = 0;
 					
-					sprintf(buffer, "%-16s \t%07d  %08x\n", ROM_GETNAME(rom), ROM_GETLENGTH(rom), crctext);
+					snprintf(buffer, ARRAY_LENGTH(buffer), "%-18s  %09d  %08x\n", ROM_GETNAME(rom), ROM_GETLENGTH(rom), crctext);
 					strcat(details, buffer);
 				}
 
@@ -388,8 +355,9 @@ INT_PTR CALLBACK GameAuditDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 		return (LRESULT) hBrush;
 		
 	case WM_CTLCOLORSTATIC:
+	case WM_CTLCOLORBTN:
 		{	
-		hDC=(HDC)wParam;
+		hDC = (HDC)wParam;
 		SetBkMode(hDC, TRANSPARENT);
 		SetTextColor(hDC, GetSysColor(COLOR_WINDOWTEXT));
 		
@@ -417,8 +385,6 @@ INT_PTR CALLBACK GameAuditDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 		}
 	}
 
-	DeleteObject(hBrush);
-	DestroyIcon(audit_icon);
 	return 0;
 }
 
@@ -437,25 +403,25 @@ static void ProcessNextRom(void)
 		if(driver_list::driver(rom_index).name[0] != '_')	// skip __empty driver
 		{
 			roms_correct++;
-			sprintf(buffer, "%i", roms_correct);
+			snprintf(buffer, ARRAY_LENGTH(buffer), "%i", roms_correct);
 			win_set_window_text_utf8(GetDlgItem(hAudit, IDC_ROMS_CORRECT), buffer);
 		}
 		break;
 
 	case media_auditor::NOTFOUND:
 		roms_notfound++;
-		sprintf(buffer, "%i", roms_notfound);
+		snprintf(buffer, ARRAY_LENGTH(buffer), "%i", roms_notfound);
 		win_set_window_text_utf8(GetDlgItem(hAudit, IDC_ROMS_NOTFOUND), buffer);
 		break;
 
 	case media_auditor::INCORRECT:
 		roms_incorrect++;
-		sprintf(buffer, "%i", roms_incorrect);
+		snprintf(buffer, ARRAY_LENGTH(buffer), "%i", roms_incorrect);
 		win_set_window_text_utf8(GetDlgItem(hAudit, IDC_ROMS_INCORRECT), buffer);
 		break;
 	}
 
-	sprintf(buffer, "%i", roms_correct + roms_incorrect + roms_notfound);
+	snprintf(buffer, ARRAY_LENGTH(buffer), "%i", roms_correct + roms_incorrect + roms_notfound);
 	win_set_window_text_utf8(GetDlgItem(hAudit, IDC_ROMS_TOTAL), buffer);
 	rom_index++;
 	SendMessage(GetDlgItem(hAudit, IDC_ROMS_PROGRESS), PBM_SETPOS, rom_index, 0);
@@ -480,24 +446,24 @@ static void ProcessNextSample(void)
 		{
 		case media_auditor::NOTFOUND:
 			samples_notfound++;
-			sprintf(buffer, "%i", samples_notfound);
+			snprintf(buffer, ARRAY_LENGTH(buffer), "%i", samples_notfound);
 			win_set_window_text_utf8(GetDlgItem(hAudit, IDC_SAMPLES_NOTFOUND), buffer);
 			break;
 
 		case media_auditor::INCORRECT:
 			samples_incorrect++;
-			sprintf(buffer, "%i", samples_incorrect);
+			snprintf(buffer, ARRAY_LENGTH(buffer), "%i", samples_incorrect);
 			win_set_window_text_utf8(GetDlgItem(hAudit, IDC_SAMPLES_INCORRECT), buffer);
 			break;
 
 		default:
 			samples_correct++;
-			sprintf(buffer, "%i", samples_correct);
+			snprintf(buffer, ARRAY_LENGTH(buffer), "%i", samples_correct);
 			win_set_window_text_utf8(GetDlgItem(hAudit, IDC_SAMPLES_CORRECT), buffer);
 			break;
 		}
 		
-		sprintf(buffer, "%i", samples_correct + samples_incorrect + samples_notfound);
+		snprintf(buffer, ARRAY_LENGTH(buffer), "%i", samples_correct + samples_incorrect + samples_notfound);
 		win_set_window_text_utf8(GetDlgItem(hAudit, IDC_SAMPLES_TOTAL), buffer);
 	}
 
@@ -512,7 +478,7 @@ static void ProcessNextSample(void)
 	}
 }
 
-static void CLIB_DECL DetailsPrintf(const char *fmt, ...)
+static void DetailsPrintf(const char *fmt, ...)
 {
 	HWND hEdit;
 	va_list marker;
@@ -535,7 +501,7 @@ static void CLIB_DECL DetailsPrintf(const char *fmt, ...)
 		return;
 
 	va_start(marker, fmt);
-	vsprintf(buffer, fmt, marker);
+	vsnprintf(buffer, ARRAY_LENGTH(buffer), fmt, marker);
 	va_end(marker);
 	t_s = tstring_from_utf8(ConvertToWindowsNewlines(buffer));
 	
@@ -544,7 +510,7 @@ static void CLIB_DECL DetailsPrintf(const char *fmt, ...)
 
 	textLength = Edit_GetTextLength(hEdit);
 	Edit_SetSel(hEdit, textLength, textLength);
-	Edit_ReplaceSel(hEdit, (LPCTSTR)win_tstring_strdup(t_s));
+	Edit_ReplaceSel(hEdit, t_s);
 
 	if (scroll)
 	{
@@ -553,7 +519,7 @@ static void CLIB_DECL DetailsPrintf(const char *fmt, ...)
 		SendMessage(hEdit, EM_HIDESELECTION, TRUE, 0);
 	}
 	
-	osd_free(t_s);
+	free(t_s);
 }
 
 static const char * StatusString(int iStatus)

@@ -16,11 +16,63 @@
 #ifndef WINUI_H
 #define WINUI_H
 
+// standard windows headers
 #define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <windowsx.h>
 #include <commctrl.h>
 #include <commdlg.h>
+#include <shellapi.h>
+#include <uxtheme.h>
+#include <richedit.h>
+
+// standard C headers
+#include <assert.h>
+#include <math.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <tchar.h>
+#include <time.h>
+#include <sys\stat.h>	// FIXME! use WIN32 API instead - directories.c
+
+// MAME headers
 #include "emu.h"
+#include "options.h"
 #include "pool.h"
+#include "unzip.h"
+#include "winutf8.h"
+#include "strconv.h"
+#include "drivenum.h"
+#include "audit.h"
+#include "winmain.h"
+#include "png.h"
+#include "window.h"
+#include "sound\samples.h"
+
+// MAMEUIFX headers
+#include "resource.h"
+#include "win_options.h"
+#include "game_opts.h"
+#include "mui_util.h"
+#include "mui_audit.h"
+#include "directories.h"
+#include "mui_opts.h"
+#include "properties.h"
+#include "datafile.h"
+#include "datamap.h"
+#include "columnedit.h"
+#include "picker.h"
+#include "tabview.h"
+#include "bitmask.h"
+#include "treeview.h"
+#include "splitters.h"
+#include "history.h"
+#include "dialogs.h"
+#include "directinput.h"
+#include "dijoystick.h"
+#include "dxdecode.h"   
 #include "screenshot.h"
 
 #ifdef PTR64
@@ -31,6 +83,14 @@
 #define MAMENAME		"MAME"
 
 #define SEARCH_PROMPT 	"<search here>"
+
+/* for future use? though here is the best place to define them */
+#define COLOR_WINXP		RGB(236, 233, 216)
+#define COLOR_SILVER	RGB(224, 223, 227)
+#define COLOR_ZUNE		RGB(226, 226, 226)
+#define COLOR_ROYALE	RGB(235, 233, 237)
+#define COLOR_WIN7		RGB(240, 240, 240)
+#define COLOR_WHITE		RGB(255, 255, 255)
 
 enum
 {
@@ -61,24 +121,15 @@ typedef struct
 
 typedef struct
 {
-    const char *name;
-    int index;
-} driver_data_type;
-
-typedef struct
-{
 	const char *name;
     int index;
 } srcdriver_data_type;
 
-extern TCHAR last_directory[MAX_PATH];
 typedef BOOL (WINAPI *common_file_dialog_proc)(LPOPENFILENAME lpofn);
-BOOL CommonFileDialog(common_file_dialog_proc cfd,char *filename, int filetype);
+BOOL CommonFileDialog(common_file_dialog_proc cfd, char *filename, int filetype);
 HWND GetMainWindow(void);
 HWND GetTreeView(void);
-HIMAGELIST GetLargeImageList(void);
-HIMAGELIST GetSmallImageList(void);
-int GetNumOptionFolders(void);
+HWND GetProgressBar(void);
 void SetNumOptionFolders(int count);
 void GetRealColumnOrder(int order[]);
 HICON LoadIconFromFile(const char *iconname);
@@ -92,12 +143,10 @@ object_pool *GetMameUIMemoryPool(void);
 void UpdateListView(void);
 int GetMinimumScreenShotWindowWidth(void);
 // we maintain an array of drivers sorted by name, useful all around
-int GetDriverIndex(const game_driver *driver);
 int GetParentIndex(const game_driver *driver);
 int GetParentRomSetIndex(const game_driver *driver);
 int GetGameNameIndex(const char *name);
 int GetSrcDriverIndex(const char *name);
-int GetIndexFromSortedIndex(int sorted_index);
 // sets text in part of the status bar on the main window
 void SetStatusBarText(int part_index, const char *message);
 void SetStatusBarTextF(int part_index, const char *fmt, ...) ATTR_PRINTF(2,3);

@@ -166,6 +166,17 @@ public:
 	required_device<gfxdecode_device> m_gfxdecode;
 	required_device<screen_device> m_screen;
 	required_device<palette_device> m_palette;
+	
+	UINT8 m_start1;
+	UINT8 m_start2;
+	UINT8 m_fadeout_ready;
+	UINT8 m_fadeout_stop;
+	UINT8 m_playing;
+	UINT8 m_fadeout;
+	UINT8 m_counter;
+	float m_sample_vol;
+	UINT8 m_vim_play;
+	UINT8 m_wait;
 };
 
 class toaplan1_rallybik_state : public toaplan1_state
@@ -185,13 +196,3 @@ public:
 
 	required_device<toaplan_scu_device> m_spritegen;
 };
-
-extern int start1;
-extern int start2;
-extern int vfadeout_ready;
-extern int vfadeout_stop;
-extern int vplaying1;
-extern int vplaying2;
-extern int tsundere;
-extern int vcounter1;
-extern float vsample_vol1;

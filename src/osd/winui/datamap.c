@@ -17,30 +17,7 @@
 //
 //============================================================
 
-// standard windows headers
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <windowsx.h>
-#include <commctrl.h>
-#include <tchar.h>
-
-// standard C headers
-#include <stdlib.h>
-#include <stdarg.h>
-#include <ctype.h>
-#include <math.h>
-
-// MAME/MAMEUI headers
-#include "emu.h"
-#include "mui_opts.h"
-#include "corestr.h"
-#include "strconv.h"
-#include "datamap.h"
-#include "winutf8.h"
-#include "emu.h"
-
-#undef malloc
-#undef realloc
+#include "winui.h"
 
 //============================================================
 //  TYPE DEFINITIONS
@@ -85,9 +62,7 @@ struct _datamap_entry
 struct _datamap
 {
 	int entry_count;
-	int entry_size;
-	// mamefx: dynamic allocation
-	datamap_entry *entries;
+	datamap_entry entries[256];
 };
 
 typedef void (*datamap_default_callback)(datamap *map, HWND control, windows_options &opts, datamap_entry *entry, const char *option_name);
@@ -124,8 +99,6 @@ datamap *datamap_create(void)
 		return NULL;
 
 	map->entry_count = 0;
-	map->entry_size = 0;
-	map->entries = NULL;
 	return map;
 }
 
@@ -135,13 +108,7 @@ datamap *datamap_create(void)
 
 void datamap_free(datamap *map)
 {
-	if (map->entries)
-	{
-		osd_free(map->entries);
-		map->entries = NULL;
-	}
-	
-	osd_free(map);
+	free(map);
 }
 
 //============================================================
@@ -151,17 +118,7 @@ void datamap_free(datamap *map)
 void datamap_add(datamap *map, int dlgitem, datamap_entry_type type, const char *option_name)
 {
 	// sanity check for too many entries
-	if (map->entry_count == map->entry_size)
-	{
-		map->entry_size += 32;
-
-		if (map->entries)
-			map->entries = (datamap_entry *)realloc(map->entries, map->entry_size * sizeof (*map->entries));
-		else
-			map->entries = (datamap_entry *)malloc(map->entry_size * sizeof (*map->entries));
-
-		assert (map->entries);
-	}
+	assert(map->entry_count < ARRAY_LENGTH(map->entries));
 
 	// add entry to the datamap
 	memset(&map->entries[map->entry_count], 0, sizeof(map->entries[map->entry_count]));
@@ -417,7 +374,7 @@ static int control_operation(datamap *map, HWND dialog, windows_options &opts, d
 	int result = 0;
 	const char *option_name;
 	char option_name_buffer[64];
-	char option_value[1024] = {0, };
+	char option_value[1024];
 
 	control = GetDlgItem(dialog, entry->dlgitem);
 
@@ -438,7 +395,7 @@ static int control_operation(datamap *map, HWND dialog, windows_options &opts, d
 
 			// if reading, get the option value, solely for the purposes of comparison
 			if ((callback_type == DCT_READ_CONTROL) && (option_name != NULL))
-				sprintf(option_value, "%s", opts.value(option_name));
+				snprintf(option_value, ARRAY_LENGTH(option_value), "%s", opts.value(option_name));
 
 			if (entry->callbacks[callback_type] != NULL)
 				// use custom callback
@@ -638,9 +595,9 @@ static void populate_control(datamap *map, HWND control, windows_options &opts, 
 					int_value = opts.int_value(option_name);
 
 					if (entry->int_format != NULL)
-						sprintf(buffer, entry->int_format, int_value);
+						snprintf(buffer, ARRAY_LENGTH(buffer), entry->int_format, int_value);
 					else
-						sprintf(buffer, "%d", int_value);
+						snprintf(buffer, ARRAY_LENGTH(buffer), "%d", int_value);
 
 					string_value = buffer;
 					break;
@@ -649,9 +606,9 @@ static void populate_control(datamap *map, HWND control, windows_options &opts, 
 					float_value = opts.float_value(option_name);
 
 					if (entry->float_format != NULL)
-						sprintf(buffer, entry->float_format, float_value);
+						snprintf(buffer, ARRAY_LENGTH(buffer), entry->float_format, float_value);
 					else
-						sprintf(buffer, "%f", float_value);
+						snprintf(buffer, ARRAY_LENGTH(buffer), "%f", float_value);
 
 					string_value = buffer;
 					break;
@@ -754,7 +711,7 @@ static char *tztrim(float float_value)
 	char *ptr;
 	int i = 0;
 
-	sprintf(float_string, "%f", float_value);
+	snprintf(float_string, ARRAY_LENGTH(float_string), "%f", float_value);
 	ptr = float_string;
 
 	// Copy before the '.'

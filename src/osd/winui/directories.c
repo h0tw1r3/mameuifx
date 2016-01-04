@@ -17,28 +17,8 @@
 
 ***************************************************************************/
 
-// standard windows headers
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <windowsx.h>
-#include <uxtheme.h>
-
-// standard C headers
-#include <sys/stat.h>
-#include <tchar.h>
-
-// MAME/MAMEUI headers
-#include "winutf8.h"
 #include "winui.h"
-#include "directories.h"
-#include "resource.h"
-#include "strconv.h"
-#include "mui_util.h"
-
-#define CINTERFACE
-#define COBJMACROS
 #include <shlobj.h>
-#undef CINTERFACE
 
 #define MAX_DIRS 256
 #define DirInfo_NumDir(pInfo, path)		((pInfo)[(path)].m_Path->m_NumDirectories)
@@ -59,6 +39,39 @@ typedef struct
 	tPath	*m_Path;
 	TCHAR	*m_tDirectory;
 } tDirInfo;
+
+static const DIRECTORYINFO g_directoryInfo[] =
+{
+	{ "ROMs",                  GetRomDirs,      SetRomDirs,      TRUE,  DIRDLG_ROM },
+	{ "Samples",               GetSampleDirs,   SetSampleDirs,   TRUE,  0 },
+	{ "Config files",          GetCfgDir,       SetCfgDir,       FALSE, 0 },
+	{ "High scores",           GetHiDir,        SetHiDir,        FALSE, 0 },
+	{ "Snapshots",             GetImgDir,       SetImgDir,       FALSE, 0 },
+	{ "Input files",           GetInpDir,       SetInpDir,       FALSE, 0 },
+	{ "State files",           GetStateDir,     SetStateDir,     FALSE, 0 },
+	{ "Artwork files",         GetArtDir,       SetArtDir,       FALSE, 0 },
+	{ "NVRAM files",           GetNvramDir,     SetNvramDir,     FALSE, 0 },
+	{ "Controller files",      GetCtrlrDir,     SetCtrlrDir,     FALSE, 0 },
+	{ "Crosshair files",       GetCrosshairDir, SetCrosshairDir, FALSE, 0 },
+	{ "HLSL files",            GetHLSLDir, 	  	SetHLSLDir, 	 FALSE, 0 },
+	{ "CHD Diff files",        GetDiffDir, 	  	SetDiffDir, 	 FALSE, 0 },
+	{ "GLSL shader files",     GetGLSLDir, 	  	SetGLSLDir, 	 FALSE, 0 },
+	{ "Font files",            GetFontDir,      SetFontDir,      FALSE, 0 },
+	{ "Video files",           GetVideoDir,     SetVideoDir,     FALSE, 0 },
+	{ "ProgettoSnaps movies",  GetMoviesDir,    SetMoviesDir,    FALSE, 0 },
+	{ "Audio files",           GetAudioDir,     SetAudioDir,     FALSE, 0 },
+	{ "Flyers",                GetFlyerDir,     SetFlyerDir,     FALSE, 0 },
+	{ "Cabinets",              GetCabinetDir,   SetCabinetDir,   FALSE, 0 },
+	{ "Marquees",              GetMarqueeDir,   SetMarqueeDir,   FALSE, 0 },
+	{ "Titles",                GetTitlesDir,    SetTitlesDir,    FALSE, 0 },
+	{ "Control panels",        GetControlPanelDir,SetControlPanelDir, FALSE, 0 },
+	{ "Scores snapshots",      GetScoresDir,    SetScoresDir,    FALSE, 0 },
+	{ "PCBs",                  GetPcbDir,       SetPcbDir,       FALSE, 0 },
+	{ "Folders",               GetFolderDir,    SetFolderDir,    FALSE, 0 },
+	{ "Icons",                 GetIconsDir,     SetIconsDir,     FALSE, 0 },
+	{ "Datafiles",             GetDatsDir,      SetDatsDir,      FALSE, 0 },
+	{ NULL }
+};
 
 /***************************************************************************
     Function prototypes
@@ -92,6 +105,8 @@ static BOOL Directories_OnNotify(HWND hDlg, int id, NMHDR* pNMHDR);
  ***************************************************************************/
 
 static tDirInfo *g_pDirInfo;
+static HBRUSH hBrush;
+static HDC hDC;
 
 /***************************************************************************
     External function definitions
@@ -108,6 +123,7 @@ INT_PTR CALLBACK DirectoriesDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARA
 		CenterWindow(hDlg);
         hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_MAMEUI_ICON));
         SendMessage(hDlg, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+		hBrush = CreateSolidBrush(RGB(224, 223, 227));
 
 		if(IsWindowsSevenOrHigher())
 			(void)ListView_SetExtendedListViewStyle(GetDlgItem(hDlg, IDC_DIR_LIST), LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER);
@@ -118,7 +134,17 @@ INT_PTR CALLBACK DirectoriesDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARA
 		SetWindowTheme(GetDlgItem(hDlg, IDC_DIR_COMBO), L" ", L" ");
 		return (BOOL)HANDLE_WM_INITDIALOG(hDlg, wParam, lParam, Directories_OnInitDialog);
 
-	case WM_COMMAND:
+	case WM_CTLCOLORDLG:
+		return (LRESULT) hBrush;
+
+	case WM_CTLCOLORSTATIC:
+	case WM_CTLCOLORBTN:
+		hDC = (HDC)wParam;
+		SetBkMode(hDC, TRANSPARENT);
+		SetTextColor(hDC, GetSysColor(COLOR_WINDOWTEXT));
+		return (LRESULT) hBrush;
+
+		case WM_COMMAND:
 		HANDLE_WM_COMMAND(hDlg, wParam, lParam, Directories_OnCommand);
 		bReturn = TRUE;
 		break;
@@ -131,6 +157,7 @@ INT_PTR CALLBACK DirectoriesDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARA
 		break;
 
 	case WM_DESTROY:
+		DeleteObject(hBrush);
 		HANDLE_WM_DESTROY(hDlg, wParam, lParam, Directories_OnDestroy);
 		break;
 
@@ -152,7 +179,8 @@ static BOOL IsMultiDir(int nType)
 
 static void DirInfo_SetDir(tDirInfo *pInfo, int nType, int nItem, LPCTSTR pText)
 {
-	TCHAR *t_s;
+	char *str;
+	TCHAR *t_str;
 	TCHAR *t_pOldText;
 
 	if (IsMultiDir(nType))
@@ -163,17 +191,16 @@ static void DirInfo_SetDir(tDirInfo *pInfo, int nType, int nItem, LPCTSTR pText)
 	}
 	else
 	{
-		t_s = win_tstring_strdup(pText);
-
-		if (!t_s)
-			return;
-
+		str = utf8_from_tstring(pText);
+		t_str = tstring_from_utf8(str);
 		t_pOldText = pInfo[nType].m_tDirectory;
 
 		if (t_pOldText)
-			osd_free(t_pOldText);
+			free(t_pOldText);
 
-		pInfo[nType].m_tDirectory = t_s;
+		pInfo[nType].m_tDirectory = t_str;
+		free(t_str);
+		free(str);
 	}
 }
 
@@ -303,8 +330,8 @@ static BOOL Directories_OnInitDialog(HWND hDlg, HWND hwndFocus, LPARAM lParam)
 		if(!t_s)
 			return FALSE;
 
-		(void)ComboBox_InsertString(GetDlgItem(hDlg, IDC_DIR_COMBO), 0, win_tstring_strdup(t_s));
-		osd_free(t_s);
+		(void)ComboBox_InsertString(GetDlgItem(hDlg, IDC_DIR_COMBO), 0, t_s);
+		free(t_s);
 		t_s = NULL;
 	}
 
@@ -353,7 +380,7 @@ static BOOL Directories_OnInitDialog(HWND hDlg, HWND hwndFocus, LPARAM lParam)
 			DirInfo_SetDir(g_pDirInfo, i, -1, t_s);
 		}
 
-		osd_free(t_s);
+		free(t_s);
 		t_s = NULL;
 	}
 
@@ -362,7 +389,7 @@ static BOOL Directories_OnInitDialog(HWND hDlg, HWND hwndFocus, LPARAM lParam)
 
 error:
 	if(t_s)
-		osd_free(t_s);
+		free(t_s);
 
 	Directories_OnDestroy(hDlg);
 	EndDialog(hDlg, -1);
@@ -384,12 +411,12 @@ static void Directories_OnDestroy(HWND hDlg)
 		for (i = 0; i < nDirInfoCount; i++)
 		{
 			if (g_pDirInfo[i].m_Path)
-				osd_free(g_pDirInfo[i].m_Path);
+				free(g_pDirInfo[i].m_Path);
 			if (g_pDirInfo[i].m_tDirectory)
-				osd_free(g_pDirInfo[i].m_tDirectory);
+				free(g_pDirInfo[i].m_tDirectory);
 		}
 
-		osd_free(g_pDirInfo);
+		free(g_pDirInfo);
 		g_pDirInfo = NULL;
 	}
 }
@@ -409,7 +436,7 @@ static int RetrieveDirList(int nDir, int nFlagResult, void (*SetTheseDirs)(const
 
 	if (DirInfo_Modified(g_pDirInfo, nDir))
 	{
-		memset(buf, 0, sizeof(buf));
+		memset(&buf, 0, sizeof(buf));
 		nPaths = DirInfo_NumDir(g_pDirInfo, nDir);
 
 		for (i = 0; i < nPaths; i++)
@@ -422,7 +449,7 @@ static int RetrieveDirList(int nDir, int nFlagResult, void (*SetTheseDirs)(const
 
 		utf8_buf = utf8_from_tstring(buf);
 		SetTheseDirs(utf8_buf);
-		osd_free(utf8_buf);
+		free(utf8_buf);
 		nResult |= nFlagResult;
     }
 	
@@ -447,7 +474,7 @@ static void Directories_OnOk(HWND hDlg)
 			s = FixSlash(DirInfo_Dir(g_pDirInfo, i));
 			utf8_s = utf8_from_tstring(s);
 			g_directoryInfo[i].pfnSetTheseDirs(utf8_s);
-			osd_free(utf8_s);
+			free(utf8_s);
 		}
 	}
 	
@@ -741,19 +768,15 @@ static int CALLBACK BrowseCallbackProc(HWND hWnd, UINT uMsg, LPARAM lParam, LPAR
 BOOL BrowseForDirectory(HWND hWnd, LPCTSTR pStartDir, TCHAR* pResult)
 {
 	BOOL bResult = FALSE;
-	IMalloc *piMalloc = 0;
 	BROWSEINFO Info;
 	LPITEMIDLIST pItemIDList = NULL;
 	TCHAR buf[MAX_PATH];
-
-	if (!SUCCEEDED(SHGetMalloc(&piMalloc)))
-		return FALSE;
 
 	Info.hwndOwner = hWnd;
 	Info.pidlRoot = NULL;
 	Info.pszDisplayName = buf;
 	Info.lpszTitle = TEXT("Select a directory:");
-	Info.ulFlags = BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE;
+	Info.ulFlags = BIF_RETURNONLYFSDIRS | BIF_USENEWUI;
 	Info.lpfn = BrowseCallbackProc;
 	Info.lParam = (LPARAM)pStartDir;
 
@@ -766,12 +789,9 @@ BOOL BrowseForDirectory(HWND hWnd, LPCTSTR pStartDir, TCHAR* pResult)
 			_sntprintf(pResult, MAX_PATH, TEXT("%s"), buf);
 			bResult = TRUE;
 		}
-		
-		IMalloc_Free(piMalloc, pItemIDList);
 	}
 	else
 		bResult = FALSE;
 
-	IMalloc_Release(piMalloc);
 	return bResult;
 }

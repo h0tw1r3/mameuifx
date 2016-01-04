@@ -16,13 +16,13 @@
 #ifndef MUI_UTIL_H
 #define MUI_UTIL_H
 
-void __cdecl ErrorMsg(const char* fmt, ...);
-void __cdecl dprintf(const char* fmt, ...);
+void ErrorMessageBox(const char *fmt, ...);
+void dprintf(const char *fmt, ...);
 void ShellExecuteCommon(HWND hWnd, const char *cName);
 char * MyStrStrI(const char* pFirst, const char* pSrch);
 char * ConvertToWindowsNewlines(const char *source);
 const char * GetDriverFilename(int nIndex);
-int  DriverNumScreens(int driver_index);
+int DriverNumScreens(int driver_index);
 BOOL DriverIsClone(int driver_index);
 BOOL DriverIsBroken(int driver_index);
 BOOL DriverIsHarddisk(int driver_index);
@@ -37,14 +37,7 @@ BOOL DriverSupportsSaveState(int driver_index);
 BOOL DriverIsVertical(int driver_index);
 BOOL DriverIsMechanical(int driver_index);
 BOOL DriverIsImperfect(int driver_index);
-int numberOfScreens(const machine_config *config);
-void FlushFileCaches(void);
-BOOL StringIsSuffixedBy(const char *s, const char *suffix);
-// provides result of FormatMessage()
-// resulting buffer must be free'd with LocalFree()
-void GetSystemErrorMessage(DWORD dwErrorId, TCHAR **tErrorMessage);
 HICON win_extract_icon_utf8(HINSTANCE inst, const char* exefilename, UINT iconindex);
-TCHAR* win_tstring_strdup(LPCTSTR str);
 HANDLE win_find_first_file_utf8(const char* filename, LPWIN32_FIND_DATA findfiledata);
 void CenterWindow(HWND hWnd);
 BOOL IsWindowsSevenOrHigher(void);

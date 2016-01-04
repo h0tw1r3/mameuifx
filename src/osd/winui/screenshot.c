@@ -21,18 +21,7 @@
 
 ***************************************************************************/
 
-// standard windows headers
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <windowsx.h>
 
-// MAME/MAMEUI headers
-#include "emu.h"
-#include "png.h"
-#include "osdcore.h"
-#include "unzip.h"
-#include "mui_opts.h"
-#include "mui_util.h"
 #include "winui.h"
 
 #define WIDTHBYTES(width) ((width) / 8)
@@ -174,7 +163,7 @@ static const zip_file_header *zip_file_seek_file(zip_file *zip, const char *file
 		header = zip_file_next_file(zip);
 	}
 
-	osd_free(new_filename);
+	free(new_filename);
 	return header;
 }
 
@@ -184,19 +173,20 @@ static file_error OpenDIBFile(const char *dir_name, const char *zip_name, const 
 	zip_error ziperr;
 	zip_file *zip;
 	const zip_file_header *zip_header;
+	char fname[MAX_PATH];
 
 	// clear out result
 	*file = NULL;
 	// look for the raw file
-	std::string fname = std::string(dir_name).append(PATH_SEPARATOR).append(filename);
-	filerr = core_fopen(fname.c_str(), OPEN_FLAG_READ, file);
+	snprintf(fname, ARRAY_LENGTH(fname), "%s\\%s", dir_name, filename);
+	filerr = core_fopen(fname, OPEN_FLAG_READ, file);
 
 	// did the raw file not exist?
 	if (filerr != FILERR_NONE)
 	{
 		// look into zip file
-		std::string fname = std::string(dir_name).append(PATH_SEPARATOR).append(zip_name).append(".zip");
-		ziperr = zip_file_open(fname.c_str(), &zip);
+		snprintf(fname, ARRAY_LENGTH(fname), "%s\\%s.zip", dir_name, zip_name);
+		ziperr = zip_file_open(fname, &zip);
 		
 		if (ziperr == ZIPERR_NONE)
 		{
@@ -228,6 +218,7 @@ BOOL LoadDIB(const char *filename, HGLOBAL *phDIB, HPALETTE *pPal, int pic_type)
 	const char *dir_name;
 	const char *zip_name;
 	void *buffer = NULL;
+	char fname[MAX_PATH];
 	
 	if (pPal != NULL ) 
 	{
@@ -283,35 +274,35 @@ BOOL LoadDIB(const char *filename, HGLOBAL *phDIB, HPALETTE *pPal, int pic_type)
 	
 	//Add handling for the displaying of all the different supported snapshot patterntypes
 	//%g
-	std::string fname = std::string(filename).append(".png");
-	filerr = OpenDIBFile(dir_name, zip_name, fname.c_str(), &file, &buffer);
+	snprintf(fname, ARRAY_LENGTH(fname), "%s.png", filename);
+	filerr = OpenDIBFile(dir_name, zip_name, fname, &file, &buffer);
 
 	if (filerr != FILERR_NONE) 
 	{
 		//%g/%i
-		std::string fname = std::string(filename).append(PATH_SEPARATOR).append("0000.png");
-		filerr = OpenDIBFile(dir_name, zip_name, fname.c_str(), &file, &buffer);
+		snprintf(fname, ARRAY_LENGTH(fname), "%s\\0000.png", filename);
+		filerr = OpenDIBFile(dir_name, zip_name, fname, &file, &buffer);
 	}
 	
 	if (filerr != FILERR_NONE) 
 	{
 		//%g%i
-		std::string fname = std::string(filename).append("0000.png");
-		filerr = OpenDIBFile(dir_name, zip_name, fname.c_str(), &file, &buffer);
+		snprintf(fname, ARRAY_LENGTH(fname), "%s0000.png", filename);
+		filerr = OpenDIBFile(dir_name, zip_name, fname, &file, &buffer);
 	}
 	
 	if (filerr != FILERR_NONE) 
 	{
 		//%g/%g
-		std::string fname = std::string(filename).append(PATH_SEPARATOR).append(filename).append(".png");
-		filerr = OpenDIBFile(dir_name, zip_name, fname.c_str(), &file, &buffer);
+		snprintf(fname, ARRAY_LENGTH(fname), "%s\\%s.png", filename, filename);
+		filerr = OpenDIBFile(dir_name, zip_name, fname, &file, &buffer);
 	}
 	
 	if (filerr != FILERR_NONE) 
 	{
 		//%g/%g%i
-		std::string fname = std::string(filename).append(PATH_SEPARATOR).append(filename).append("0000.png");
-		filerr = OpenDIBFile(dir_name, zip_name, fname.c_str(), &file, &buffer);
+		snprintf(fname, ARRAY_LENGTH(fname), "%s\\%s0000.png", filename, filename);
+		filerr = OpenDIBFile(dir_name, zip_name, fname, &file, &buffer);
 	}
 	
 	if (filerr == FILERR_NONE) 
@@ -323,7 +314,7 @@ BOOL LoadDIB(const char *filename, HGLOBAL *phDIB, HPALETTE *pPal, int pic_type)
 	// free the buffer if we have to
 	if (buffer != NULL) 
 	{
-		osd_free(buffer);
+		free(buffer);
 	}
 
 	return success;
@@ -468,7 +459,7 @@ BOOL AllocatePNG(png_info *p, HGLOBAL *phDIB, HPALETTE *pPal)
 		}
 
 		*pPal = CreatePalette(pLP);
-		osd_free(pLP);
+		free(pLP);
 	}
 
 	copy_size = dibSize;

@@ -362,25 +362,6 @@ To Do / Unknowns:
 #include "includes/toaplipt.h"
 
 
-int fadeout_ready = 0;
-int fadeout_stop = 0;
-int counter1 = 0;
-float sample_vol1 = 0;
-
-int playing1 = 0xff;
-int playing2 = 0xff;
-int playing3 = 0x00;
-int playing4 = 0x00;
-int playing5 = 0x00;
-int play_bat1 = 0x00;
-int play_bat2 = 0x00;
-
-int thunder1 = 0;
-int thunder2 = 0;
-int thunder3 = 0;
-int thunder4 = 0;
-int thunder5 = 0;
-int thunder6 = 0;
 /***************************************************************************
   Initialisation handlers
 ***************************************************************************/
@@ -410,6 +391,12 @@ MACHINE_RESET_MEMBER(toaplan2_state,toaplan2)
 	// This is important for games with common RAM; the RAM test will fail
 	// when leaving service mode if the sound CPU is not reset.
 	m_maincpu->set_reset_callback(write_line_delegate(FUNC(toaplan2_state::toaplan2_reset),this));
+	
+	m_fadeout_ready = 0;
+	m_fadeout_stop = 0;
+	m_counter = 0;
+	m_sample_vol = 0;
+	m_playing = 0xff;
 }
 
 

@@ -17,21 +17,7 @@
 
  ***************************************************************************/
 
-// standard windows headers
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-
-// standard C headers
-#include <stdio.h>
-#include <math.h>
-#include <tchar.h>
-
-// MAMEUI headers
 #include "winui.h"
-#include "directinput.h"
-#include "dijoystick.h"
-#include "mui_util.h" // For ErrorMsg
-#include "dxdecode.h" // for DirectXDecodeError
 
 #define MAX_PHYSICAL_JOYSTICKS 20
 #define MAX_AXES               20
@@ -132,7 +118,7 @@ static int DIJoystick_init(void)
 
 	if (di == NULL)
 	{
-		ErrorMsg("DirectInput not initialized");
+		ErrorMessageBox("DirectInput not initialized");
 		return 0;
 	}
 
@@ -143,7 +129,7 @@ static int DIJoystick_init(void)
 
 	if (FAILED(hr))
 	{
-		ErrorMsg("DirectInput EnumDevices() failed: %s", DirectXDecodeError(hr));
+		ErrorMessageBox("DirectInput EnumDevices() failed: %s", DirectXDecodeError(hr));
 		return 0;
 	}
 
@@ -156,7 +142,7 @@ static int DIJoystick_init(void)
 	/* Are there any joysticks attached? */
 	if (This.num_joysticks < 1)
 	{
-		/*ErrorMsg("DirectInput EnumDevices didn't find any joysticks");*/
+		/*ErrorMessageBox("DirectInput EnumDevices didn't find any joysticks");*/
 		return 0;
 	}
 
@@ -379,7 +365,7 @@ BOOL CALLBACK DIJoystick_EnumDeviceProc(LPDIDEVICEINSTANCE pdidi, LPVOID pv)
 	TCHAR buffer[5000];
 
 	This.joysticks[This.num_joysticks].guidDevice = pdidi->guidInstance;
-	_stprintf(buffer, TEXT("%s (%s)"), pdidi->tszProductName, pdidi->tszInstanceName);
+	_sntprintf(buffer, ARRAY_LENGTH(buffer), TEXT("%s (%s)"), pdidi->tszProductName, pdidi->tszInstanceName);
 	This.joysticks[This.num_joysticks].name = (TCHAR *)malloc((_tcslen(buffer) + 1) * sizeof(TCHAR));
 	_tcscpy(This.joysticks[This.num_joysticks].name, buffer);
 	This.num_joysticks++;
@@ -397,7 +383,7 @@ static BOOL CALLBACK DIJoystick_EnumAxisObjectsProc(LPCDIDEVICEOBJECTINSTANCE lp
 	_tcscpy(joystick->axes[joystick->num_axes].name, lpddoi->tszName);
 	joystick->axes[joystick->num_axes].offset = lpddoi->dwOfs;
 
-	/*ErrorMsg("got axis %s, offset %i",lpddoi->tszName, lpddoi->dwOfs);*/
+	/*ErrorMessageBox("got axis %s, offset %i",lpddoi->tszName, lpddoi->dwOfs);*/
 
 	diprg.diph.dwSize = sizeof(diprg);
 	diprg.diph.dwHeaderSize = sizeof(diprg.diph);
@@ -410,7 +396,7 @@ static BOOL CALLBACK DIJoystick_EnumAxisObjectsProc(LPCDIDEVICEOBJECTINSTANCE lp
 
 	if (FAILED(hr)) /* if this fails, don't use this axis */
 	{
-		osd_free(joystick->axes[joystick->num_axes].name);
+		free(joystick->axes[joystick->num_axes].name);
 		joystick->axes[joystick->num_axes].name = NULL;
 		return DIENUM_CONTINUE;
 	}
@@ -418,7 +404,7 @@ static BOOL CALLBACK DIJoystick_EnumAxisObjectsProc(LPCDIDEVICEOBJECTINSTANCE lp
 #ifdef JOY_DEBUG
 	if (FAILED(hr))
 	{
-		ErrorMsg("DirectInput SetProperty() joystick axis %s failed - %s\n",
+		ErrorMessageBox("DirectInput SetProperty() joystick axis %s failed - %s\n",
 				 joystick->axes[joystick->num_axes].name,
 				 DirectXDecodeError(hr));
 	}
@@ -430,7 +416,7 @@ static BOOL CALLBACK DIJoystick_EnumAxisObjectsProc(LPCDIDEVICEOBJECTINSTANCE lp
 #ifdef JOY_DEBUG
 	if (FAILED(hr))
 	{
-		ErrorMsg("DirectInput SetProperty() joystick axis %s dead zone failed - %s\n",
+		ErrorMessageBox("DirectInput SetProperty() joystick axis %s dead zone failed - %s\n",
 				 joystick->axes[joystick->num_axes].name,
 				 DirectXDecodeError(hr));
 	}
@@ -487,7 +473,7 @@ static void InitJoystick(joystick_type *joystick)
 
 	if (FAILED(hr))
 	{
-		ErrorMsg("DirectInput CreateDevice() joystick failed: %s\n", DirectXDecodeError(hr));
+		ErrorMessageBox("DirectInput CreateDevice() joystick failed: %s\n", DirectXDecodeError(hr));
 		return;
 	}
 
@@ -500,7 +486,7 @@ static void InitJoystick(joystick_type *joystick)
 	if (FAILED(hr))
 	{
 		/* no error message because this happens in dx3 */
-		/* ErrorMsg("DirectInput QueryInterface joystick failed\n"); */
+		/* ErrorMessageBox("DirectInput QueryInterface joystick failed\n"); */
 		joystick->did = NULL;
 		return;
 	}
@@ -509,7 +495,7 @@ static void InitJoystick(joystick_type *joystick)
 
 	if (FAILED(hr))
 	{
-		ErrorMsg("DirectInput SetCooperativeLevel() joystick failed: %s\n", DirectXDecodeError(hr));
+		ErrorMessageBox("DirectInput SetCooperativeLevel() joystick failed: %s\n", DirectXDecodeError(hr));
 		return;
 	}
 
@@ -517,7 +503,7 @@ static void InitJoystick(joystick_type *joystick)
 
 	if (FAILED(hr))
 	{
-		ErrorMsg("DirectInput SetDataFormat() joystick failed: %s\n", DirectXDecodeError(hr));
+		ErrorMessageBox("DirectInput SetDataFormat() joystick failed: %s\n", DirectXDecodeError(hr));
 		return;
 	}
 
@@ -525,7 +511,7 @@ static void InitJoystick(joystick_type *joystick)
 	{
 		/* setup light gun to report raw screen pixel data */
 		DIPROPDWORD diprop;
-		memset(&diprop, 0, sizeof(diprop));
+		memset(&diprop, 0, sizeof(DIPROPDWORD));
 		diprop.diph.dwSize	= sizeof(DIPROPDWORD);
 		diprop.diph.dwHeaderSize = sizeof(DIPROPHEADER);
 		diprop.diph.dwObj = 0;
@@ -541,7 +527,7 @@ static void InitJoystick(joystick_type *joystick)
 
 		if (FAILED(hr))
 		{
-			ErrorMsg("DirectInput EnumObjects() Axes failed: %s\n", DirectXDecodeError(hr));
+			ErrorMessageBox("DirectInput EnumObjects() Axes failed: %s\n", DirectXDecodeError(hr));
 			return;
 		}
 
@@ -551,7 +537,7 @@ static void InitJoystick(joystick_type *joystick)
 
 		if (FAILED(hr))
 		{
-			ErrorMsg("DirectInput EnumObjects() POVs failed: %s\n", DirectXDecodeError(hr));
+			ErrorMessageBox("DirectInput EnumObjects() POVs failed: %s\n", DirectXDecodeError(hr));
 			return;
 		}
 	}
@@ -562,7 +548,7 @@ static void InitJoystick(joystick_type *joystick)
 
 	if (FAILED(hr))
 	{
-		ErrorMsg("DirectInput EnumObjects() Buttons failed: %s\n", DirectXDecodeError(hr));
+		ErrorMessageBox("DirectInput EnumObjects() Buttons failed: %s\n", DirectXDecodeError(hr));
 		return;
 	}
 
@@ -570,7 +556,7 @@ static void InitJoystick(joystick_type *joystick)
 
 	if (FAILED(hr))
 	{
-		ErrorMsg("DirectInputDevice Acquire joystick failed!\n");
+		ErrorMessageBox("DirectInputDevice Acquire joystick failed!\n");
 		return;
 	}
 
@@ -593,13 +579,13 @@ static void ExitJoystick(joystick_type *joystick)
 	for (i = 0; i < joystick->num_axes; i++)
 	{
 		if (joystick->axes[i].name)
-			osd_free(joystick->axes[i].name);
+			free(joystick->axes[i].name);
 		joystick->axes[i].name = NULL;
 	}
 
 	if (joystick->name != NULL)
 	{
-		osd_free(joystick->name);
+		free(joystick->name);
 		joystick->name = NULL;
 	}
 }

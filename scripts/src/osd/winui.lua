@@ -44,6 +44,7 @@ function maintargetosdoptions(_target,_subtarget)
 	links {
 		"comctl32",
 		"comdlg32",
+		"mingw32",
 		"shell32",
 		"uxtheme",
 	}
@@ -187,7 +188,6 @@ project ("osd_" .. _OPTIONS["osd"])
 		MAME_DIR .. "src/osd/winui/history.c",
 		MAME_DIR .. "src/osd/winui/dialogs.c",
 		MAME_DIR .. "src/osd/winui/mui_opts.c",
-		MAME_DIR .. "src/osd/winui/layout.c",
 		MAME_DIR .. "src/osd/winui/datafile.c",
 		MAME_DIR .. "src/osd/winui/winui.c",
 		MAME_DIR .. "src/osd/winui/mui_main.c",

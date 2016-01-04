@@ -157,6 +157,8 @@ public:
 	void increase_frameskip();
 	void decrease_frameskip();
 	void request_quit();
+	void set_show_time(bool show) { m_show_time = show; }
+	bool show_time() const { return m_show_time; } 
 
 	// print the game info string into a buffer
 	std::string &game_info_astring(std::string &str);
@@ -182,6 +184,7 @@ private:
 	UINT8 *                 m_non_char_keys_down;
 	render_texture *        m_mouse_arrow_texture;
 	bool                    m_mouse_show;
+	bool					m_show_time;
 
 	// text generators
 	std::string &disclaimer_string(std::string &buffer);

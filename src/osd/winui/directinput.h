@@ -18,10 +18,10 @@
 
 #include <dinput.h>
 
-extern BOOL DirectInputInitialize(void);
-extern void DirectInputClose(void);
-extern BOOL CALLBACK inputEnumDeviceProc(LPCDIDEVICEINSTANCE pdidi, LPVOID pv);
-extern HRESULT SetDIDwordProperty(LPDIRECTINPUTDEVICE2 pdev, REFGUID guidProperty, DWORD dwObject, DWORD dwHow, DWORD dwValue);
+BOOL DirectInputInitialize(void);
+void DirectInputClose(void);
+BOOL CALLBACK inputEnumDeviceProc(LPCDIDEVICEINSTANCE pdidi, LPVOID pv);
+HRESULT SetDIDwordProperty(LPDIRECTINPUTDEVICE2 pdev, REFGUID guidProperty, DWORD dwObject, DWORD dwHow, DWORD dwValue);
 LPDIRECTINPUT GetDirectInput(void);
 
 #endif

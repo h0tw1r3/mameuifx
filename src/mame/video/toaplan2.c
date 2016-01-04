@@ -347,47 +347,46 @@ UINT32 toaplan2_state::screen_update_batsugun(screen_device &screen, bitmap_ind1
 
 void toaplan2_state::ese_fadeout()
 {
-	if (fadeout_stop == 1)
+	if (m_fadeout_stop == 1)
 	{
-		playing2 = 0xff;
-		fadeout_ready = 0;
-		fadeout_stop = 0;
-		sample_vol1 = 1.00;
+		m_playing = 0xff;
+		m_fadeout_ready = 0;
+		m_fadeout_stop = 0;
+		m_sample_vol = 1.00;
 		m_samples->set_volume(0, 1.00);
 	}
 	
-	if (counter1 >= 20)
+	if (m_counter >= 20)
 	{
-		counter1 = 0;
+		m_counter = 0;
 
-		if (fadeout_ready == 1)
+		if (m_fadeout_ready == 1)
 		{
-			sample_vol1 = sample_vol1 - 0.10;
+			m_sample_vol = m_sample_vol - 0.10;
 
-			if (sample_vol1 <= 0)
-				sample_vol1 = 0;
+			if (m_sample_vol <= 0)
+				m_sample_vol = 0;
 
-			m_samples->set_volume(0, sample_vol1);
+			m_samples->set_volume(0, m_sample_vol);
 		}
 
-		if (sample_vol1 == 0)
+		if (m_sample_vol == 0)
 		{
 			m_samples->stop(0);
-			fadeout_ready = 0;
-			fadeout_stop = 0;
-			sample_vol1 = 1.00;
+			m_fadeout_ready = 0;
+			m_fadeout_stop = 0;
+			m_sample_vol = 1.00;
 			m_samples->set_volume(0, 1.00);
 
-			if (playing2 != 0xff)
+			if (m_playing != 0xff)
 			{
-				m_samples->start(0, playing2, 1);
-				playing1 = 0xff;
-				playing2 = 0xff;
+				m_samples->start(0, m_playing, 1);
+				m_playing = 0xff;
 			}
 		}
 	}
 
-	counter1++;
+	m_counter++;
 }
 
 UINT32 toaplan2_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)

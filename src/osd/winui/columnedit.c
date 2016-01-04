@@ -19,26 +19,12 @@
 
 ***************************************************************************/
 
-// standard windows headers
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <windowsx.h>
-#include <shellapi.h>
-#include <commctrl.h>
-#include <commdlg.h>
-#include <stdlib.h>
-#include <uxtheme.h>
-
-// MAME/MAMEUI headers
-#include "winutf8.h"
-#include "resource.h"
-#include "mui_opts.h"
-#include "mui_util.h"
 #include "winui.h"
-
 
 static HWND hShown;
 static HWND hAvailable;
+static HBRUSH hBrush;
+static HDC hDC;
 static BOOL showMsg = FALSE;
 
 // Returns TRUE if successful
@@ -52,7 +38,7 @@ static int DoExchangeItem(HWND hFrom, HWND hTo, int nMinItem)
 	if (lvi.iItem < nMinItem)
 	{
 		if (lvi.iItem != -1) 	// Can't remove the first column
-			win_message_box_utf8(GetMainWindow(), "Cannot move selected item", MAMEUINAME, MB_ICONWARNING | MB_OK);
+			ErrorMessageBox("Cannot move selected item");
 
 		SetFocus(hFrom);
 		return FALSE;
@@ -142,6 +128,7 @@ INT_PTR InternalColumnDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lPar
 		CenterWindow(hDlg);
         hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_MAMEUI_ICON));
         SendMessage(hDlg, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+		hBrush = CreateSolidBrush(RGB(224, 223, 227));
 		hShown = GetDlgItem(hDlg, IDC_LISTSHOWCOLUMNS);
 		hAvailable = GetDlgItem(hDlg, IDC_LISTAVAILABLECOLUMNS);
 		SetWindowTheme(hShown, L"Explorer", NULL);
@@ -208,6 +195,16 @@ INT_PTR InternalColumnDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lPar
 		EnableWindow(GetDlgItem(hDlg, IDC_BUTTONADD), TRUE);
 		return TRUE;
 
+	case WM_CTLCOLORDLG:
+		return (LRESULT) hBrush;	
+		
+	case WM_CTLCOLORSTATIC:
+	case WM_CTLCOLORBTN:
+		hDC = (HDC)wParam;
+		SetBkMode(hDC, TRANSPARENT);
+		SetTextColor(hDC, GetSysColor(COLOR_WINDOWTEXT));
+		return (LRESULT) hBrush;
+
 	case WM_NOTIFY:
 		{
 			NMHDR *nm = (NMHDR *)lParam;
@@ -262,7 +259,7 @@ INT_PTR InternalColumnDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lPar
 
 						if (showMsg)
 						{
-							win_message_box_utf8(GetMainWindow(), "Changing this item is not permitted", MAMEUINAME, MB_ICONWARNING | MB_OK);
+							ErrorMessageBox("Changing this item is not permitted");
 							showMsg = FALSE;
 						}
 
@@ -457,11 +454,13 @@ INT_PTR InternalColumnDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lPar
 
 				pfnSetColumnInfo(order, shown);
 				DestroyIcon(hIcon);
+				DeleteObject(hBrush);
 				EndDialog(hDlg, 1);
 				return TRUE;
 
 			case IDCANCEL:
 				DestroyIcon(hIcon);
+				DeleteObject(hBrush);
 				EndDialog(hDlg, 0);
 				return TRUE;
 		}

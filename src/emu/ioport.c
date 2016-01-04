@@ -484,8 +484,6 @@ static const char_info charinfo[] =
 	{ UCHAR_MAMEKEY(CANCEL),    "Break",        NULL }      // Break/Pause key
 };
 
-int autofire_delay;
-int autofire_toggle;
 
 
 //**************************************************************************
@@ -1459,6 +1457,8 @@ ioport_field::ioport_field(ioport_port &port, ioport_type type, ioport_value def
 		m_defvalue(defvalue & maskbits),
 		m_type(type),
 		m_player(0),
+		m_autofire(0),
+		m_autopressed(0),
 		m_flags(0),
 		m_impulse(0),
 		m_name(name),
@@ -1467,8 +1467,6 @@ ioport_field::ioport_field(ioport_port &port, ioport_type type, ioport_value def
 		m_digital_value(false),
 		m_min(0),
 		m_max(maskbits),
-		m_autofire(0),
-		m_autopressed(0),
 		m_sensitivity(0),
 		m_delta(0),
 		m_centerdelta(0),
@@ -1704,7 +1702,6 @@ void ioport_field::get_user_settings(user_settings &settings)
 	{
 		settings.toggle = m_live->toggle;
 		settings.autofire = autofire();
-		settings.autopressed = autopressed();
 	}
 }
 
@@ -1744,7 +1741,6 @@ void ioport_field::set_user_settings(const user_settings &settings)
 	{
 		m_live->toggle = settings.toggle;
 		m_autofire = settings.autofire;
-		m_autopressed = settings.autopressed;
 	}
 }
 
@@ -1914,9 +1910,9 @@ void ioport_field::frame_update(ioport_value &result, bool mouse_down)
 	bool curstate = mouse_down || machine().input().seq_pressed(seq()) || m_digital_value;
 	if (curstate)
 	{
-		if ((m_autofire & 1) && (autofire_toggle == 0))
+		if ((m_autofire & 1) && (machine().ioport().get_autofire_toggle() == 0))
 		{
-			if (m_autopressed >= autofire_delay)
+			if (m_autopressed >= machine().ioport().get_autofire_delay())
 			{
 				curstate = 0;
 				m_autopressed = 0;
@@ -2488,8 +2484,8 @@ ioport_manager::ioport_manager(running_machine &machine)
 
 time_t ioport_manager::initialize()
 {
-	autofire_delay = 1;
-	autofire_toggle = 0;
+	m_autofire_toggle = 0;
+	m_autofire_delay = 1;
 
 	// add an exit callback and a frame callback
 	machine().add_notifier(MACHINE_NOTIFY_EXIT, machine_notify_delegate(FUNC(ioport_manager::exit), this));

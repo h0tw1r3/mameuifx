@@ -11,14 +11,6 @@
 
  ***************************************************************************/
 
-// standard windows headers
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <tchar.h>
-#include <stdlib.h>
-
-// MAME/MAMEUI headers
-#include "strconv.h"
 #include "winui.h"
 
 #undef main
@@ -45,7 +37,7 @@ extern "C" int _tmain(int argc, TCHAR **argv)
 
 		if (utf8_argv[i] == NULL)
 		{
-			osd_free(utf8_argv);
+			free(utf8_argv);
 			return 999;
 		}
 	}
@@ -55,9 +47,9 @@ extern "C" int _tmain(int argc, TCHAR **argv)
 
 	/* free arguments */
 	for (i = 0; i < argc; i++)
-		osd_free(utf8_argv[i]);
+		free(utf8_argv[i]);
 	
-	osd_free(utf8_argv);
+	free(utf8_argv);
 
 	return rc;
 }

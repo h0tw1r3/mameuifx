@@ -77,6 +77,7 @@ static void
 video_update_common(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect, int bROZ )
 {
 	namconb1_state *state = screen.machine().driver_data<namconb1_state>();
+	const rectangle &visarea_sprites = state->m_screen->visible_area();
 	int pri;
 
 	if( bROZ )
@@ -95,8 +96,28 @@ video_update_common(screen_device &screen, bitmap_ind16 &bitmap, const rectangle
 	{
 		for( pri=0; pri<8; pri++ )
 		{
-			namco_tilemap_draw( screen, bitmap, cliprect, pri );
-			state->c355_obj_draw(screen, bitmap, cliprect, pri );
+			if (state->m_pos_irq_level != 0)		// raster interrupt enabled
+			{
+				if (pri == 5 || pri == 6)			// special priority cases
+				{
+					if (cliprect.max_y == visarea_sprites.max_y)	// no raster on sprites?? faster!
+					{
+						namco_tilemap_draw( screen, bitmap, visarea_sprites, pri );
+						state->c355_obj_draw(screen, bitmap, visarea_sprites, pri );
+						namco_tilemap_draw( screen, bitmap, visarea_sprites, pri + 1 );
+					}
+				}
+				else
+				{	
+					namco_tilemap_draw( screen, bitmap, cliprect, pri );
+					state->c355_obj_draw(screen, bitmap, cliprect, pri );
+				}
+			}
+			else
+			{	
+				namco_tilemap_draw( screen, bitmap, cliprect, pri );
+				state->c355_obj_draw(screen, bitmap, cliprect, pri );
+			}
 		}
 	}
 } /* video_update_common */

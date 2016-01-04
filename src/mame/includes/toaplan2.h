@@ -167,26 +167,14 @@ public:
 	DECLARE_WRITE8_MEMBER(pwrkick_coin_w);
 
 	DECLARE_WRITE_LINE_MEMBER(toaplan2_reset);
+	
+	// samples simulation in ghox and tekipaki
+	UINT8 m_fadeout_ready;
+	UINT8 m_fadeout_stop;
+	UINT8 m_counter;
+	float m_sample_vol;
+	UINT8 m_playing;
+
 protected:
 	virtual void device_timer(emu_timer &timer, device_timer_id id, int param, void *ptr);
 };
-
-extern int fadeout_ready;
-extern int fadeout_stop;
-extern int counter1;
-extern float sample_vol1;
-
-extern int playing1;
-extern int playing2;
-extern int playing3;
-extern int playing4;
-extern int playing5;
-extern int play_bat1;
-extern int play_bat2;
-
-extern int thunder1;
-extern int thunder2;
-extern int thunder3;
-extern int thunder4;
-extern int thunder5;
-extern int thunder6;

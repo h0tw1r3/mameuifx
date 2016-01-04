@@ -18,14 +18,8 @@
   Direct Input routines.
 
  ***************************************************************************/
-// standard windows headers
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
 
-// MAME/MAMEUI headers
-#include "emu.h"
-#include "mui_util.h" // For ErrorMsg
-#include "directinput.h"
+#include "winui.h"
 
 /***************************************************************************
     Internal variables
@@ -83,7 +77,7 @@ BOOL DirectInputInitialize()
 
 		if (FAILED(hr))
 		{
-			ErrorMsg("DirectInputCreate failed! error=%x\n", (unsigned int)hr);
+			ErrorMessageBox("DirectInputCreate failed! error=%x\n", (unsigned int)hr);
 			di = NULL;
 			return FALSE;
 		}

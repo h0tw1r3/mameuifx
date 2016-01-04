@@ -16,6 +16,6 @@
 #ifndef DXDECODE_H
 #define DXDECODE_H
 
-extern const char* DirectXDecodeError(HRESULT errorval);
+const char* DirectXDecodeError(HRESULT errorval);
 
 #endif
