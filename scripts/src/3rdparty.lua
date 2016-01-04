@@ -304,7 +304,7 @@ project "lua"
 		defines {
 			"LUA_COMPAT_ALL",
 		}
-	if not (_OPTIONS["targetos"]=="windows") then
+	if not (_OPTIONS["targetos"]=="windows" or _OPTIONS["targetos"]=="winui") then
 		defines {
 			"LUA_USE_POSIX",
 		}
@@ -730,7 +730,7 @@ project "portaudio"
 		MAME_DIR .. "3rdparty/portaudio/src/hostapi/skeleton/pa_hostapi_skeleton.c",
 	}
 
-	if _OPTIONS["targetos"]=="windows" then
+	if _OPTIONS["targetos"]=="windows" or _OPTIONS["targetos"]=="winui" then
 		defines {
 			"PA_USE_DS=1",
 			"PA_USE_WDMKS=1",

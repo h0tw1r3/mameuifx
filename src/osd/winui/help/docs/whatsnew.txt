@@ -1,170 +1,343 @@
-﻿0.165
+0.166
 -------
 
 
 MAMETesters Bugs Fixed
 ----------------------
-- 05762: [Crash/Freeze] (itgambl2.c) All sets in itgambl2.c, namcos23.c: Crash directly after OK (hap)
-- 05435: [Sound] (leland.c) offroad, offroadt, possibly others: Audio in offroad, offroadt sounds horrible (crazyc)
-- 05377: [Sound] (leland.c) All sets in leland.c: DAC sounds differently between 32-bit and 64-bit (crazyc)
-- 02892: [Misc.] (cps1.c) 3wondersh: Dialog box on launch (Robbbert)
-- 03193: [Misc.] (cps1.c) 3wondersh: Three Wonders (hack?) unmapped ports (Robbbert)
-- 05801: [Color/Palette] (cps1.c) 3wondersb: Status change from GAME_NOT_WORKING
-	to GAME_IMPERFECT_GRAPHICS suggestion (Robbbert)
-- 06006: [Crash/Freeze] (rocnrope.c) rocnrope, ropeman: Game resets when pressing start (Mamesick)
-- 06014: [Documentation] (aerofgt.c) karatblzj: Wrong name for Japanese ROM set (hap)
-- 05690: [Graphics] (eprom.c) eprom, eprom2: Graphics glitch occurs when destroying compuer equipment. (hap)
-- 05217: [Sound] (exidy.c) spectar: Missing sounds (credit/Title Tune) (Osso)
-- 06008: [Graphics] (bfm_sc4.c) bfm_sc4.c: FATAL ERROR: Too many live textures in src/emu/renderer.c:500 (hap)
-- 06007: [Speed] (suna16.c) bssoccer: significant performance drop during intro (David Haywood)
-- 06005: [Graphics] (taito_x.c) kyustrkr: Screen is shifted up (Mamesick)
-- 03966: [Graphics] (macrossp.c) macrossp, quizmoon: Implement priorities, fix bg and sprite zoom (Tourniquet)
-- 05814: [Graphics] (apple2.c) ivelultr: Font is flipped (R. Belmont)
-
+- 05969: [Graphics] (galaxian.c) jumpbug and clones: Missing scrolling starfield (Osso)
+- 06028: [Sound] (neogeo.c) neogeo.c: Wrong volume of SSG versus the FM & 
+  ADPCM sound generation parts (Dr.Venom)
+- 06029: [Crash/Freeze] (cclimber.c) yamato: game is broken [2 bugs] (Osso)
+- 00999: [Sound] (segaxbd.c) gprider: There are no demo sounds even when 
+  the dip switch is on. (David Haywood, Ariane Fugmann)
+- 04701: [Graphics] (seta.c) blandia, blandiap: Graphic garbage (Mamesick)
+- 00878: [Graphics] (suna8.c) rranger: A piece of the yellow box on the map screen after 
+  the game start is over the CREDIT text. (Luca Elia)
+- 05971: [Graphics] (suna8.c) sranger and others clones: graphics issues (Luca Elia)
+- 06024: [Crash/Freeze] (system1.c) hvymetal, choplift: Crashing with a message in IC TEST (David Haywood)
+- 05345: [Core] (a2600.c) a2600 [dodgeem, haunted]: Assorted issues related to 6502 CPU
+- 05718: [Graphics] (a2600.c) a2600p: The demo "TOM/JONES by trilobit" is not working properly.
+- 05714: [Graphics] (a2600.c) a2600p: The demo "(core) by wamma" is not working properly.
+- 05622: [Graphics] (msx.c) MSX2 and MSX2+: Screen resolutions and refresh rates are wrong. (Wilbert Pol)
+- 05623: [Graphics] (msx.c) MSX2 and MSX2+: Top and bottom screenborders are wrong for both PAL and NTSC (Wilbert Pol)
+- 05872: [DIP/Input] (sms.c) sms, sms1 [alexbmx][megumi]: Incorrect behavior of the Sports Pad (US model) emulation
 
 Source Changes
 --------------
--Sega 837-14645 JVS I/O dumped [Darksoft]
+-TMS51xx: Got rid of the request_bits and FIFO implementation, both of
+ which were incorrect to hardware. Minor ZPAR fix. Some comment
+ cleanup. [Lord Nightmare]
 
--monzagp.c updates: [Sandro Ronco]
-	* fixed 8035 vram read/write
-	* added background graphics
-	* added coin and DSW inputs
+-TMS5110.c: Finally fixed zpar logic correctly. [Lord Nightmare]
 
--vidbrain.xml: Added Information Manager prototype. [Sean Riddle]
+-TMS5220: implemented talk status state machine properly as shown by
+ patent. Got rid of m_target_* hack in favor of loading data from ROM
+ as needed. Fixed ZPAR logic. Fixed pitch zeroing to match(?) patent.
+ [Lord Nightmare]
 
--Add correct CD2802 chirp rom from decap [Sean Riddle]
+-Added missing PLD for Quantum. [Andrew Welburn]
 
--mk4: Add rudimentary blending. [MooglyGuy]
+-TMS5220: Purge process() of gotos to hopefully make the compiler's
+ optimizer happier. Add a hack so Victory's "Shields Up" sample and the
+ sample afterward aren't corrupted. [Lord Nightmare]
 
--utf8 support for pstring. Opted for a scalable solution which should
-	be easily extensible to utf16 and utf32 as well. All position related
-	operations now operate on char code positions instead of byte
-	positions. [Couriersud]
+-TMS5110: Purge process() of gotos to hopefully make the compiler's
+ optimizer happier. [Lord Nightmare]
 
--chihiro.c: Move parts common with Xbox console into their own files
-	machine/xbox.c and includes/xbox.h [Samuele Zannoli]
+-chihiro.c: under the hood 3d accelerator changes [Samuele Zannoli]
+ * correct some errors
+ * add more primitives to some graphic methods
+ * add color mask support
+ * method 0x100 (NOP) generates correct interrupt
+ * some method parameters are readable from mmio registers
 
--gei.c: Minor Clean up [Brian Troha]
+-chihiro.c/xbox.c: Various updates [Samuele Zannoli]
+ * support render targets different than rgb32
+ * support 16 bit depth buffer
+ * support independent clearing of stencil and depth values
+ * update rom loading
+ * add xbox hack to avoid stalling
+ * set xbox bios 4134 as the one used
 
--Xbox console driver now uses the base common machine setup with
-	Chihiro [Samuele Zannoli]
+-xbox.c: now it is able to execute the default.xbe from an iso image [Samuele Zannoli]
 
--Add support for M58819 'VSM-emulator', fixes speech in Radar Scope
-	TRS01 set. [Lord Nightmare]
+-Naomi / Chihiro docs update [f205v]
 
--Replaced the frame parse and speech generation code from tms5110.c
-	with the code from tms5220.c, should be significantly more accurate
-	and allow the cores to be much more easily merged in the future. This
-	also allowed finally getting rid of the COEFF_ENERGY_SENTINEL hack in
-	tms5110r.inc [Lord Nightmare]
+-Fixed GetModuleHandle to be universal. [Vladimir Kryvian]
 
--deco32.c: Verified and corrected the rom labels for the Fighter's
-	History (World ver 43-07, DE-0380-2 PCB) set. [Charles MacDonald]
+-C352: Add divider for System 23, change enum format [Ian Karlsson]
 
--monzagp.c updates (part 2): [Sandro Ronco]
-	* fixed gfx RAM
-	* added 7-seg artwork
-	* added my car sprite
+-groundfx.c: fix accelerator [baritonomarchetto]
 
--hp64k: fix to allow multiple screens (for RS232 terminal) [F. Ulivi]
+-besta: hook up 68230 and make its ROM self-test pass [shattered]
 
--goldstar.c DIP switch documentation [hsialin]
-	* Hold Pair for cmv4, cmv801 and crazybon
-	* Card Shuffle Animation for cmv801
-	* Fast Take for crazybon
+-at, at_keybc: hook up Display Switch and remove irrelevant DSW0 [shattered]
 
--Fix interpolation on TMS52xx to match samples from real chip.
-	[PlgDavid, Lord Nightmare]
+-Add skeleton support for K1801VM2 (as clone of T11) and skeleton
+ driver dvk_kcgd that uses it [shattered]
 
--c128: Emulated the PARTNER 128 cartridge. [Curt Coder]
+-TMS5110: Add same FAST_START_HACK as in tms5220, makes snmath word
+ delay closer to hardware. [Lord Nightmare]
 
--Fixed 3wondersb [Robbbert]
+-cps1.c: varthu - Added correct dump of VA63B.1A [Caius, The Dumping Union]
 
--apple2: fix Ivel Ultra's unique text drawing (MT#5814) [R. Belmont]
+-deco32.c: Added some missing PAL dumps [Caius, www.jammarcade.net]
 
--tms51xx: removed target_x variables in favor of reloading from
-	coefficient ROM during the generation loop (as the real device does).
-	Implemented proper ZPAR and unvoiced ZPAR logic for zeroing parameters
-	during idle and unvoiced frames. Changed the pitch zeroing logic
-	during frame inhibit to last an entire interpolation period rather
-	than one sample. Replaced the speech-is-synthesizing state machine
-	with the original patent TALK, TALKD and SPEN bits. Redid the
-	talk_status logic to use (TALKD || SPEN) as the real device does.
-	[Lord Nightmare]
+-asst128: use better ROM dumps	[shattered]
 
--pet: Added French CBM 8032 ROMs. [Hervé Warin]
+-apple2/apple2e: fix raster parameters, French Touch "Scroll Scroll
+ Scroll" demo now syncs on apple2e driver. [R. Belmont]
 
--pet_rom.xml: Added Edex (France, v4.4) [Hervé Warin]
+-suna8.c: Overhauled the rendering of text sprites, added masking [Luca Elia] 
+ Not perfect yet but improves a few effects compared to PCB videos.
 
--floppy.c: Added drive sounds (must be activated in drivers using
-	MCFG_FLOPPY_DRIVE_SOUND(true); quite simple still, same sounds for
-	all drives) [Michael Zapf]
+-goldstar.c: improve input and DIP switch documentation [Vas Crabb, hsialin]
+ * cmast91: Document Skill Stop DIP switch and Stop 1/2/3 buttons,
+    correct settings for '7' In Double Up Game and make descriptions
+    consistent with other games
+ * cmezspin: fix DIP switches and inputs (more like cmv4 than cmasterb),
+    add improved layout to match corrected inputs
 
--at29x: Created a general class for AT29 family from previous
-	at29040a; added implementations for at29c040 and at29c020 [Michael Zapf]
+-opengl: fix overly-strict requirement on SCREEN shaders to match docs 
+ [cgwg]
 
--geneve: Added Programmable Flash Memory boot feature (PFM512)
-	[Michael Zapf]
+-n64.c: Development Disk Drive setting support [LuigiBlood]
 
--ti99: Added new cartridge types paged378, paged377;
-	HFDC has new switch "wait for HD" (available in later HFDC models);
-	32K internal memory mod is now off by default [Michael Zapf]
+-apple2e.c: select displayed page for floating bus [Peter Ferrie]
 
--midzeus.c: Further improvements: [Phil Bennett]
-    * Added alternate back-face culling method
-    * Added additional blend modes
-    * Added depth test and write enables
-    * Slightly improved rasterization
+-French Touch "Crazy Cycles" no longer hangs, but still missing effects
 
--OS/2 patches for MAME 0.164 [KO Myung-Hun]
+-Sega X-Board
+ * Converted 'X Board' to be a device
+ * Correctly emulated the 'Twin' X-Board setup which was used by GP Rider
+   (a bridge board with shared RAM) [David Haywood, Ariane Fugmann]
 
--x68k: added brightness controls, used for fade in/out effects [Barry Rodewald]
+-bbc: clones, floppy formats, softlists, and cleanups. [Nigel Barnes]
+ * Added clone bbcb1770, bbcb now 8271 only.
+ * Added clone pro128s, Olivetti Prodest PC 128S.
+ * Added clones Acorn Business Computers and Cambridge Workstation.
+ * Added clone reutapm, Reuters APM board.
+ * Improved floppy formats, added dsd and double density formats for
+    ADFS.
+ * Added speech PHROMs, not yet hooked up correctly.
+ * Added softlists bbcb_de_cass, bbcb_us_flop and bbcmc_flop.
+ * Added S11 links (dipswitch) to specify Econet ID.
+ * Address map cleanups.
 
--Dumped thedealr's i8742 internal ROM [Porchy]
+-macrossp.c: Add PAL dumps to Macross Plus [Caius]
 
--Added correct color PROMs for tahjong [Mike Coates]
+-cninja.c: Add PAL dumps to Caveman Ninja [www.jammarcade.net]
+
+-Sega Pico PCM improvements [ValleyBell]
+
+-pcd: implement pcx video device [Carl, Axel Muhr]
+
+-al520ex: added preliminary Magic Sound expansion (not working)
+ [Barry Rodewald]
+
+-netdev: fix pcap crashes on OS X [Rob Braun]
+
+-IGS 027A: Amazonia King V104BR [Felipe Sanches]
+
+-preliminary decryption of newly added igs_m027.c sets [iq_132]
+
+-adjust NeoGeo sound balance based on some hw recordings [Dr.Venom]
+
+-improve amazonia decryption [iq_132]
+ 
+-TMS5220 and TMS5110: Fix an off-by-one in the interpolator causing the
+ k5 coefficient to not be zeroed during unvoiced frames. Fixes various
+ speech glitches. [Lord Nightmare]
+
+-TMS5220 and TMS5110: Fixed incorrect implementation of pitch zero
+ which caused an improperly long period with no pitch at an
+ interpolation inhibited -> voiced boundary. Moved unvoiced parameter
+ zeroing into the frame parser, as on the original chips. Some minor
+ TALK/SPEN state machine changes as well, which should have minimal
+ effect. [Lord Nightmare]
+
+-added 'global_inputs' (disabled by default) to allow MAME to read
+ inputs even when it doesn't have the focus [Scrooge McClunk] 
+
+-315-5124.c: Minor changes and fix a regression that in theory could
+ affect zoomed sprites in TMS9918 modes.  [Enik Land]
+
+-gamegear.c / sms.c:  Improve GG-SMS scaling code a little and update
+ the Todo list.  Fixed MT#05872 regarding incorrect behavior of the
+ Sports Pad (US model) emulation.  [Enik Land]
+
+-Fix PSG chips to have volume reg inited on reset to 0x0 based on tests
+ by ValleyBell. Made Sega PSG chips start up with register 0x3 selected
+ (volume for channel 2) based on hardware tests by Nemesis.
+ [Lord Nightmare, ValleyBell, Nemesis]
+
+-naomi.c: redumped ss2005 and initdv2j [Guru, R. Belmont]
+
+-ksys573: redumped CDs for drmn8m and gtrfrk9m [Guru]
+
+-dumped another rom on amazona [Felipe Sanches]
+
+-Significant accuracy improvements, documentation and other updates to
+ the ER-2055 EAROM emulation used for several Atari games, based on
+ schematics and datasheets. It now uses a state machine to keep track
+ of the current EAROM bus state. [Lord Nightmare]
+
+-Simplified coreutil.c gregorian_days_in_month. [William Krick]
+
+-DEC LA120: Keyboard matrix is done, keyboard reading should work in
+ theory. UART partly attached. Corrected cpu XTAL. [Lord Nightmare]
+
+-DEC LA120: Implemented LED output via logerror; marked one ROM as bad
+ since it fails its internal checksum tests. [Lord Nightmare]
+
+-m68k: fix corner case for 020+ bitfield instructions [Till Harbaum]
+
+-Fixed Counter Steer booting [Angelo Salese]
+ * Spotted Slave CPU bus request line;
+ * Fixed address line swapping for Slave CPU area at 0x2000-0x2fff;
+
+-n64.c: N64 changes: [Happy]
+ * PI transfers round down/truncate the last bit.
+ * SI transfers signal busy while waiting for a delay.
+ * Preliminary work for separating VI and RDP functionality.
+ * VI timing period is now set dynamically from the VI registers. VI
+   timing should now be accurate (for NTSC)
+
+-DEC LA120: Redumped firmware ROM, now passes checksum test.
+ [Brian Walenz]
+
+-a2600: new 6502 PC=cur inst, old 6502 PC=prev inst (MT 5345)
+ [Mike Saarna, Trebor, R. Belmont]
+
+-Seperate Space Warp into it's own skeleton driver. [mixxmaster]
+
+-m68k: fix 020+ PACK/UNPK nibble ordering [Till Harbaum, R. Belmont]
+
+-i8271: modernize [Carl]
+
+-Convert galastrm, model2, midzeus, namcos23, and hng64 drivers
+to universal "poly" rasterizing interface. [Andrew Gardner]
+
+-Preliminary refactor of IGS017/IGS031 video hardware to be a device
+ so that it can be used by the igs_m027.c games (IGS gamblers) once
+ the internal ARM roms have been dumped [David Haywood]
+
+-reduce tagmap lookups in taito_f3.c
+  (was causing severe slowdown in arkretrn) [David Haywood]
+
+-a7800: More accurate representation of the Activision cart hardware
+ for utilized hotspots.  Rampage no longer crashes when P1 selects
+ Lizzy. [Mike Saarna]
+
+New machines added or promoted from NOT_WORKING status
+------------------------------------------------------
+Waku Waku Sonic Patrol Car
+  [Will Medved, Ryan Holtz, The Dumping Union]
+TI DataMan [hap, Sean Riddle]
 
 
-New games added or promoted from NOT_WORKING status
----------------------------------------------------
-Bandai Pair Match [hap, Kevin Horton, Rik]
-VTech Invaders [Kevin Horton]
-Castle Toy Tactix [hap, Sean Riddle, Kevin Horton]
-Pack'n Bang Bang (prototype) [rtw]
-Merit Joker Poker (9131-01) [Brian Troha, The Dumping Union]
-Touch & Tell [hap, Sean Riddle]
-Vocaid [hap, Sean Riddle]
+New clones added or promoted from NOT_WORKING status
+----------------------------------------------------
 
+Revolution X (prototype, rev 5.0 5/23/94) [Chris Engel]
+Soccer Superstars (ver UAC) [Smitdogg, The Dumping Union]
+Shocking (Korea, set 2) [Arcade Belgium (dump by Nomax)]
+J. J. Squawkers (older) [Alex Marshall]
+Rolling Thunder (oldest) [Layer (from neo-arcadia & jammaplus)]
+Point Blank (World, GN2 Rev B, set 2)
+  [Caius, Smitdogg, The Dumping Union]
+Oriental Legend (ver. 111, Korean Board) [DarkSoft]
+Minefield (The Logicshop, bootleg) [David Haywood, Guru]
+Route 16 (set 1) [Siftware, MASH]
+ (old set 1 is now 'Route 16 (set 3, bootleg?)')
+New Sinbad 7 (set 2) [Siftware, MASH]
+various Sega decrypted bootleg sets [Misc contributors]
 
-New clones added
-----------------
-Saint Dragon (bootleg) [Yves Marchand]
-E.D.F. : Earth Defense Force (set 2) [Yves Marchand]
-Player's Edge Plus (PP0555) Standard Draw Poker [BrianT]
-Player's Edge Plus (KE1012) Keno (set 2) [BrianT]
-War: The Final Assault (EPROM 1.6 Jan 14 1999, GUTS 1.1 Mar 16 1999, GAME Mar 16 1999)
-	[Alex Cmaylo] (not working)
-[Gun.Smoke (US, 851115) (alt set) [Caius, Alexander F]
-Fighter's History (World ver 43-05) [??]
-Hissatsu Buraiken (Japan, bootleg?) [David Haywood]
-Americana (9131-01) [Brian Troha, The Dumping Union]
-Fighter's History (US ver 42-09, DE-0396-0 PCB)
-	[Brian Troha, The Dumping Union]
-Meteors [Andrew Welburn, Trevor Brown]
-Street Fighter Alpha 3 (USA 980616, SAMPLE Version) [Guru]
-Mahjong The Mysterious Orient Part 2 - Exotic Dream [Dyq, Guru]
-Mighty Monkey (Kaina Games, bootleg on Scramble hardware) [Team Europe]
-Knuckle Bash (Korean PCB) [caius]
+New machines marked as NOT_WORKING
+----------------------------------
 
+Amazonia King II (V202BR) [Macgaiver]
+Commodore MPS-1230 NLQ Printer [Guru, R. Belmont]
+VTech Genius KID ABC Fan (Germany) [TeamEurope]
+VTech CARS 2 Laptop (Germany) [TeamEurope]
+Cobra: The Arcade (CBR1 Ver. B) [Guru]
+Canon S-80 typowriter [Felipe Sanches]
+Mizar 8105 [Joakim Larsson]
+Heurikon HK68K/V10 VME board [Joakim Larsson]
+LG GP40NW10 USB DVD writer [O. Galibert]
+Brother MT735 thermal printer [Cowering, O. Galibert]
+DECwriter III (LA120) [Lord Nightmare, NeXT]
+Smart Toss 'em / Smartball (Ver 2.0) [David Haywood]
+MVME350 - Streaming Tape Controller support QIC-02 [Joakim Larsson]
+Squale [Miodrag Milanovic, thanks to Olivier Aichelbaum]
+ZAP - Z80 Applications Processor (by Steve Ciarcia - 1981) [Felipe Sanches]
+Wacky Gator (Data East - 1990) [Felipe Sanches]
+Piggy Pass (Doyle & Assoc.)
+Hoop Shot (Doyle & Assoc.)
+Round and Round (Rev 6) (Quick $ilver)
+Fiddle Stix (1st Rev) (Quick $ilver)
+Jack & The Beanstalk (Doyle & Assoc.?) (bad dump)
+Dump The Ump (bad dump)
+3 Lil' Pigs (bad dump)
 
-New games marked as GAME_NOT_WORKING
-------------------------------------
-Techno Drive (Japan, TD2/VER.B, 2.06) [Guru, R. Belmont]
-Sega Picture Magic [David Haywood]
-Joy Stand Private [Luca Elia, Guru]
-Dino Dino [Guru]
-Fruit Paradise (V214) [Guru, iq_132]
-Face-Off (EM Bubble Hockey) [Jarrod Wright, Luca Elia]
-Chexx (EM Bubble Hockey, 1983 1.1) [Clay Harrell, Luca Elia]
-ROLLing eX.tre.me [Ville Linde, Guru]
+New clones marked as NOT_WORKING
+--------------------------------
+
+Rescue (Free Enterprise Games, bootleg) [David Haywood, Guru]
+ (some code seems missing even after descrambling?)
+Tora Tora (prototype?, set 2)  [Siftware]
+Hard Head (bootleg, set 2) [leniad]
+Kung Fu (IGS, v100) [Siftware]
+Ridge Racer V Arcade Battle (RRV1 Ver. A) [Guru]
+Soul Calibur III (SC31002-NA-A key, NA-A disc) [Guru]
+Tekken 5.1 (TE53 Ver. B) [Guru]
+
+New WORKING software list additions
+-----------------------------------
+
+tutor.xml: (Tomy Tutor & Pyuuta cartridges)
+- Rescue Copter [3D] (Jpn) [Ryan Holtz, Team Europe]
+- Triple Command (Jpn) [Ryan Holtz, Team Europe]
+
+nes.xml: (Nintendo Entertainment System cartridges)
+- Booky Man (Spa) [SSJ, TeamEurope]
+
+a800_flop.xml: (Atari 400 / 800 floppy disks)
+ - Elektra Glide [Curt Coder]
+ - KoalaPainter (Light Pen) [Curt Coder]
+
+c64_flop.xml: (Commodore 64 diskettes) 
+ - Elektra Glide [Curt Coder]
+ - KoalaPainter (Light Pen) [Curt Coder]
+
+New NOT_WORKING software list additions
+---------------------------------------
+
+gameking.xml: (TimeTop GameKing cartridges)
+ - various 4-in-1 sets [SSJ, TeamEurope]   
+
+gameking3.xml: (TimeTop GameKing 3 cartridges)
+ - Fly Cab [SSJ, TeamEurope]
+
+gbcolor.xml: (Nintendo Game Boy Color cartridges)
+ - Magic Lamp [SSJ, TeamEurope, Taizou]
+ - Binary Monster 2 - Adventure of Hell(TW) [SSJ, TeamEurope]
+  
+nes.xml: (Nintendo Entertainment System cartridges)
+ - Coolboy RS-17 (203-in-1) [SSJ, TeamEurope]
+
+pico.xml: (Sega Pico cartridges)
+ - Anpanman Eigo - Tanosii Kanibaru (Tw) [TeamEurope]
+ - Doraemon Machinaka (Tw) [TeamEurope]
+ - Mickey To Ookina Furudokei (Tw)) [TeamEurope]
+ - Ojamajo Doremi Dokka~n! (Jpn) [TeamEurope]
+ - Professor Pico and the Paintbox Puzzle (Euro) [TeamEurope]
+ - Peter Pan - Neverland e Ikou! ~10th Anniversary Edition~ (Jpn) [TeamEurope]
+ - Sanou Kaihatsu Series 5 Meiro - Kioku (CD Tsuki) (Jpn) [TeamEurope]
+ - Susie-chan to Marvy o-Tetsudai Da~isuki! (Jpn) [TeamEurope]
+
+vc4000.xml: (Interton VC 4000 cartridges)
+ - Come Frutas [SSJ, TeamEurope]
+
+jaguar.xml: (Atari Jaguar cartridges)
+ - Air Cars (1994 version) [Porchy]

@@ -53,7 +53,7 @@ static HICON hIcon = NULL;
 static HBRUSH hBrush = NULL;
 static HDC hDC = NULL;
 static HANDLE hThread = NULL;
-static CHARFORMAT font;
+static HFONT hFont = NULL;
 
 /***************************************************************************
     External functions
@@ -168,22 +168,14 @@ static INT_PTR CALLBACK AuditWindowProc(HWND hDlg, UINT Msg, WPARAM wParam, LPAR
 	switch (Msg)
 	{
 	case WM_INITDIALOG:
-		CenterWindow(hDlg);
-        hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_MAMEUI_ICON));
-        SendMessage(hDlg, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
-		hBrush = CreateSolidBrush(RGB(224, 223, 227));
-		
-		memset (&font, 0, sizeof(CHARFORMAT));
-		font.cbSize	= sizeof(CHARFORMAT);
-		font.dwMask	= CFM_COLOR | CFM_FACE | CFM_SIZE;
-		font.yHeight = 160;
-		font.crTextColor = RGB(136, 0, 21);
-		font.bPitchAndFamily = 34;
-		wcscpy(font.szFaceName, TEXT("Lucida Console"));
-		
 		hAudit = hDlg;
-		SendMessage(GetDlgItem(hAudit, IDC_AUDIT_DETAILS), EM_SETBKGNDCOLOR, 0, GetSysColor(COLOR_WINDOW));
-		SendMessage(GetDlgItem(hAudit, IDC_AUDIT_DETAILS), EM_SETCHARFORMAT, 0, (LPARAM)&font);
+		CenterWindow(hAudit);
+        hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_MAMEUI_ICON));
+        SendMessage(hAudit, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+		hBrush = CreateSolidBrush(RGB(224, 223, 227));
+		hFont = CreateFont(-11, 0, 0, 0, 400, 0, 0, 0, 0, 3, 2, 1, 34, TEXT("Lucida Console"));
+		SetWindowFont(GetDlgItem(hAudit, IDC_AUDIT_DETAILS), hFont, TRUE);
+		SetWindowTheme(GetDlgItem(hAudit, IDC_AUDIT_DETAILS), L" ", L" ");
 		SetWindowTheme(GetDlgItem(hAudit, IDC_ROMS_PROGRESS), L" ", L" ");
 		SetWindowTheme(GetDlgItem(hAudit, IDC_SAMPLES_PROGRESS), L" ", L" ");
 		SendMessage(GetDlgItem(hAudit, IDC_ROMS_PROGRESS), PBM_SETBARCOLOR, 0, RGB(85, 191, 132));
@@ -229,6 +221,11 @@ static INT_PTR CALLBACK AuditWindowProc(HWND hDlg, UINT Msg, WPARAM wParam, LPAR
 			
 		return (LRESULT) hBrush;
 		
+	case WM_CTLCOLOREDIT:
+		hDC = (HDC)wParam;
+		SetTextColor(hDC, RGB(136, 0, 21));
+		return (LRESULT) GetStockObject(WHITE_BRUSH);
+		
 	case WM_COMMAND:
 		switch (LOWORD(wParam))
 		{
@@ -247,6 +244,7 @@ static INT_PTR CALLBACK AuditWindowProc(HWND hDlg, UINT Msg, WPARAM wParam, LPAR
 			}
 
 			DeleteObject(hBrush);
+			DeleteObject(hFont);
 			DestroyIcon(hIcon);
 			EndDialog(hAudit, 0);
 			break;
@@ -277,21 +275,12 @@ INT_PTR CALLBACK GameAuditDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 		ModifyPropertySheetForTreeSheet(hDlg);
 		hAudit = hDlg;
 		hBrush = CreateSolidBrush(RGB(224, 223, 227));
+		hFont = CreateFont(-11, 0, 0, 0, 400, 0, 0, 0, 0, 3, 2, 1, 34, TEXT("Lucida Console"));
+		SetWindowFont(GetDlgItem(hAudit, IDC_ROM_DETAILS), hFont, TRUE);
+		SetWindowFont(GetDlgItem(hAudit, IDC_AUDIT_DETAILS_PROP), hFont, TRUE);
+		SetWindowTheme(GetDlgItem(hAudit, IDC_AUDIT_DETAILS_PROP), L" ", L" ");
+		SetWindowTheme(GetDlgItem(hAudit, IDC_ROM_DETAILS), L" ", L" ");
 		win_set_window_text_utf8(GetDlgItem(hAudit, IDC_PROP_TITLE), GameInfoTitle(OPTIONS_GAME, rom_index));
-
-		memset (&font, 0, sizeof(CHARFORMAT));
-		font.cbSize	= sizeof(CHARFORMAT);
-		font.dwMask	= CFM_COLOR | CFM_FACE | CFM_SIZE;
-		font.yHeight = 160;
-		font.crTextColor = RGB(59, 59, 59);
-		font.bPitchAndFamily = 34;
-		wcscpy(font.szFaceName, TEXT("Lucida Console"));
-
-		SendMessage(GetDlgItem(hAudit, IDC_ROM_DETAILS), EM_SETBKGNDCOLOR, 0, GetSysColor(COLOR_WINDOW));
-		SendMessage(GetDlgItem(hAudit, IDC_ROM_DETAILS), EM_SETCHARFORMAT, 0, (LPARAM)&font);
-		font.crTextColor = RGB(136, 0, 21);
-		SendMessage(GetDlgItem(hAudit, IDC_AUDIT_DETAILS_PROP), EM_SETBKGNDCOLOR, 0, GetSysColor(COLOR_WINDOW));
-		SendMessage(GetDlgItem(hAudit, IDC_AUDIT_DETAILS_PROP), EM_SETCHARFORMAT, 0, (LPARAM)&font);
 		int iStatus = MameUIVerifyRomSet(rom_index, 0);
 		
 		switch (iStatus)
@@ -384,6 +373,19 @@ INT_PTR CALLBACK GameAuditDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 		}
 		
 		return (LRESULT) hBrush;
+		}
+	
+	case WM_CTLCOLOREDIT:
+		{
+		hDC = (HDC)wParam;
+		
+		if ((HWND)lParam == GetDlgItem(hAudit, IDC_ROM_DETAILS))
+			SetTextColor(hDC, RGB(59, 59, 59));
+		
+		if ((HWND)lParam == GetDlgItem(hAudit, IDC_AUDIT_DETAILS_PROP))
+			SetTextColor(hDC, RGB(136, 0, 21));
+
+		return (LRESULT) GetStockObject(WHITE_BRUSH);
 		}
 	}
 
@@ -508,12 +510,8 @@ static void DetailsPrintf(const char *fmt, ...)
 	Edit_ReplaceSel(hEdit, t_s);
 
 	if (scroll)
-	{
-		SendMessage(hEdit, EM_HIDESELECTION, FALSE, 0);		// hack to make it scroll
 		Edit_ScrollCaret(hEdit);
-		SendMessage(hEdit, EM_HIDESELECTION, TRUE, 0);
-	}
-	
+
 	free(t_s);
 }
 

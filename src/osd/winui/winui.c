@@ -279,7 +279,6 @@ static HFONT hFontGui = NULL;     		/* Font for tab view and search window */
 static HFONT hFontList = NULL;     		/* Font for list view */
 static HFONT hFontHist = NULL;     		/* Font for history view */
 static HFONT hFontTree = NULL;     		/* Font for folders view */
-static HMODULE hModule = NULL;			/* RichEdit Library */
 /* menu icons bitmaps */
 static HBITMAP hAboutMenu = NULL;
 static HBITMAP hCustom = NULL;
@@ -1358,7 +1357,6 @@ static BOOL Win32UI_init()
 
 	/* Init DirectInput */
 	DirectInputInitialize();
-	hModule = LoadLibrary(TEXT("Riched20.dll"));
 	OptionsInit();
 
 	if (GetRequiredDriverCacheStatus())
@@ -1542,7 +1540,6 @@ static void Win32UI_exit()
 	if (g_pJoyGUI != NULL)
 		g_pJoyGUI->exit();
 
-	FreeLibrary(hModule);
 	DeleteObject(hBrush);
 	DeleteObject(hBrushDlg);
 	DeleteBitmap(hAboutMenu);
@@ -2313,11 +2310,12 @@ static void InitToolbar(void)
 {
     RECT rect;
 
-	hToolBar = CreateWindowEx(WS_EX_COMPOSITED, TOOLBARCLASSNAME, NULL, WS_CHILD | WS_CLIPSIBLINGS | WS_VISIBLE | TBSTYLE_FLAT | TBSTYLE_TOOLTIPS, 0, 0, NUM_TOOLBUTTONS * 32, 32, hMain, NULL, hInst, NULL);
+	hToolBar = CreateWindowEx(0, TOOLBARCLASSNAME, NULL, WS_CHILD | WS_CLIPSIBLINGS | WS_VISIBLE | TBSTYLE_FLAT | TBSTYLE_TOOLTIPS, 0, 0, NUM_TOOLBUTTONS * 32, 32, hMain, NULL, hInst, NULL);
 	HBITMAP hBitmap = (HBITMAP)LoadImage(GetModuleHandle(NULL), MAKEINTRESOURCE(IDB_TOOLBAR), IMAGE_BITMAP, 0, 0, LR_SHARED);
     HIMAGELIST hToolList = ImageList_Create(32, 32, ILC_COLORDDB | ILC_MASK, NUM_TOOLBUTTONS, 0);	
 	ImageList_AddMasked(hToolList, hBitmap, RGB(0, 0, 0));
 	DeleteObject(hBitmap);
+    SendMessage(hToolBar, TB_SETEXTENDEDSTYLE, 0, TBSTYLE_EX_DOUBLEBUFFER); 	
     SendMessage(hToolBar, TB_BUTTONSTRUCTSIZE, sizeof(TBBUTTON), 0);
     SendMessage(hToolBar, TB_SETIMAGELIST, 0, (LPARAM)hToolList);
     SendMessage(hToolBar, TB_ADDBUTTONS, NUM_TOOLBUTTONS, (LPARAM)&tbb);
@@ -2329,7 +2327,7 @@ static void InitToolbar(void)
 	int iPosY = (rect.bottom - rect.top) / 4;
 	int iHeight = rect.bottom - rect.top - 17;
 	// create Search Edit Control
-	hSearchWnd = CreateWindowEx(WS_EX_COMPOSITED, WC_EDIT, TEXT(SEARCH_PROMPT), ES_LEFT | WS_CHILD | WS_CLIPSIBLINGS | WS_BORDER | WS_VISIBLE, iPosX, iPosY, 200, iHeight, hToolBar, (HMENU)ID_TOOLBAR_EDIT, hInst, NULL );
+	hSearchWnd = CreateWindowEx(0, WC_EDIT, TEXT(SEARCH_PROMPT), ES_LEFT | WS_CHILD | WS_CLIPSIBLINGS | WS_BORDER | WS_VISIBLE, iPosX, iPosY, 200, iHeight, hToolBar, (HMENU)ID_TOOLBAR_EDIT, hInst, NULL );
 }
 
 static void InitTabView(void)
@@ -5849,7 +5847,7 @@ static BOOL CALLBACK StartupProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
 		HBITMAP hBmp = (HBITMAP)LoadImage(GetModuleHandle(NULL), MAKEINTRESOURCE(IDB_SPLASH), IMAGE_BITMAP, 0, 0, LR_SHARED);
 		SendMessage(GetDlgItem(hDlg, IDC_SPLASH), STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hBmp);
 		hBrush = GetSysColorBrush(COLOR_3DFACE);
-        hProgress = CreateWindowEx(0, PROGRESS_CLASS, NULL, WS_CHILD | WS_VISIBLE, 0, 136, 526, 20, hDlg, NULL, hInst, NULL);
+        hProgress = CreateWindowEx(0, PROGRESS_CLASS, NULL, WS_CHILD | WS_VISIBLE, 0, 136, 526, 18, hDlg, NULL, hInst, NULL);
 		SetWindowTheme(hProgress, L" ", L" ");
 		SendMessage(hProgress, PBM_SETBKCOLOR, 0, GetSysColor(COLOR_3DFACE));
 		SendMessage(hProgress, PBM_SETRANGE, 0, MAKELPARAM(0, 120));
@@ -5948,31 +5946,29 @@ static BOOL CommonListDialog(common_file_dialog_proc cfd, int filetype)
 
 static void SaveGameListToFile(char *szFile, int filetype)
 {
-	file_error filerr;
     int nListCount = ListView_GetItemCount(hWndList);
     const char *CrLf = "\n\n";
     LPTREEFOLDER lpFolder = GetCurrentFolder();
     LVITEM lvi;
 
-   	emu_file f(OPEN_FLAG_WRITE | OPEN_FLAG_CREATE);
-  	filerr = f.open(szFile);
+  	FILE *f = fopen(szFile, "w");
 
-    if (filerr != FILERR_NONE)
+    if (f == NULL)
     {
         ErrorMessageBox("Error : unable to access file");
         return;
     }
 
     // Title
-    f.printf("%s %s.%s", MAMEUINAME, GetVersionString(), CrLf);
+    fprintf(f, "%s %s.%s", MAMEUINAME, GetVersionString(), CrLf);
 	
 	if (filetype == FILETYPE_GAME_LIST)
-		f.printf("This is the current list of games.%s", CrLf);
+		fprintf(f, "This is the current list of games.%s", CrLf);
 	else
-		f.printf("This is the current list of ROMs.%s", CrLf);
+		fprintf(f, "This is the current list of ROMs.%s", CrLf);
 
     // Current folder
-    f.printf("Current folder : <");
+    fprintf(f, "Current folder : <");
 	
     if (lpFolder->m_nParent != -1)
     {
@@ -5980,25 +5976,24 @@ static void SaveGameListToFile(char *szFile, int filetype)
         LPTREEFOLDER lpF = GetFolder(lpFolder->m_nParent);
 
         if (lpF->m_nParent == -1)
-            	f.printf("\\");
+            	fprintf(f, "\\");
  
-        f.printf("%s", lpF->m_lpTitle);
-        f.printf("\\");
+        fprintf(f, "%s", lpF->m_lpTitle);
+        fprintf(f, "\\");
     }
     else
-       	f.printf("\\");
+       	fprintf(f, "\\");
  
-    f.printf("%s>%s.%s", lpFolder->m_lpTitle, (lpFolder->m_dwFlags & F_CUSTOM) ? " (custom folder)" : "", CrLf);
+    fprintf(f, "%s>%s.%s", lpFolder->m_lpTitle, (lpFolder->m_dwFlags & F_CUSTOM) ? " (custom folder)" : "", CrLf);
 
     // Sorting
     if (GetSortColumn() > 0)
 
-       	f.printf("Sorted by <%s> descending order", utf8_from_tstring(column_names[GetSortColumn()]));
+       	fprintf(f, "Sorted by <%s> descending order", utf8_from_tstring(column_names[GetSortColumn()]));
     else
+       	fprintf(f, "Sorted by <%s> ascending order", utf8_from_tstring(column_names[-GetSortColumn()]));
 
-       	f.printf("Sorted by <%s> ascending order", utf8_from_tstring(column_names[-GetSortColumn()]));
-
-    f.printf(", %d game(s) found.%s", nListCount, CrLf);
+    fprintf(f, ", %d game(s) found.%s", nListCount, CrLf);
 
     // Games
     for (int nIndex = 0; nIndex < nListCount; nIndex++)
@@ -6012,15 +6007,15 @@ static void SaveGameListToFile(char *szFile, int filetype)
 			int nGameIndex  = lvi.lParam;
 
 			if (filetype == FILETYPE_GAME_LIST)
-				f.printf("%s", driver_list::driver(nGameIndex).description);
+				fprintf(f, "%s", driver_list::driver(nGameIndex).description);
 			else
-				f.printf("%s", driver_list::driver(nGameIndex).name);
+				fprintf(f, "%s", driver_list::driver(nGameIndex).name);
 
-            f.printf("\n");
+            fprintf(f, "\n");
         }
     }
 
-    f.close();
+    fclose(f);
 	win_message_box_utf8(hMain, "File saved successfully.", MAMEUINAME, MB_ICONINFORMATION | MB_OK);
 }
 

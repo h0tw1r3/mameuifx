@@ -1061,20 +1061,20 @@ static void CreateDumpingFolders(int parent_index)
 
 static void LoadExternalFolders(int parent_index, const char *fname, int id)
 {
-	file_error filerr;
     char readbuf[256];
+	char filename[MAX_PATH];
     char *name = NULL;
     LPTREEFOLDER lpTemp = NULL;
 	LPTREEFOLDER lpFolder = treeFolders[parent_index];
 
 	int current_id = lpFolder->m_nFolderId;
-  	emu_file f(GetGuiDir(), OPEN_FLAG_READ);
-  	filerr = f.open(fname);				
+  	snprintf(filename, ARRAY_LENGTH(filename), "%s\\%s", GetGuiDir(), fname);
+  	FILE *f = fopen(filename, "r");				
  
-    if (filerr != FILERR_NONE)
+    if (f == NULL)
 		return;
 
-    while (f.gets(readbuf, 256))
+    while (fgets(readbuf, 256, f))
     {
 		/* do we have [...] ? */
 		if (readbuf[0] == '[')
@@ -1125,35 +1125,38 @@ static void LoadExternalFolders(int parent_index, const char *fname, int id)
 	}
 
     if (f)
-        f.close();
+        fclose(f);
  }
 
 static void SaveExternalFolders(int parent_index, const char *fname)
 {
-	file_error filerr;
-	int i = 0; 
+	int i = 0;
+	char filename[MAX_PATH];
 	LPTREEFOLDER lpFolder = treeFolders[parent_index];
 	TREEFOLDER *folder_data;
 	
-  	emu_file f(GetGuiDir(), OPEN_FLAG_WRITE | OPEN_FLAG_CREATE | OPEN_FLAG_CREATE_PATHS);
-  	filerr = f.open(fname);
+  	snprintf(filename, ARRAY_LENGTH(filename), "%s\\%s", GetGuiDir(), fname);
+	TCHAR *temp = tstring_from_utf8(GetGuiDir());
+	CreateDirectory(temp, NULL);
+	free(temp);
+  	FILE *f = fopen(filename, "w");
 	
-    if (filerr != FILERR_NONE)
+    if (f == NULL)
 		return;
 	
-	f.printf("[FOLDER_SETTINGS]\n");
-   	f.printf("RootFolderIcon custom\n");
-	f.printf("SubFolderIcon custom\n");
+	fprintf(f, "[FOLDER_SETTINGS]\n");
+   	fprintf(f, "RootFolderIcon custom\n");
+	fprintf(f, "SubFolderIcon custom\n");
 
 	/* need to loop over all our TREEFOLDERs--first the root one, then each child.
     start with the root */
 	folder_data = lpFolder;
-	f.printf("\n[ROOT_FOLDER]\n");
+	fprintf(f, "\n[ROOT_FOLDER]\n");
 
 	for (i = 0; i < driver_list::total(); i++)
 	{
 		if (TestBit(folder_data->m_lpGameBits, i))
-			f.printf("%s\n", driver_list::driver(i).name);
+			fprintf(f, "%s\n", driver_list::driver(i).name);
 	}
 
 	/* look through the custom folders for ones with our root as parent */
@@ -1163,18 +1166,18 @@ static void SaveExternalFolders(int parent_index, const char *fname)
 
 		if (folder_data->m_nParent >= 0 && treeFolders[folder_data->m_nParent] == lpFolder)
 		{
-			f.printf("\n[%s]\n", folder_data->m_lpTitle);
+			fprintf(f, "\n[%s]\n", folder_data->m_lpTitle);
 
 			for (i = 0; i < driver_list::total(); i++)
 			{
 				if (TestBit(folder_data->m_lpGameBits, i))
-					f.printf("%s\n", driver_list::driver(i).name);
+					fprintf(f, "%s\n", driver_list::driver(i).name);
 			}
 		}
 	}
 		
     if (f)
-        f.close();
+        fclose(f);
 }
 
 
@@ -1639,16 +1642,17 @@ static int InitExtraFolders(void)
 		while (FindNextFile (hFind, &FindFileData) != 0)
 		{
 			char *file = utf8_from_tstring(FindFileData.cFileName);
-			file_error filerr;
+			char inifile[MAX_PATH];
 
-			emu_file f(dir, OPEN_FLAG_READ);
-			filerr = f.open(file);				
+			memset(&inifile, 0, sizeof(inifile));
+			snprintf(inifile, ARRAY_LENGTH(inifile), "%s\\%s", dir, file);
+			FILE *readfile = fopen(inifile, "r");				
 			
-			if (filerr == FILERR_NONE)
+			if (readfile != NULL)
 			{
 				int icon[2] = { 0, 0 };
 
-				while (f.gets(buf, 256))
+				while (fgets(buf, 256, readfile))
 				{
 					if (buf[0] == '[')
 					{
@@ -1662,7 +1666,7 @@ static int InitExtraFolders(void)
 						
 						if (!strcmp(name, "FOLDER_SETTINGS"))
 						{
-							while (f.gets(buf, 256))
+							while (fgets(buf, 256, readfile))
 							{
 								name = strtok(buf, " =\r\n");
 								
@@ -1690,7 +1694,7 @@ static int InitExtraFolders(void)
 					}
 				}
 				
-				f.close();
+				fclose(readfile);
 				strcpy(buf, file);
 				char *ext = strrchr(buf, '.');
 				free(file);
@@ -1762,7 +1766,6 @@ static void SetExtraIcons(char *name, int *id)
 // Called to add child folders of the top level extra folders already created
 BOOL TryAddExtraFolderAndChildren(int parent_index)
 {
-	file_error filerr;
     char fname[MAX_PATH];
     char readbuf[256];
     char *name = NULL;
@@ -1771,15 +1774,13 @@ BOOL TryAddExtraFolderAndChildren(int parent_index)
 
     int current_id = lpFolder->m_nFolderId;
     int id = lpFolder->m_nFolderId - MAX_FOLDERS;
-    snprintf(fname, ARRAY_LENGTH(fname), "%s.ini", ExtraFolderData[id]->m_szTitle);
-
-  	emu_file f(GetFolderDir(), OPEN_FLAG_READ);
-  	filerr = f.open(fname);				
+    snprintf(fname, ARRAY_LENGTH(fname), "%s\\%s.ini", GetFolderDir(), ExtraFolderData[id]->m_szTitle);
+  	FILE *f = fopen(fname, "r");				
  
-    if (filerr != FILERR_NONE)
+    if (f == NULL)
 		return FALSE;
 
-    while (f.gets(readbuf, 256))
+    while (fgets(readbuf, 256, f))
     {
 		/* do we have [...] ? */
 		if (readbuf[0] == '[')
@@ -1852,7 +1853,7 @@ BOOL TryAddExtraFolderAndChildren(int parent_index)
 	}
 
     if (f)
-        f.close();
+        fclose(f);
 
     return TRUE;
 }
@@ -1980,7 +1981,6 @@ void RemoveFromCustomFolder(LPTREEFOLDER lpFolder, int driver_index)
 BOOL TrySaveExtraFolder(LPTREEFOLDER lpFolder)
 {
     char fname[MAX_PATH];
-	file_error filerr;
 	BOOL error = FALSE;
     int i = 0;
 	LPTREEFOLDER root_folder = NULL;
@@ -2009,34 +2009,36 @@ BOOL TrySaveExtraFolder(LPTREEFOLDER lpFolder)
 	   	return FALSE;
 	}
 	
-    snprintf(fname, ARRAY_LENGTH(fname), "%s.ini", extra_folder->m_szTitle);
-  	emu_file f(GetFolderDir(), OPEN_FLAG_WRITE | OPEN_FLAG_CREATE | OPEN_FLAG_CREATE_PATHS);
-  	filerr = f.open(fname);
+    snprintf(fname, ARRAY_LENGTH(fname), "%s\\%s.ini", GetFolderDir(), extra_folder->m_szTitle);
+	TCHAR *temp = tstring_from_utf8(GetFolderDir());
+	CreateDirectory(temp, NULL);
+	free(temp);  	
+	FILE *f = fopen(fname, "w");
 	
-    if (filerr != FILERR_NONE)
+    if (f == NULL)
 		error = TRUE;
 	else
 	{
 	   	TREEFOLDER *folder_data;
 
-	   	f.printf("[FOLDER_SETTINGS]\n");
+	   	fprintf(f, "[FOLDER_SETTINGS]\n");
 		
 	   	// negative values for icons means it's custom, so save 'em
 	   	if (extra_folder->m_nIconId < 0)
-		   	f.printf("RootFolderIcon %s\n", ExtraFolderIcons[(-extra_folder->m_nIconId) - ICON_MAX]);
+		   	fprintf(f, "RootFolderIcon %s\n", ExtraFolderIcons[(-extra_folder->m_nIconId) - ICON_MAX]);
 
 	   	if (extra_folder->m_nSubIconId < 0)
-			f.printf("SubFolderIcon %s\n", ExtraFolderIcons[(-extra_folder->m_nSubIconId) - ICON_MAX]);
+			fprintf(f, "SubFolderIcon %s\n", ExtraFolderIcons[(-extra_folder->m_nSubIconId) - ICON_MAX]);
 
 	   	/* need to loop over all our TREEFOLDERs--first the root one, then each child.
            start with the root */
 	   	folder_data = root_folder;
-	   	f.printf("\n[ROOT_FOLDER]\n");
+	   	fprintf(f, "\n[ROOT_FOLDER]\n");
 
 	   	for (i = 0; i < driver_list::total(); i++)
 	   	{
 		   	if (TestBit(folder_data->m_lpGameBits, i))
-			   	f.printf("%s\n", driver_list::driver(i).name);
+			   	fprintf(f, "%s\n", driver_list::driver(i).name);
 	   	}
 
 	   	/* look through the custom folders for ones with our root as parent */
@@ -2046,18 +2048,18 @@ BOOL TrySaveExtraFolder(LPTREEFOLDER lpFolder)
 
 		   	if (folder_data->m_nParent >= 0 && treeFolders[folder_data->m_nParent] == root_folder)
 		   	{
-			   	f.printf("\n[%s]\n", folder_data->m_lpTitle);
+			   	fprintf(f, "\n[%s]\n", folder_data->m_lpTitle);
 
 			   	for (i = 0; i < driver_list::total(); i++)
 			   	{
 				   	if (TestBit(folder_data->m_lpGameBits, i))
-					   	f.printf("%s\n", driver_list::driver(i).name);
+					   	fprintf(f, "%s\n", driver_list::driver(i).name);
 			   	}
 		   	}
 	   	}
 		
 	   	if (f)
-			f.close();
+			fclose(f);
 	}
 
 	if (error)

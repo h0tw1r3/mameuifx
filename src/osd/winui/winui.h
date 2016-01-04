@@ -24,7 +24,6 @@
 #include <commdlg.h>
 #include <shellapi.h>
 #include <uxtheme.h>
-#include <richedit.h>
 
 // standard C headers
 #include <assert.h>
