@@ -206,7 +206,7 @@ end
 		}
 
 	end
-	local rctarget = _subtarget
+	local rctarget = _target
 
 	if _OPTIONS["targetos"]=="windows" and (not override_resources) then
 		local rcfile = MAME_DIR .. "src/" .. _target .. "/osd/".._OPTIONS["osd"].."/"  .. _subtarget .. "/" .. rctarget ..".rc"

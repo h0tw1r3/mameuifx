@@ -23,8 +23,8 @@
 #include "ui/sliders.h"
 #include "ui/viewgfx.h"
 #include "imagedev/cassette.h"
-#include <time.h>
 #include "image.h"
+#include <time.h>
 
 
 /***************************************************************************
@@ -1701,7 +1701,7 @@ UINT32 ui_manager::handler_ingame(running_machine &machine, render_container *co
 		int autofire_toggle = machine.ioport().get_autofire_toggle();
 		autofire_toggle ^= 1;
 		machine.ioport().set_autofire_toggle(autofire_toggle);
-		popmessage("Autofire %s", autofire_toggle ? "Disabled" : "Enabled");
+		machine.popmessage("Autofire %s", autofire_toggle ? "Disabled" : "Enabled");
 	}
 	
 	if (ui_input_pressed(machine, IPT_UI_SHOW_TIME))

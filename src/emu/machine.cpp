@@ -79,11 +79,10 @@
 #include "crsshair.h"
 #include "unzip.h"
 #include "debug/debugvw.h"
-#include "hiscore.h"
-
 #include "image.h"
 #include "luaengine.h"
 #include "network.h"
+#include "hiscore.h"
 #include <time.h>
 
 #if defined(EMSCRIPTEN)

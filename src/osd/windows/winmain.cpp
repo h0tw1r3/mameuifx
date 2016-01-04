@@ -368,8 +368,8 @@ const options_entry windows_options::s_option_entries[] =
 
 	// input options
 	{ NULL,                                           NULL,       OPTION_HEADER,     "INPUT DEVICE OPTIONS" },
-	{ WINOPTION_GLOBAL_INPUTS ";global_inputs",       "0",        OPTION_BOOLEAN,    "enable global inputs" },
-	{ WINOPTION_DUAL_LIGHTGUN ";dual",                "0",        OPTION_BOOLEAN,    "enable dual lightgun input" },
+	{ WINOPTION_GLOBAL_INPUTS ";global_inputs",       "0",        OPTION_BOOLEAN,    "enables global inputs" },
+	{ WINOPTION_DUAL_LIGHTGUN ";dual",                "0",        OPTION_BOOLEAN,    "enables dual lightgun input" },
 	{ WINOPTION_JOYSTICK_ID_1 "(0-7)",       		  "0",        OPTION_INTEGER,    "set joystick ID (Player1)" }, 	
 	{ WINOPTION_JOYSTICK_ID_2 "(0-7)",       		  "1",        OPTION_INTEGER,    "set joystick ID (Player2)" }, 	
 	{ WINOPTION_JOYSTICK_ID_3 "(0-7)",       		  "2",        OPTION_INTEGER,    "set joystick ID (Player3)" }, 	

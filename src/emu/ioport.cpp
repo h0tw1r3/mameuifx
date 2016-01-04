@@ -1457,8 +1457,6 @@ ioport_field::ioport_field(ioport_port &port, ioport_type type, ioport_value def
 		m_defvalue(defvalue & maskbits),
 		m_type(type),
 		m_player(0),
-		m_autofire(0),
-		m_autopressed(0),
 		m_flags(0),
 		m_impulse(0),
 		m_name(name),
@@ -1701,7 +1699,7 @@ void ioport_field::get_user_settings(user_settings &settings)
 	else
 	{
 		settings.toggle = m_live->toggle;
-		settings.autofire = autofire();
+		settings.autofire = m_live->autofire;
 	}
 }
 
@@ -1740,7 +1738,7 @@ void ioport_field::set_user_settings(const user_settings &settings)
 	else
 	{
 		m_live->toggle = settings.toggle;
-		m_autofire = settings.autofire;
+		m_live->autofire = settings.autofire;
 	}
 }
 
@@ -1908,18 +1906,19 @@ void ioport_field::frame_update(ioport_value &result, bool mouse_down)
 
 	// if the state changed, look for switch down/switch up
 	bool curstate = mouse_down || machine().input().seq_pressed(seq()) || m_digital_value;
-	if (curstate)
+	if ((m_live->autofire & 1) && (machine().ioport().get_autofire_toggle() == 0))
 	{
-		if ((m_autofire & 1) && (machine().ioport().get_autofire_toggle() == 0))
+		if (curstate)
 		{
-			if (m_autopressed >= machine().ioport().get_autofire_delay())
-			{
-				curstate = 0;
-				m_autopressed = 0;
-			}
-			else
-				m_autopressed++;
+			if (m_live->autopressed > machine().ioport().get_autofire_delay())
+				m_live->autopressed = 0;
+			else if (m_live->autopressed > machine().ioport().get_autofire_delay() / 2)
+				curstate = false;
+				
+			m_live->autopressed++;
 		}
+		else
+			m_live->autopressed = 0;
 	}
 	bool changed = false;
 	if (curstate != m_live->last)
@@ -2174,6 +2173,8 @@ ioport_field_live::ioport_field_live(ioport_field &field, analog_field *analog)
 		last(0),
 		toggle(field.toggle()),
 		joydir(digital_joystick::JOYDIR_COUNT)
+		,autofire(0)
+		,autopressed(0)
 {
 	// fill in the basic values
 	for (input_seq_type seqtype = SEQ_TYPE_STANDARD; seqtype < SEQ_TYPE_TOTAL; ++seqtype)
@@ -2478,6 +2479,9 @@ ioport_manager::ioport_manager(running_machine &machine)
 		m_has_bioses(false)
 {
 	memset(m_type_to_entry, 0, sizeof(m_type_to_entry));
+
+	m_autofire_toggle = 0;
+	m_autofire_delay = 3;	// 1 seems too fast for a bunch of games....
 }
 
 
@@ -2488,9 +2492,6 @@ ioport_manager::ioport_manager(running_machine &machine)
 
 time_t ioport_manager::initialize()
 {
-	m_autofire_toggle = 0;
-	m_autofire_delay = 1;
-
 	// add an exit callback and a frame callback
 	machine().add_notifier(MACHINE_NOTIFY_EXIT, machine_notify_delegate(FUNC(ioport_manager::exit), this));
 	machine().add_notifier(MACHINE_NOTIFY_FRAME, machine_notify_delegate(FUNC(ioport_manager::frame_update_callback), this));

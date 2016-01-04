@@ -49,6 +49,7 @@
 
 #include "emu.h"
 #include "cpu/i8085/i8085.h"
+#include "sound/samples.h"
 
 
 //**************************************************************************
@@ -70,6 +71,7 @@ public:
 		m_maincpu(*this, "maincpu"),
 		m_screen(*this, "screen"),
 		m_palette(*this, "palette"),
+		m_samples(*this, "samples"),
 		m_vram(*this, "vram"),
 		m_tiles(*this, "tiles"),
 		m_colors(*this, "colors"),
@@ -93,6 +95,7 @@ private:
 	required_device<cpu_device> m_maincpu;
 	required_device<screen_device> m_screen;
 	required_device<palette_device> m_palette;
+	required_device<samples_device> m_samples;
 	required_shared_ptr<UINT8> m_vram;
 	required_region_ptr<UINT8> m_tiles;
 	required_region_ptr<UINT8> m_colors;
@@ -100,6 +103,7 @@ private:
 	UINT8 m_ball_x;
 	UINT8 m_ball_y;
 	UINT8 m_color;
+	UINT8 m_audio_sw;
 };
 
 
@@ -244,10 +248,31 @@ UINT32 mmagic_state::screen_update(screen_device &screen, bitmap_rgb32 &bitmap, 
 //  AUDIO EMULATION
 //**************************************************************************
 
+static const char *const mmagic_sample_names[] =
+{
+	"*mmagic",
+	"4",
+	"3",
+	"5",
+	"2",
+	"2-2",
+	"6",
+	"6-2",
+	"1",
+	0
+};
+
 WRITE8_MEMBER( mmagic_state::audio_w )
 {
-	if (LOG_AUDIO)
-		logerror("audio_w: %02x\n", data);
+	data ^= 0xff;
+
+	if (data != m_audio_sw)
+	{
+		if BIT(data, 7)
+			m_samples->start(0, m_audio_sw & 7);
+
+		m_audio_sw = data;
+	}
 }
 
 
@@ -283,6 +308,11 @@ static MACHINE_CONFIG_START( mmagic, mmagic_state )
 
 	// sound hardware
 	// TODO: SN76477 + discrete sound
+	MCFG_SPEAKER_STANDARD_MONO("mono")
+	MCFG_SOUND_ADD("samples", SAMPLES, 0)
+	MCFG_SAMPLES_CHANNELS(1)
+	MCFG_SAMPLES_NAMES(mmagic_sample_names)
+	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.50)
 MACHINE_CONFIG_END
 
 

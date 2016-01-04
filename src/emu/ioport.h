@@ -1035,7 +1035,6 @@ public:
 	bool analog_invert() const { return ((m_flags & ANALOG_FLAG_INVERT) != 0); }
 
 	UINT8 impulse() const { return m_impulse; }
-	UINT8 autofire() const { return m_autofire; }
 	const char *name() const;
 	const char *specific_name() const { return m_name; }
 	const input_seq &seq(input_seq_type seqtype = SEQ_TYPE_STANDARD) const;
@@ -1085,8 +1084,8 @@ public:
 	struct user_settings
 	{
 		ioport_value    value;                  // for DIP switches
+		int				autofire;				// autofire
 		input_seq       seq[SEQ_TYPE_TOTAL];    // sequences of all types
-		UINT8			autofire;				// autofire enable bit
 		INT32           sensitivity;            // for analog controls
 		INT32           delta;                  // for analog controls
 		INT32           centerdelta;            // for analog controls
@@ -1113,8 +1112,6 @@ private:
 	ioport_condition            m_condition;        // condition under which this field is relevant
 	ioport_type                 m_type;             // IPT_* type for this port
 	UINT8                       m_player;           // player number (0-based)
-	UINT8						m_autofire;			// autofire	enabled
-	UINT8						m_autopressed;		// autofire	pressed
 	UINT32                      m_flags;            // combination of FIELD_FLAG_* and ANALOG_FLAG_* above
 	UINT8                       m_impulse;          // number of frames before reverting to defvalue
 	const char *                m_name;             // user-friendly name to display
@@ -1164,6 +1161,8 @@ struct ioport_field_live
 	bool                    last;               // were we pressed last time?
 	bool                    toggle;             // current toggle setting
 	digital_joystick::direction_t joydir;       // digital joystick direction index
+	int                     autofire;           // autofire
+	int                     autopressed;        // autofire status
 	std::string             name;               // overridden name
 };
 
@@ -1405,10 +1404,10 @@ public:
 	const char *input_type_to_token(std::string &str, ioport_type type, int player);
 	
 	// autofire
-	UINT8 get_autofire_delay() const { return m_autofire_delay; } 
-	void set_autofire_delay(UINT8 delay) { m_autofire_delay = delay; }
-	UINT8 get_autofire_toggle() const { return m_autofire_toggle; } 
-	void set_autofire_toggle(UINT8 toggle) { m_autofire_toggle = toggle; }
+	int get_autofire_delay() { return m_autofire_delay; } 
+	void set_autofire_delay(int delay) { m_autofire_delay = delay; }
+	int get_autofire_toggle() { return m_autofire_toggle; } 
+	void set_autofire_toggle(int toggle) { m_autofire_toggle = toggle; }
 
 private:
 	// internal helpers
@@ -1451,6 +1450,10 @@ private:
 	bool                    m_safe_to_read;         // clear at start; set after state is loaded
 	ioport_list             m_portlist;             // list of input port configurations
 
+	// autofire
+	int						m_autofire_delay;		// autofire delay in Hz
+	int						m_autofire_toggle;		// autofire toggle
+
 	// types
 	simple_list<input_type_entry> m_typelist;       // list of live type states
 	input_type_entry *      m_type_to_entry[IPT_COUNT][MAX_PLAYERS]; // map from type/player to type state
@@ -1468,10 +1471,6 @@ private:
 	emu_file                m_playback_file;        // playback file (NULL if not recording)
 	UINT64                  m_playback_accumulated_speed; // accumulated speed during playback
 	UINT32                  m_playback_accumulated_frames; // accumulated frames during playback
-	
-	// autofire
-	UINT8					m_autofire_delay;		// autofire delay in Hz
-	UINT8					m_autofire_toggle;		// autofire toggle
 
 	// has...
 	bool                    m_has_configs;

@@ -1124,9 +1124,8 @@ static void LoadExternalFolders(int parent_index, const char *fname, int id)
 		}
 	}
 
-    if (f)
-        fclose(f);
- }
+	fclose(f);
+}
 
 static void SaveExternalFolders(int parent_index, const char *fname)
 {
@@ -1852,9 +1851,7 @@ BOOL TryAddExtraFolderAndChildren(int parent_index)
 		}
 	}
 
-    if (f)
-        fclose(f);
-
+    fclose(f);
     return TRUE;
 }
 

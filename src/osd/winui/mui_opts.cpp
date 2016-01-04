@@ -2289,7 +2289,7 @@ void LoadFolderFlags(void)
 			strcpy(folder_name, lpFolder->m_lpTitle);
 			char *ptr = folder_name;
 			
-			while (*ptr && *ptr != '\0')
+			while (*ptr)
 			{
 				if (*ptr == ' ')
 					*ptr = '_';
@@ -2320,7 +2320,7 @@ void LoadFolderFlags(void)
 			strcpy(folder_name, lpFolder->m_lpTitle);
 			char *ptr = folder_name;
 			
-			while (*ptr && *ptr != '\0')
+			while (*ptr)
 			{
 				if (*ptr == ' ')
 					*ptr = '_';
@@ -2366,7 +2366,7 @@ static void AddFolderFlags(winui_options &opts)
 			strcpy(folder_name, lpFolder->m_lpTitle);
 			char *ptr = folder_name;
 			
-			while (*ptr && *ptr != '\0')
+			while (*ptr)
 			{
 				if (*ptr == ' ')
 					*ptr = '_';
