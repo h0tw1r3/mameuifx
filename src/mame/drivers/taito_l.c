@@ -2324,6 +2324,30 @@ ROM_START( flipull ) /* The demo mode is 1 player */
 	ROM_LOAD( "gal16v8-b86-04.bin", 0x0000, 0x0117, CRC(bf8c0ea0) SHA1(e0a00f1f6363fb79650202f90a56329990876d49) )  /* derived, but verified  Pal Stamped B86-04 */
 ROM_END
 
+ROM_START( sokoban )
+	ROM_REGION( 0x10000, "maincpu", 0 )
+	ROM_LOAD( "ic10",       0x00000, 0x10000, CRC(5959ddb4) )
+
+	ROM_REGION( 0x20000, "gfx1", 0 )
+	ROM_LOAD16_BYTE( "b96-07.ic9", 0x00000, 0x10000, CRC(859e1ff4) )
+	ROM_LOAD16_BYTE( "b96-08.ic8", 0x00001, 0x10000, CRC(439a6670) )
+
+	ROM_REGION( 0x0200, "plds", 0 )
+	ROM_LOAD( "gal16v8-b86-04.bin", 0x0000, 0x0117, CRC(bf8c0ea0) SHA1(e0a00f1f6363fb79650202f90a56329990876d49) )  /* derived, but verified  Pal Stamped B86-04 */
+ROM_END
+
+ROM_START( speccies )
+	ROM_REGION( 0x10000, "maincpu", 0 )
+	ROM_LOAD( "ic10",       0x00000, 0x055e9, CRC(29e126ac) )
+
+	ROM_REGION( 0x20000, "gfx1", 0 )
+	ROM_LOAD16_BYTE( "b96-07.ic9", 0x00000, 0x10000, CRC(11ed1528) )
+	ROM_LOAD16_BYTE( "b96-08.ic8", 0x00001, 0x10000, CRC(fcfeb89f) )
+
+	ROM_REGION( 0x0200, "plds", 0 )
+	ROM_LOAD( "gal16v8-b86-04.bin", 0x0000, 0x0117, CRC(bf8c0ea0) SHA1(e0a00f1f6363fb79650202f90a56329990876d49) )  /* derived, but verified  Pal Stamped B86-04 */
+ROM_END
+
 ROM_START( puzznic )
 	ROM_REGION( 0x20000, "maincpu", 0 )
 	ROM_LOAD( "c20-09.ic11", 0x00000, 0x20000, CRC(156d6de1) SHA1(c247936b62ef354851c9bace76a7a0aa14194d5f) )
@@ -2603,6 +2627,8 @@ GAME( 1989, plottinga, plotting, plotting,  plotting,  taitol_state,  plottinga,
 GAME( 1989, plottingb, plotting, plotting,  plotting,  driver_device, 0,         ROT0,   "Taito Corporation Japan", "Plotting (World set 3, earliest version)", 0 )
 GAME( 1989, plottingu, plotting, plotting,  plotting,  driver_device, 0,         ROT0,   "Taito America Corporation", "Plotting (US)", 0 )
 GAME( 1989, flipull,   plotting, plotting,  plotting,  driver_device, 0,         ROT0,   "Taito Corporation", "Flipull (Japan)", 0 )
+GAME( 2015, sokoban,   0,        plotting,  plotting,  driver_device, 0,         ROT0,   "hack by Adrian Smethurst", "Sokoban LE (Taito L Edition)", 0 )
+GAME( 2015, speccies,  0,        plotting,  plotting,  driver_device, 0,         ROT0,   "hack by Sokurah", "The Speccies 2 (Taito L Arcade Version)", 0 )
 
 GAME( 1989, puzznic,   0,        puzznic,   puzznic,   driver_device, 0,         ROT0,   "Taito Corporation Japan", "Puzznic (World)", 0 )
 GAME( 1989, puzznicj,  puzznic,  puzznic,   puzznic,   driver_device, 0,         ROT0,   "Taito Corporation", "Puzznic (Japan)", 0 )

@@ -183,7 +183,6 @@
 #define IDC_SAMPLERATE                  1027
 #define IDC_NUMSCREENS                  1028
 #define IDC_ANTIALIAS                   1029
-#define IDC_BEAM                        1030
 #define IDC_FLICKER                     1031
 #define IDC_FLIPX                       1032
 #define IDC_FLIPY                       1033
@@ -201,7 +200,6 @@
 #define IDC_ROMS_TOTAL                  1045
 #define IDC_SAMPLES_PROGRESS            1046
 #define IDC_SAMPLES_CORRECT             1047
-#define IDC_BEAMDISP                    1048
 #define IDC_SAMPLES_INCORRECT           1049
 #define IDC_SAMPLES_TOTAL               1050
 #define IDC_AUDIT_DETAILS               1051
@@ -454,6 +452,12 @@
 #define IDC_TEXT4						1364
 #define IDC_BUILD						1365
 #define IDC_BUILDVER					1366
+#define IDC_BEAM_MIN					1367
+#define IDC_BEAM_MAX					1368
+#define IDC_BEAM_INTEN					1369
+#define IDC_BEAM_MINDISP				1370
+#define IDC_BEAM_MAXDISP				1371
+#define IDC_BEAM_INTENDISP				1372
 #define ID_CONTEXT_SHOW_FOLDER_START    39000
 #define ID_CONTEXT_SHOW_FOLDER_END      39499
 #define ID_SHOW_FOLDER_START1    		39500
@@ -563,7 +567,6 @@
 #define ID_UI_HISTORY_DOWN              40094
 #define ID_FILE_LOADSTATE               40095
 #define ID_FOLDER_SOURCEPROPERTIES      40096
-#define ID_FOLDER_VECTORPROPERTIES      40097
 #define ID_OPTIONS_HISTORY_COLOR        40098
 #define ID_VIEW_ZIP                		40102
 #define ID_MAME_HOMEPAGE                40103

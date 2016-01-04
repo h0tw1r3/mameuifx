@@ -3614,7 +3614,9 @@ static BOOL MameCommand(HWND hWnd, int id, HWND hWndCtl, UINT codeNotify)
 		OPTIONS_TYPE curOptType = OPTIONS_SOURCE;
 		folder = GetSelectedFolder();
 		
-		if(folder->m_nFolderId == FOLDER_VECTOR) 
+		if(folder->m_nFolderId == FOLDER_RASTER) 
+			curOptType = OPTIONS_RASTER;
+		else if(folder->m_nFolderId == FOLDER_VECTOR) 
 			curOptType = OPTIONS_VECTOR;
 		else if(folder->m_nFolderId == FOLDER_HORIZONTAL) 
 			curOptType = OPTIONS_HORIZONTAL;
@@ -3627,16 +3629,8 @@ static BOOL MameCommand(HWND hWnd, int id, HWND hWndCtl, UINT codeNotify)
 		break;
 	}
 	case ID_FOLDER_SOURCEPROPERTIES:
-		folder = GetFolderByName(FOLDER_SOURCE, GetDriverFilename(Picker_GetSelectedItem(hWndList)) );
-		InitPropertyPage(hInst, hWnd, GetSelectedFolderIcon(), (folder->m_nFolderId == FOLDER_VECTOR) ? OPTIONS_VECTOR : OPTIONS_SOURCE, 
-			folder->m_nFolderId, Picker_GetSelectedItem(hWndList));
-		UpdateStatusBar();
-		SetFocus(hWndList);
-		break;
-
-	case ID_FOLDER_VECTORPROPERTIES:
-		folder = GetFolderByID( FOLDER_VECTOR );
-		InitPropertyPage(hInst, hWnd, GetSelectedFolderIcon(), OPTIONS_VECTOR, folder->m_nFolderId, Picker_GetSelectedItem(hWndList));
+		folder = GetFolderByName(FOLDER_SOURCE, GetDriverFilename(Picker_GetSelectedItem(hWndList)));
+		InitPropertyPage(hInst, hWnd, GetSelectedFolderIcon(), OPTIONS_SOURCE, folder->m_nFolderId, Picker_GetSelectedItem(hWndList));
 		UpdateStatusBar();
 		SetFocus(hWndList);
 		break;

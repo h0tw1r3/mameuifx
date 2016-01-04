@@ -208,6 +208,7 @@ static BOOL bPageTreeSelChangedActive = FALSE;
 static windows_options pOptsGlobal;
 static windows_options pOptsHorizontal;
 static windows_options pOptsVertical;
+static windows_options pOptsRaster;
 static windows_options pOptsVector;
 static windows_options pOptsSource;
 
@@ -512,7 +513,7 @@ void InitPropertyPage(HINSTANCE hInst, HWND hWnd, HICON hIcon, OPTIONS_TYPE opt_
 	InitPropertyPageToPage(hInst, hWnd, hIcon, opt_type, folder_id, game_num, PROPERTIES_PAGE);
 }
 
-void InitPropertyPageToPage(HINSTANCE hInst, HWND hWnd, HICON hIcon, OPTIONS_TYPE opt_type, int folder_id, int game_num, int start_page )
+void InitPropertyPageToPage(HINSTANCE hInst, HWND hWnd, HICON hIcon, OPTIONS_TYPE opt_type, int folder_id, int game_num, int start_page)
 {
 	PROPSHEETHEADER pshead;
 	PROPSHEETPAGE *pspage;
@@ -531,13 +532,19 @@ void InitPropertyPageToPage(HINSTANCE hInst, HWND hWnd, HICON hIcon, OPTIONS_TYP
 			//since VERTICAL and HORIZONTAL are equally ranked
 			//we need to subtract 2 from vertical to also get to correct default
 			default_type = (OPTIONS_TYPE)(default_type - 1);
-	}
+
+		if (OPTIONS_VECTOR == opt_type) 
+			//since VECTOR and RASTER are equally ranked
+			//we need to subtract 2 from vector to also get to correct default
+			default_type = (OPTIONS_TYPE)(default_type - 1);	
+}
 	
 	LoadOptions(pDefaultOpts, default_type, game_num);
 	//mamefx: for coloring of changed elements
 	LoadOptions(pOptsGlobal, OPTIONS_GLOBAL, game_num);
 	LoadOptions(pOptsHorizontal, OPTIONS_HORIZONTAL, game_num);
 	LoadOptions(pOptsVertical, OPTIONS_VERTICAL, game_num);
+	LoadOptions(pOptsRaster, OPTIONS_RASTER, game_num);
 	LoadOptions(pOptsVector, OPTIONS_VECTOR, game_num);
 	LoadOptions(pOptsSource, OPTIONS_SOURCE, game_num);
 	// Copy current_options to original options
@@ -558,7 +565,7 @@ void InitPropertyPageToPage(HINSTANCE hInst, HWND hWnd, HICON hIcon, OPTIONS_TYP
 	InitGameAudit(game_num);
 	
 	// Create the property sheets
-	if( OPTIONS_GAME == opt_type )
+	if (OPTIONS_GAME == opt_type)
 		pspage = CreatePropSheetPages(hInst, game_num, &pshead.nPages);
 	else
 		pspage = CreatePropSheetPages(hInst, -1, &pshead.nPages);
@@ -572,17 +579,22 @@ void InitPropertyPageToPage(HINSTANCE hInst, HWND hWnd, HICON hIcon, OPTIONS_TYP
 		case OPTIONS_GAME:
 			t_description = tstring_from_utf8(driver_list::driver(g_nGame).description);
 			break;
+			
+		case OPTIONS_RASTER:
 		case OPTIONS_VECTOR:
 		case OPTIONS_VERTICAL:
 		case OPTIONS_HORIZONTAL:
 			t_description = tstring_from_utf8(GetFolderNameByID(g_nFolder));
 			break;
+			
 		case OPTIONS_SOURCE:
 			t_description = tstring_from_utf8(GetDriverFilename(g_nGame));
 			break;
+			
 		case OPTIONS_GLOBAL:
 			t_description = tstring_from_utf8("Default games options");
 			break;
+			
 		default:
 			free(pspage);
 			return;
@@ -828,6 +840,8 @@ char *GameInfoTitle(OPTIONS_TYPE opt_type, int nIndex)
 
 	if (OPTIONS_GLOBAL == opt_type)
 		strcpy(buffer, "Global games options\r\nDefault options used by all games");
+	else if (OPTIONS_RASTER == opt_type)
+		strcpy(buffer, "Global raster options\r\nDefault options used by all raster games");
 	else if (OPTIONS_VECTOR == opt_type)
 		strcpy(buffer, "Global vector options\r\nDefault options used by all vector games");	
 	else if (OPTIONS_VERTICAL == opt_type)
@@ -1619,6 +1633,8 @@ INT_PTR CALLBACK GameOptionsDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARA
 			SetTextColor(hDC, RGB(163, 73, 164));	// purple
 		else if (IsControlOptionValue(hDlg,(HWND)lParam, pCurrentOpts, pOptsVertical) && DriverIsVertical(g_nGame))
 			SetTextColor(hDC, RGB(63, 72, 204));	// blue
+		else if (IsControlOptionValue(hDlg,(HWND)lParam, pCurrentOpts, pOptsRaster) && !DriverIsVector(g_nGame))
+			SetTextColor(hDC, RGB(136, 0, 21));		// dark red
 		else if (IsControlOptionValue(hDlg,(HWND)lParam, pCurrentOpts, pOptsVector) && DriverIsVector(g_nGame))
 			SetTextColor(hDC, RGB(255, 127, 39));	// orange
 		else if (IsControlOptionValue(hDlg,(HWND)lParam, pCurrentOpts, pOptsSource))
@@ -1632,18 +1648,27 @@ INT_PTR CALLBACK GameOptionsDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARA
 				case OPTIONS_GAME:
 					SetTextColor(hDC, RGB(34, 177, 76));
 					break;
+					
 				case OPTIONS_SOURCE:
 					SetTextColor(hDC, RGB(237, 28, 36));
 					break;
+					
+				case OPTIONS_RASTER:
+					SetTextColor(hDC, RGB(136, 0, 21));
+					break;
+
 				case OPTIONS_VECTOR:
 					SetTextColor(hDC, RGB(255, 127, 39));
 					break;
+					
 				case OPTIONS_HORIZONTAL:
 					SetTextColor(hDC, RGB(163, 73, 164));
 					break;
+					
 				case OPTIONS_VERTICAL:
 					SetTextColor(hDC, RGB(63, 72, 204));
 					break;
+					
 				case OPTIONS_GLOBAL:
 				default:
 					SetTextColor(hDC, GetSysColor(COLOR_WINDOWTEXT));
@@ -1748,20 +1773,22 @@ static void UpdateOptions(HWND hDlg, datamap *map, windows_options &opts)
 static void UpdateProperties(HWND hDlg, datamap *map, windows_options &opts)
 {
 	/* set ticks frequency in variours sliders */
-	SendMessage(GetDlgItem(hDlg, IDC_GAMMA), 		TBM_SETTICFREQ, 5, 0);
-	SendMessage(GetDlgItem(hDlg, IDC_CONTRAST), 	TBM_SETTICFREQ, 4, 0);
-	SendMessage(GetDlgItem(hDlg, IDC_BRIGHTCORRECT),TBM_SETTICFREQ, 4, 0);
-	SendMessage(GetDlgItem(hDlg, IDC_PAUSEBRIGHT), 	TBM_SETTICFREQ, 2, 0);
-	SendMessage(GetDlgItem(hDlg, IDC_FSGAMMA),		TBM_SETTICFREQ, 5, 0);
-	SendMessage(GetDlgItem(hDlg, IDC_FSCONTRAST), 	TBM_SETTICFREQ, 4, 0);
-	SendMessage(GetDlgItem(hDlg, IDC_FSBRIGHTNESS), TBM_SETTICFREQ, 4, 0);
-	SendMessage(GetDlgItem(hDlg, IDC_SECONDSTORUN), TBM_SETTICFREQ, 5, 0);
-	SendMessage(GetDlgItem(hDlg, IDC_JDZ), 			TBM_SETTICFREQ, 2, 0);
-	SendMessage(GetDlgItem(hDlg, IDC_JSAT), 		TBM_SETTICFREQ, 2, 0);
+	SendMessage(GetDlgItem(hDlg, IDC_GAMMA), 		TBM_SETTICFREQ, 10, 0);
+	SendMessage(GetDlgItem(hDlg, IDC_CONTRAST), 	TBM_SETTICFREQ, 5, 0);
+	SendMessage(GetDlgItem(hDlg, IDC_BRIGHTCORRECT),TBM_SETTICFREQ, 20, 0);
+	SendMessage(GetDlgItem(hDlg, IDC_PAUSEBRIGHT), 	TBM_SETTICFREQ, 20, 0);
+	SendMessage(GetDlgItem(hDlg, IDC_FSGAMMA),		TBM_SETTICFREQ, 10, 0);
+	SendMessage(GetDlgItem(hDlg, IDC_FSCONTRAST), 	TBM_SETTICFREQ, 5, 0);
+	SendMessage(GetDlgItem(hDlg, IDC_FSBRIGHTNESS), TBM_SETTICFREQ, 20, 0);
+	SendMessage(GetDlgItem(hDlg, IDC_SECONDSTORUN), TBM_SETTICFREQ, 10, 0);
+	SendMessage(GetDlgItem(hDlg, IDC_JDZ), 			TBM_SETTICFREQ, 20, 0);
+	SendMessage(GetDlgItem(hDlg, IDC_JSAT), 		TBM_SETTICFREQ, 20, 0);
 	SendMessage(GetDlgItem(hDlg, IDC_VOLUME), 		TBM_SETTICFREQ, 4, 0);
 	SendMessage(GetDlgItem(hDlg, IDC_HIGH_PRIORITY),TBM_SETTICFREQ, 2, 0);
-	SendMessage(GetDlgItem(hDlg, IDC_SPEED), 		TBM_SETTICFREQ, 5, 0);
-	SendMessage(GetDlgItem(hDlg, IDC_BEAM), 		TBM_SETTICFREQ, 5, 0);
+	SendMessage(GetDlgItem(hDlg, IDC_SPEED), 		TBM_SETTICFREQ, 50, 0);
+	SendMessage(GetDlgItem(hDlg, IDC_BEAM_MIN), 	TBM_SETTICFREQ, 5, 0);
+	SendMessage(GetDlgItem(hDlg, IDC_BEAM_MAX), 	TBM_SETTICFREQ, 50, 0);
+	SendMessage(GetDlgItem(hDlg, IDC_BEAM_INTEN), 	TBM_SETTICFREQ, 100, 0);
 	SendMessage(GetDlgItem(hDlg, IDC_FLICKER), 		TBM_SETTICFREQ, 5, 0);
 	/* These are always called together, so make one convenience function. */
 	datamap_populate_all_controls(map, hDlg, opts);
@@ -2460,8 +2487,12 @@ static void BuildDataMap(void)
 	datamap_add(properties_datamap, IDC_SCREEN_SHADER4,			DM_STRING,	OSDOPTION_SHADER_SCREEN "4");
 	// core vector options
 	datamap_add(properties_datamap, IDC_ANTIALIAS,				DM_BOOL,	OPTION_ANTIALIAS);
-	datamap_add(properties_datamap, IDC_BEAM,					DM_FLOAT,	OPTION_BEAM);
-	datamap_add(properties_datamap, IDC_BEAMDISP,				DM_FLOAT,	OPTION_BEAM);
+	datamap_add(properties_datamap, IDC_BEAM_MIN,				DM_FLOAT,	OPTION_BEAM_WIDTH_MIN);
+	datamap_add(properties_datamap, IDC_BEAM_MINDISP,			DM_FLOAT,	OPTION_BEAM_WIDTH_MIN);
+	datamap_add(properties_datamap, IDC_BEAM_MAX,				DM_FLOAT,	OPTION_BEAM_WIDTH_MAX);
+	datamap_add(properties_datamap, IDC_BEAM_MAXDISP,			DM_FLOAT,	OPTION_BEAM_WIDTH_MAX);
+	datamap_add(properties_datamap, IDC_BEAM_INTEN,				DM_FLOAT,	OPTION_BEAM_INTENSITY_WEIGHT);
+	datamap_add(properties_datamap, IDC_BEAM_INTENDISP,			DM_FLOAT,	OPTION_BEAM_INTENSITY_WEIGHT);
 	datamap_add(properties_datamap, IDC_FLICKER,				DM_FLOAT,	OPTION_FLICKER);
 	datamap_add(properties_datamap, IDC_FLICKERDISP,			DM_FLOAT,	OPTION_FLICKER);
 	// core sound options
@@ -2578,37 +2609,41 @@ static void BuildDataMap(void)
 	// formats
 	datamap_set_int_format(properties_datamap, IDC_VOLUMEDISP,			"%ddB");
 	datamap_set_int_format(properties_datamap, IDC_AUDIO_LATENCY_DISP,	"%d/5");
-	datamap_set_float_format(properties_datamap, IDC_BEAMDISP,			"%03.2f");
-	datamap_set_float_format(properties_datamap, IDC_FLICKERDISP,		"%03.1f");
-	datamap_set_float_format(properties_datamap, IDC_GAMMADISP,			"%03.2f");
-	datamap_set_float_format(properties_datamap, IDC_BRIGHTCORRECTDISP,	"%03.2f");
-	datamap_set_float_format(properties_datamap, IDC_CONTRASTDISP,		"%03.2f");
-	datamap_set_float_format(properties_datamap, IDC_PAUSEBRIGHTDISP,	"%03.2f");
-	datamap_set_float_format(properties_datamap, IDC_FSGAMMADISP,		"%03.2f");
-	datamap_set_float_format(properties_datamap, IDC_FSBRIGHTNESSDISP,	"%03.2f");
-	datamap_set_float_format(properties_datamap, IDC_FSCONTRASTDISP,	"%03.2f");
-	datamap_set_float_format(properties_datamap, IDC_JDZDISP,			"%03.2f");
-	datamap_set_float_format(properties_datamap, IDC_JSATDISP,			"%03.2f");
-	datamap_set_float_format(properties_datamap, IDC_SPEEDDISP,			"%03.1f");
+	datamap_set_float_format(properties_datamap, IDC_BEAM_MINDISP,		"%3.2f");
+	datamap_set_float_format(properties_datamap, IDC_BEAM_MAXDISP,		"%3.2f");
+	datamap_set_float_format(properties_datamap, IDC_BEAM_INTENDISP,	"%3.2f");
+	datamap_set_float_format(properties_datamap, IDC_FLICKERDISP,		"%3.2f");
+	datamap_set_float_format(properties_datamap, IDC_GAMMADISP,			"%3.2f");
+	datamap_set_float_format(properties_datamap, IDC_BRIGHTCORRECTDISP,	"%3.2f");
+	datamap_set_float_format(properties_datamap, IDC_CONTRASTDISP,		"%3.2f");
+	datamap_set_float_format(properties_datamap, IDC_PAUSEBRIGHTDISP,	"%3.2f");
+	datamap_set_float_format(properties_datamap, IDC_FSGAMMADISP,		"%3.2f");
+	datamap_set_float_format(properties_datamap, IDC_FSBRIGHTNESSDISP,	"%3.2f");
+	datamap_set_float_format(properties_datamap, IDC_FSCONTRASTDISP,	"%3.2f");
+	datamap_set_float_format(properties_datamap, IDC_JDZDISP,			"%3.2f");
+	datamap_set_float_format(properties_datamap, IDC_JSATDISP,			"%3.2f");
+	datamap_set_float_format(properties_datamap, IDC_SPEEDDISP,			"%3.1f");
 	// trackbar ranges - slider-name,start,end,step
-	datamap_set_trackbar_range(properties_datamap, IDC_JDZ,         	0.0, 1.0, (float)0.05);
-	datamap_set_trackbar_range(properties_datamap, IDC_JSAT,        	0.0, 1.0, (float)0.05);
-	datamap_set_trackbar_range(properties_datamap, IDC_SPEED,       	0.0, 100.0, (float)1.00);
-	datamap_set_trackbar_range(properties_datamap, IDC_BEAM,        	0.0, 10.0, (float)0.10);
-	datamap_set_trackbar_range(properties_datamap, IDC_FLICKER,       	0.0, 100.0, (float)1.00);
+	datamap_set_trackbar_range(properties_datamap, IDC_JDZ,         	0.00, 1.00, 0.01);
+	datamap_set_trackbar_range(properties_datamap, IDC_JSAT,        	0.00, 1.00, 0.01);
+	datamap_set_trackbar_range(properties_datamap, IDC_SPEED,       	0.00, 100.00, 0.1);
+	datamap_set_trackbar_range(properties_datamap, IDC_BEAM_MIN,        0.00, 1.00, 0.01);
+	datamap_set_trackbar_range(properties_datamap, IDC_BEAM_MAX,        1.00, 10.00, 0.01);
+	datamap_set_trackbar_range(properties_datamap, IDC_BEAM_INTEN,      -10.00, 10.00, 0.01);
+	datamap_set_trackbar_range(properties_datamap, IDC_FLICKER,       	0.00, 1.00, 0.01);
 	datamap_set_trackbar_range(properties_datamap, IDC_AUDIO_LATENCY, 	1, 5, 1);
 	datamap_set_trackbar_range(properties_datamap, IDC_VOLUME,      	-32, 0, 1);
 	datamap_set_trackbar_range(properties_datamap, IDC_HIGH_PRIORITY, 	-15, 1, 1);
 	datamap_set_trackbar_range(properties_datamap, IDC_SECONDSTORUN, 	0, 60, 1);
 	datamap_set_trackbar_range(properties_datamap, IDC_NUMSCREENS, 		1, 4, 1);
 	datamap_set_trackbar_range(properties_datamap, IDC_PRESCALE, 		1, 3, 1);
-	datamap_set_trackbar_range(properties_datamap, IDC_FSGAMMA, 		0.0, 3.0, (float)0.05);
-	datamap_set_trackbar_range(properties_datamap, IDC_FSBRIGHTNESS, 	0.0, 2.0, (float)0.05);
-	datamap_set_trackbar_range(properties_datamap, IDC_FSCONTRAST, 		0.0, 2.0, (float)0.05);
-	datamap_set_trackbar_range(properties_datamap, IDC_GAMMA, 			0.0, 3.0, (float)0.05);
-	datamap_set_trackbar_range(properties_datamap, IDC_BRIGHTCORRECT, 	0.0, 2.0, (float)0.05);
-	datamap_set_trackbar_range(properties_datamap, IDC_CONTRAST, 		0.0, 2.0, (float)0.05);
-	datamap_set_trackbar_range(properties_datamap, IDC_PAUSEBRIGHT, 	0.0, 1.0, (float)0.05);
+	datamap_set_trackbar_range(properties_datamap, IDC_FSGAMMA, 		0.00, 3.00, 0.05);
+	datamap_set_trackbar_range(properties_datamap, IDC_FSBRIGHTNESS, 	0.00, 2.00, 0.01);
+	datamap_set_trackbar_range(properties_datamap, IDC_FSCONTRAST, 		0.00, 2.00, 0.05);
+	datamap_set_trackbar_range(properties_datamap, IDC_GAMMA, 			0.00, 3.00, 0.05);
+	datamap_set_trackbar_range(properties_datamap, IDC_BRIGHTCORRECT, 	0.00, 2.00, 0.01);
+	datamap_set_trackbar_range(properties_datamap, IDC_CONTRAST, 		0.00, 2.00, 0.05);
+	datamap_set_trackbar_range(properties_datamap, IDC_PAUSEBRIGHT, 	0.00, 1.00, 0.01);
 }
 
 //mamefx: for coloring of changed elements

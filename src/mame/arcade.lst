@@ -13528,12 +13528,6 @@ wackygtr   // Wacky Gator
 // MAMEUIFX extra games
 1942c64			// hack
 asteroid6		// hack
-bublcave		// hack
-bublredux		// hack
-ddonpacha		// hack
-dkongpne		// hack
-ketarr			// hack
-ketarr17		// hack
 kof2002xxx		// hack
 kof97xxx		// hack
 mrdonight		// hack
@@ -13542,6 +13536,8 @@ mslug2t			// hack
 mslug3v			// hack
 outrunen		// hack
 pacminer		// hack
+sokoban			// hack
+speccies		// hack
 stridergh		// hack
 wofjm			// hack
 monaco			// simulation

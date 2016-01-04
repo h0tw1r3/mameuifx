@@ -2500,13 +2500,6 @@ void LoadOptions(windows_options &opts, OPTIONS_TYPE opt_type, int game_num)
 				gparent= &driver_list::driver(gp);
 		}
 
-		// parse "vector.ini" for vector games
-		if (DriverIsVector(game_num))
-			ParseIniFile(opts, "vector");
-		
-		if (opt_type == OPTIONS_VECTOR)
-			return;
-
 		// parse "horizont.ini" for horizontal games
 		if (!DriverIsVertical(game_num))
 			ParseIniFile(opts, "horizont");
@@ -2519,6 +2512,20 @@ void LoadOptions(windows_options &opts, OPTIONS_TYPE opt_type, int game_num)
 			ParseIniFile(opts, "vertical");
 
 		if (opt_type == OPTIONS_VERTICAL)
+			return;
+
+		// parse "raster.ini" for raster games
+		if (!DriverIsVector(game_num))
+			ParseIniFile(opts, "raster");
+		
+		if (opt_type == OPTIONS_RASTER)
+			return;
+
+		// parse "vector.ini" for vector games
+		if (DriverIsVector(game_num))
+			ParseIniFile(opts, "vector");
+		
+		if (opt_type == OPTIONS_VECTOR)
 			return;
 
 		// then parse "<sourcefile>.ini"
@@ -2563,6 +2570,8 @@ void SaveOptions(OPTIONS_TYPE opt_type, windows_options &opts, int game_num)
 
 	if (opt_type == OPTIONS_GLOBAL)
 		filename.assign(DEFAULT_INI_FILENAME);
+	else if (opt_type == OPTIONS_RASTER)
+		filename.assign("raster");
 	else if (opt_type == OPTIONS_VECTOR)
 		filename.assign("vector");
 	else if (opt_type == OPTIONS_VERTICAL)
