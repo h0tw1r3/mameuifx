@@ -15,17 +15,17 @@ BEGIN
     BEGIN
         MENUITEM "&Play",                       ID_FILE_PLAY
         MENUITEM SEPARATOR
-        MENUITEM "Play game INP input",         ID_FILE_PLAY_BACK
-        MENUITEM "Play game WAV sound", 		ID_PLAY_AUDIO
-        MENUITEM "Play game MNG video", 		ID_PLAY_MNG
-        MENUITEM "Play game AVI video", 		ID_PLAY_VIDEO
+        MENUITEM "Play INP Playback",         	ID_FILE_PLAY_BACK
+        MENUITEM "Play WAV sound", 				ID_PLAY_AUDIO
+        MENUITEM "Play MNG video", 				ID_PLAY_MNG
+        MENUITEM "Play AVI video", 				ID_PLAY_VIDEO
         MENUITEM SEPARATOR
-        MENUITEM "Record game &INP input",   	ID_FILE_PLAY_RECORD
+        MENUITEM "Record game &INP playback",   ID_FILE_PLAY_RECORD
         MENUITEM "Record game &WAV sound", 		ID_FILE_PLAY_RECORD_WAVE
         MENUITEM "Record game &MNG video", 		ID_FILE_PLAY_RECORD_MNG
         MENUITEM "Record game &AVI video", 		ID_FILE_PLAY_RECORD_AVI
         MENUITEM SEPARATOR
-        MENUITEM "Loa&d savestate",          	ID_FILE_LOADSTATE
+        MENUITEM "Loa&d game savestate",        ID_FILE_LOADSTATE
         MENUITEM SEPARATOR
         MENUITEM "E&xit\t Alt+F4",              ID_FILE_EXIT
     END
@@ -121,23 +121,10 @@ BEGIN
     BEGIN
         MENUITEM "&Select random game",         ID_CONTEXT_SELECT_RANDOM
         MENUITEM SEPARATOR
-        MENUITEM "&Add game to custom folder",  ID_CONTEXT_ADD_CUSTOM
-        MENUITEM "R&emove game from this folder", ID_CONTEXT_REMOVE_CUSTOM
-        MENUITEM SEPARATOR
-        MENUITEM "Reset game played counts",	ID_CONTEXT_RESET_PLAYCOUNT
-        MENUITEM "Reset game played time",		ID_CONTEXT_RESET_PLAYTIME
-        MENUITEM SEPARATOR
-        MENUITEM "Play ProgettoSnaps MP4 game movie",ID_VIDEO_SNAP
-        MENUITEM "&Listen game music with M1FX",ID_PLAY_M1
-        MENUITEM SEPARATOR
-        MENUITEM "Game pr&operties",            ID_GAME_PROPERTIES
-        MENUITEM SEPARATOR
-        MENUITEM "View game ZIP file content", 	ID_VIEW_ZIP
-        MENUITEM SEPARATOR
         MENUITEM "&Custom filters\tCtrl+F",  	ID_CONTEXT_FILTERS
         MENUITEM "Customi&ze fields",        	ID_CUSTOMIZE_FIELDS
         MENUITEM SEPARATOR
-        MENUITEM "Audit all ROMs",				ID_FILE_AUDIT
+        MENUITEM "Audit all games",				ID_FILE_AUDIT
         MENUITEM "&Refresh games list\tF5",   	ID_UPDATE_GAMELIST
         MENUITEM SEPARATOR
         MENUITEM "Save current &games list",	ID_FILE_GAMELIST
@@ -163,7 +150,8 @@ BEGIN
     BEGIN
         MENUITEM "&Play",                       ID_FILE_PLAY
         MENUITEM SEPARATOR
-        MENUITEM "Record INP input",   			ID_FILE_PLAY_RECORD
+        MENUITEM "Record INP playback",   		ID_FILE_PLAY_RECORD
+        MENUITEM "Loa&d savestate",        		ID_FILE_LOADSTATE
         MENUITEM SEPARATOR
         MENUITEM "&Add to custom folder",    	ID_CONTEXT_ADD_CUSTOM
         MENUITEM "R&emove from this folder",    ID_CONTEXT_REMOVE_CUSTOM

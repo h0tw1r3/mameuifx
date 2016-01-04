@@ -109,7 +109,6 @@ b) Exit the dialog.
 ***************************************************************************/
 
 #include "winui.h"
-#include <shlwapi.h>
 
 #ifndef TVS_EX_DOUBLEBUFFER
 #define TVS_EX_DOUBLEBUFFER 0x0004
@@ -182,7 +181,7 @@ static windows_options pDefaultOpts;
 static windows_options pOrigOpts;
 static windows_options pCurrentOpts;
 static datamap *properties_datamap;
-static BOOL orig_uses_defaults;
+static BOOL orig_uses_defaults = FALSE;
 static int g_nGame = 0;
 static int g_nFolder = 0;
 static int g_nFolderGame = 0;
@@ -200,7 +199,7 @@ static int g_nFirstInitPropertySheet = 0;
 static RECT rcTabCtrl;
 static RECT rcTabCaption;
 static RECT rcChild;
-static int nCaptionHeight;
+static int nCaptionHeight = 0;
 static HWND hSheetTreeCtrl = NULL;
 static HINSTANCE hSheetInstance = 0;
 static WNDPROC pfnOldSheetProc = NULL;
@@ -211,8 +210,14 @@ static windows_options pOptsHorizontal;
 static windows_options pOptsVertical;
 static windows_options pOptsVector;
 static windows_options pOptsSource;
-static char buf[1024];
-static char buffer[1024];
+
+typedef struct
+{
+	BOOL bOnDefaultPage;
+	BOOL (*pfnFilterProc)(int nDriver);
+	DWORD dwDlgID;
+	DLGPROC pfnDlgProc;
+} PROPERTYSHEETINFO;
 
 static const PROPERTYSHEETINFO g_propSheets[] =
 {
@@ -402,25 +407,20 @@ static int GetSelectedScreen(HWND hWnd)
 
 static PROPSHEETPAGE *CreatePropSheetPages(HINSTANCE hInst, int nDriver, UINT *pnMaxPropSheets)
 {
-	PROPSHEETPAGE *pspages;
-	int maxPropSheets;
-	int possiblePropSheets;
-	int i;
 	BOOL isGame = (nDriver >= 0);
-
-	i = (isGame) ? 0 : 2;
+	int i = (isGame) ? 0 : 2;
 
 	for (; g_propSheets[i].pfnDlgProc; i++)
 		;
 
-	possiblePropSheets = (isGame) ? i + 1 : i - 1;
-	pspages = (PROPSHEETPAGE *)malloc(sizeof(PROPSHEETPAGE) * possiblePropSheets);
+	int possiblePropSheets = (isGame) ? i + 1 : i - 1;
+	PROPSHEETPAGE *pspages = (PROPSHEETPAGE *)malloc(sizeof(PROPSHEETPAGE) * possiblePropSheets);
 
 	if (!pspages)
 		return NULL;
 
 	memset(pspages, 0, sizeof(PROPSHEETPAGE) * possiblePropSheets);
-	maxPropSheets = 0;
+	int maxPropSheets = 0;
 	i = ( isGame ) ? 0 : 2;
 
 	for (; g_propSheets[i].pfnDlgProc; i++)
@@ -464,7 +464,6 @@ static PROPSHEETPAGE *CreatePropSheetPages(HINSTANCE hInst, int nDriver, UINT *p
 void InitDefaultPropertyPage(HINSTANCE hInst, HWND hWnd)
 {
 	PROPSHEETHEADER pshead;
-	PROPSHEETPAGE   *pspage;
 	
 	g_nGame = GLOBAL_OPTIONS;
 
@@ -479,7 +478,7 @@ void InitDefaultPropertyPage(HINSTANCE hInst, HWND hWnd)
 	g_nPropertyMode = OPTIONS_GLOBAL;
 	BuildDataMap();
 	memset(&pshead, 0, sizeof(PROPSHEETHEADER));
-	pspage = CreatePropSheetPages(hInst, -1, &pshead.nPages);
+	PROPSHEETPAGE *pspage = CreatePropSheetPages(hInst, -1, &pshead.nPages);
 
 	if (!pspage)
 		return;
@@ -517,7 +516,7 @@ void InitPropertyPageToPage(HINSTANCE hInst, HWND hWnd, HICON hIcon, OPTIONS_TYP
 {
 	PROPSHEETHEADER pshead;
 	PROPSHEETPAGE *pspage;
-	TCHAR *t_description = 0;
+	TCHAR *t_description = NULL;
 	OPTIONS_TYPE default_type = opt_type;
 	
 	// Load the current options, this will pickup the highest priority option set.
@@ -628,43 +627,47 @@ void InitPropertyPageToPage(HINSTANCE hInst, HWND hWnd, HICON hIcon, OPTIONS_TYP
 static char *GameInfoCPU(int nIndex)
 {
 	machine_config config(driver_list::driver(nIndex), MameUIGlobal());
-	memset(&buf, 0, sizeof(buf));
 	execute_interface_iterator iter(config.root_device());
 	device_execute_interface *cpu = iter.first();
-	char temp[300];
+	static char buffer[1024];
+
+	memset(&buffer, 0, sizeof(buffer));
 
 	while (cpu)
 	{
+		char temp[300];
+
 		if (cpu->device().clock() >= 1000000)
 			snprintf(temp, ARRAY_LENGTH(temp), "%s %d.%06d MHz\r\n", cpu->device().name(), cpu->device().clock() / 1000000, cpu->device().clock() % 1000000);
 		else
 			snprintf(temp, ARRAY_LENGTH(temp), "%s %d.%03d kHz\r\n", cpu->device().name(), cpu->device().clock() / 1000, cpu->device().clock() % 1000);
 
-		strcat(buf, temp);
+		strcat(buffer, temp);
 		cpu = iter.next();
     }
 
-	return buf;
+	return buffer;
 }
 
 /* Build Sound system info string */
 static char *GameInfoSound(int nIndex)
 {
 	machine_config config(driver_list::driver(nIndex), MameUIGlobal());
-	memset(&buf, 0, sizeof(buf));
 	sound_interface_iterator iter(config.root_device());
 	const device_sound_interface *sound = iter.first();
+	static char buffer[1024];
+
+	memset(&buffer, 0, sizeof(buffer));
 
 	while(sound)
 	{
-		int clock,count;
 		device_type sound_type_;
 		char tmpname[1024];
 		char temp[300];
 		snprintf(tmpname, ARRAY_LENGTH(tmpname), "%s", sound->device().name());
 		sound_type_ = sound->device().type();
-		clock = sound->device().clock();
-		count = 1;
+		int clock = sound->device().clock();
+		int count = 1;
 		sound = iter.next();
 		
 		/* Matching chips at the same clock are aggregated - this doesn't work */
@@ -677,10 +680,10 @@ static char *GameInfoSound(int nIndex)
 		if (count > 1)
 		{
 			snprintf(temp, ARRAY_LENGTH(temp), "%dx ", count);
-			strcat(buf, temp);
+			strcat(buffer, temp);
 		}
 		
-		strcat(buf, tmpname);
+		strcat(buffer, tmpname);
 
 		if (clock)
 		{
@@ -689,28 +692,29 @@ static char *GameInfoSound(int nIndex)
 			else
 				snprintf(temp, ARRAY_LENGTH(temp), " %d.%03d kHz", clock / 1000, clock % 1000);
 			
-			strcat(buf, temp);
+			strcat(buffer, temp);
 		}
 		
-		strcat(buf, "\r\n");
+		strcat(buffer, "\r\n");
 	}
 	
-	return buf;
+	return buffer;
 }
 
 /* Build Display info string */
 static char *GameInfoScreen(int nIndex)
 {
 	machine_config config(driver_list::driver(nIndex), MameUIGlobal());
-	memset(&buf, 0, sizeof(buf));
-	char tmpbuf[256];
+	static char buffer[1024];
+
+	memset(&buffer, 0, sizeof(buffer));
 
 	if (DriverIsVector(nIndex))
 	{
 		if (DriverIsVertical(nIndex))
-			strcpy(buf, "Vector (V)");
+			strcpy(buffer, "Vector (V)");
 		else
-			strcpy(buf, "Vector (H)");
+			strcpy(buffer, "Vector (H)");
 	}
 	else
 	{
@@ -718,29 +722,32 @@ static char *GameInfoScreen(int nIndex)
 		const screen_device *screen = iter.first();
 
 		if (screen == NULL)
-			strcpy(buf, "Screenless");
+			strcpy(buffer, "Screenless");
 		else
 		{
 			for (; screen != NULL; screen = iter.next())
 			{
 				const rectangle &visarea = screen->visible_area();
+				char tmpbuf[256];
 
 				if (DriverIsVertical(nIndex))
 					snprintf(tmpbuf, ARRAY_LENGTH(tmpbuf), "%d x %d (V) %f Hz\r\n", visarea.height(), visarea.width(), ATTOSECONDS_TO_HZ(screen->refresh_attoseconds()));
 				else
 					snprintf(tmpbuf, ARRAY_LENGTH(tmpbuf), "%d x %d (H) %f Hz\r\n", visarea.width(), visarea.height(), ATTOSECONDS_TO_HZ(screen->refresh_attoseconds()));
 
-				strcat(buf, tmpbuf);
+				strcat(buffer, tmpbuf);
 			}
 		}
 	}
 
-	return buf;
+	return buffer;
 }
 
 /* Build game status string */
 static char *GameInfoStatus(int driver_index)
 {
+	static char buffer[1024];
+	
 	memset(&buffer, 0, sizeof(buffer));
 
 	//Just show the emulation flags
@@ -756,37 +763,37 @@ static char *GameInfoStatus(int driver_index)
 		strcpy(buffer, "Working with problems");
 		status_color = 2;
 		
-		if (driver_list::driver(driver_index).flags & GAME_UNEMULATED_PROTECTION)
+		if (driver_list::driver(driver_index).flags & MACHINE_UNEMULATED_PROTECTION)
 		{
 			strcat(buffer, "\r\n");
 			strcat(buffer, "Game protection isn't fully emulated");
 		}
 		
-		if (driver_list::driver(driver_index).flags & GAME_WRONG_COLORS)
+		if (driver_list::driver(driver_index).flags & MACHINE_WRONG_COLORS)
 		{
 			strcat(buffer, "\r\n");
 			strcat(buffer, "Colors are completely wrong");
 		}
 		
-		if (driver_list::driver(driver_index).flags & GAME_IMPERFECT_COLORS)
+		if (driver_list::driver(driver_index).flags & MACHINE_IMPERFECT_COLORS)
 		{
 			strcat(buffer, "\r\n");
 			strcat(buffer, "Colors aren't 100% accurate");
 		}
 		
-		if (driver_list::driver(driver_index).flags & GAME_IMPERFECT_GRAPHICS)
+		if (driver_list::driver(driver_index).flags & MACHINE_IMPERFECT_GRAPHICS)
 		{
 			strcat(buffer, "\r\n");
 			strcat(buffer, "Video emulation isn't 100% accurate");
 		}
 		
-		if (driver_list::driver(driver_index).flags & GAME_NO_SOUND)
+		if (driver_list::driver(driver_index).flags & MACHINE_NO_SOUND)
 		{
 			strcat(buffer, "\r\n");
 			strcat(buffer, "Game lacks sound");
 		}
 		
-		if (driver_list::driver(driver_index).flags & GAME_IMPERFECT_SOUND)
+		if (driver_list::driver(driver_index).flags & MACHINE_IMPERFECT_SOUND)
 		{
 			strcat(buffer, "\r\n");
 			strcat(buffer, "Sound emulation isn't 100% accurate");
@@ -805,6 +812,8 @@ static char *GameInfoStatus(int driver_index)
 /* Build game manufacturer string */
 static char *GameInfoManufactured(int nIndex)
 {
+	static char buffer[1024];
+	
 	memset(&buffer, 0, sizeof(buffer));
 	snprintf(buffer, ARRAY_LENGTH(buffer), "%s %s", driver_list::driver(nIndex).manufacturer, driver_list::driver(nIndex).year);
 	return buffer;
@@ -813,49 +822,54 @@ static char *GameInfoManufactured(int nIndex)
 /* Build Game title string */
 char *GameInfoTitle(OPTIONS_TYPE opt_type, int nIndex)
 {
-	memset(&buf, 0, sizeof(buf));
+	static char buffer[1024];
+
+	memset(&buffer, 0, sizeof(buffer));
 
 	if (OPTIONS_GLOBAL == opt_type)
-		strcpy(buf, "Global games options\r\nDefault options used by all games");
+		strcpy(buffer, "Global games options\r\nDefault options used by all games");
 	else if (OPTIONS_VECTOR == opt_type)
-		strcpy(buf, "Global vector options\r\nDefault options used by all vector games");	
+		strcpy(buffer, "Global vector options\r\nDefault options used by all vector games");	
 	else if (OPTIONS_VERTICAL == opt_type)
-		strcpy(buf, "Global vertical options\r\nDefault options used by all vertical games");
+		strcpy(buffer, "Global vertical options\r\nDefault options used by all vertical games");
 	else if (OPTIONS_HORIZONTAL == opt_type)
-		strcpy(buf, "Global horizontal options\r\nDefault options used by all horizontal games");
+		strcpy(buffer, "Global horizontal options\r\nDefault options used by all horizontal games");
 	else if (OPTIONS_SOURCE == opt_type)
-		strcpy(buf, "Global driver options\r\nDefault options used by all games in the driver");
+		strcpy(buffer, "Global driver options\r\nDefault options used by all games in the driver");
 	else
-		snprintf(buf, ARRAY_LENGTH(buf), "%s - \"%s\"", driver_list::driver(nIndex).description, driver_list::driver(nIndex).name);
+		snprintf(buffer, ARRAY_LENGTH(buffer), "%s - \"%s\"", driver_list::driver(nIndex).description, driver_list::driver(nIndex).name);
 
-	return buf;
+	return buffer;
 }
 
 /* Build game clone infromation string */
 static char *GameInfoCloneOf(int nIndex)
 {
-	int nParentIndex= -1;
-	memset(&buf, 0, sizeof(buf));
+	static char buffer[1024];
+
+	memset(&buffer, 0, sizeof(buffer));
 
 	if (DriverIsClone(nIndex))
 	{
-		nParentIndex = GetParentIndex(&driver_list::driver(nIndex));
-		snprintf(buf, ARRAY_LENGTH(buf), "%s - \"%s\"", driver_list::driver(nParentIndex).description, driver_list::driver(nParentIndex).name);
+		int nParentIndex = GetParentIndex(&driver_list::driver(nIndex));
+		snprintf(buffer, ARRAY_LENGTH(buffer), "%s - \"%s\"", driver_list::driver(nParentIndex).description, driver_list::driver(nParentIndex).name);
 	}
 
-	return buf;
+	return buffer;
 }
 
 static char *GameInfoSaveState(int driver_index)
 {
-	memset(&buf, 0, sizeof(buf));
+	static char buffer[1024];
+
+	memset(&buffer, 0, sizeof(buffer));
 
 	if (DriverSupportsSaveState(driver_index))
-		strcpy(buf, "Supported");
+		strcpy(buffer, "Supported");
 	else
-		strcpy(buf, "Unsupported");
+		strcpy(buffer, "Unsupported");
 
-	return buf;
+	return buffer;
 }
 
 static const char *GameInfoSource(UINT nIndex)
@@ -869,9 +883,7 @@ static void UpdateSheetCaption(HWND hWnd)
 	PAINTSTRUCT ps;
 	HRGN hRgn;
 	RECT rect, rc;
-	WCHAR szText[256];
-	int i;
-	HFONT hFontCaption, hOldFont;
+	TCHAR szText[256];
 
 	memcpy(&rect, &rcTabCaption, sizeof(RECT));
 	BeginPaint (hWnd, &ps);
@@ -881,28 +893,28 @@ static void UpdateSheetCaption(HWND hWnd)
 	hBrush = CreateSolidBrush(RGB(127, 127, 127));
 	FillRect(hDC, &rect, hBrush);
 	DeleteObject(hBrush);
-	i = GetSheetPageTreeCurSelText(szText, sizeof(szText));
+	int i = GetSheetPageTreeCurSelText(szText, ARRAY_LENGTH(szText));
 
 	if (i > 0)
 	{
-		hFontCaption = CreateFont(-16, 0,		// height, width
-							0, 					// angle of escapement
-							0,					// base-line orientation angle
-							700,				// font weight
-							0, 0, 0, 			// italic, underline, strikeout
-							0,					// character set identifier
-							3,					// output precision
-							2,					// clipping precision
-							2,					// output quality
-							34,					// pitch and family
-							TEXT("Arial"));		// typeface name
+		HFONT hFontCaption = CreateFont(-16, 0,		// height, width
+			0, 										// angle of escapement
+			0,										// base-line orientation angle
+			700,									// font weight
+			0, 0, 0, 								// italic, underline, strikeout
+			0,										// character set identifier
+			3,										// output precision
+			2,										// clipping precision
+			2,										// output quality
+			34,										// pitch and family
+			TEXT("Arial"));							// typeface name
 
-		hOldFont = (HFONT)SelectObject(hDC, hFontCaption);
+		HFONT hOldFont = (HFONT)SelectObject(hDC, hFontCaption);
 		SetTextColor(hDC, RGB(255, 255, 255));
 		SetBkMode(hDC, TRANSPARENT);
 		memcpy(&rc, &rect, sizeof(RECT));
 		rc.left += 4;
-		DrawText(hDC, (LPCTSTR)szText, lstrlen((LPTSTR)szText), &rc, DT_SINGLELINE | DT_LEFT | DT_VCENTER);
+		DrawText(hDC, szText, _tcslen(szText), &rc, DT_SINGLELINE | DT_LEFT | DT_VCENTER);
 		SelectObject(hDC, hOldFont);
 		DeleteObject(hFontCaption);
 	}
@@ -927,7 +939,6 @@ static void UpdateSheetCaption(HWND hWnd)
 static LRESULT CALLBACK NewSheetWndProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
 	BOOL bHandled = FALSE;
-	int nPage;
 	TVITEM item;
 
 	switch (Msg)
@@ -950,7 +961,7 @@ static LRESULT CALLBACK NewSheetWndProc(HWND hWnd, UINT Msg, WPARAM wParam, LPAR
 				item.mask = TVIF_PARAM;
 				
 				(void)TreeView_GetItem(hSheetTreeCtrl, &item);
-				nPage = (int)item.lParam;
+				int nPage = (int)item.lParam;
 				
 				if (nPage >= 0)
 					PropSheet_SetCurSel(hWnd, 0, nPage);
@@ -991,13 +1002,12 @@ static LRESULT CALLBACK NewSheetWndProc(HWND hWnd, UINT Msg, WPARAM wParam, LPAR
 static void AdjustChildWindows(HWND hWnd)
 {
 	TCHAR szClass[128];
-	DWORD dwStyle;
 
-	GetClassName(hWnd, szClass, sizeof(szClass));
+	GetClassName(hWnd, szClass, ARRAY_LENGTH(szClass));
 	
 	if (!_tcscmp(szClass, WC_BUTTON))
 	{
-		dwStyle = GetWindowLong(hWnd, GWL_STYLE);
+		DWORD dwStyle = GetWindowLong(hWnd, GWL_STYLE);
 		
 		if (((dwStyle & BS_GROUPBOX) == BS_GROUPBOX) && (dwStyle & WS_TABSTOP))
 			SetWindowLong(hWnd, GWL_STYLE, (dwStyle & ~WS_TABSTOP));
@@ -1017,15 +1027,13 @@ static void AdjustPropertySheetChildWindows(HWND hWnd)
 static void MovePropertySheetChildWindows(HWND hWnd, int nDx, int nDy)
 {
 	HWND hChild = GetWindow(hWnd, GW_CHILD);
-	char szText[256];
 
 	while (hChild)
 	{
-		GetWindowText(hChild, (WCHAR*)szText, sizeof(szText));
 		GetWindowRect(hChild, &rcChild);
 		OffsetRect(&rcChild, nDx, nDy);
 		ScreenToClient(hWnd, (LPPOINT)&rcChild);
-		ScreenToClient(hWnd, ((LPPOINT)&rcChild)+1);
+		ScreenToClient(hWnd, ((LPPOINT)&rcChild) + 1);
 		AdjustChildWindows(hChild);
 		MoveWindow(hChild, rcChild.left, rcChild.top, rcChild.right - rcChild.left, rcChild.bottom - rcChild.top, TRUE);
 		hChild = GetNextWindow(hChild, GW_HWNDNEXT);
@@ -1034,21 +1042,19 @@ static void MovePropertySheetChildWindows(HWND hWnd, int nDx, int nDy)
 
 static HTREEITEM GetSheetPageTreeItem(int nPage)
 {
-	HTREEITEM hItem;
 	TVITEM item;
-	int nTreePage;
 
 	if (hSheetTreeCtrl == NULL)
 		return NULL;
 
-	hItem = TreeView_GetRoot(hSheetTreeCtrl);
+	HTREEITEM hItem = TreeView_GetRoot(hSheetTreeCtrl);
 	
 	while (hItem)
 	{
 		item.hItem = hItem;
 		item.mask = TVIF_PARAM;
 		(void)TreeView_GetItem(hSheetTreeCtrl, &item);
-		nTreePage = (int)item.lParam;
+		int nTreePage = (int)item.lParam;
 
 		if (nTreePage == nPage)
 			return hItem;
@@ -1059,9 +1065,8 @@ static HTREEITEM GetSheetPageTreeItem(int nPage)
 	return NULL;
 }
 
-static int GetSheetPageTreeCurSelText(LPWSTR lpszText, int iBufSize)
+static int GetSheetPageTreeCurSelText(TCHAR* lpszText, int iBufSize)
 {
-	HTREEITEM hItem;
 	TVITEM item;
 
 	lpszText[0] = 0;
@@ -1069,33 +1074,27 @@ static int GetSheetPageTreeCurSelText(LPWSTR lpszText, int iBufSize)
 	if (hSheetTreeCtrl == NULL)
 		return -1;
 
-	hItem = TreeView_GetSelection(hSheetTreeCtrl);
+	HTREEITEM hItem = TreeView_GetSelection(hSheetTreeCtrl);
 
 	if (hItem == NULL)
 		return -1;
 
-	item.hItem      = hItem;
-	item.mask  	    = TVIF_TEXT;
-	item.pszText    = (LPTSTR)lpszText;
+	item.hItem = hItem;
+	item.mask = TVIF_TEXT;
+	item.pszText = lpszText;
 	item.cchTextMax = iBufSize;
 
 	(void)TreeView_GetItem(hSheetTreeCtrl, &item);
-	return wcslen(lpszText);
+	return _tcslen(lpszText);
 }
 
 void ModifyPropertySheetForTreeSheet(HWND hPageDlg)
 {
-	HWND hWnd, hTabWnd;
-	DWORD tabStyle;
-	int nPage, nPageCount, i, start;
 	RECT rectSheet, rectTree;
-	HTREEITEM hItem;
 	LONG_PTR prevProc;
 	TCITEM item;
-	HWND hTempTab;
-	HFONT hTreeSheetFont = NULL;
-	HIMAGELIST hTreeList = NULL;
-	HICON hIconList = NULL;
+	HTREEITEM hItem;
+	int nPage = 0;
 	
 	if (g_nFirstInitPropertySheet == 0)
 	{
@@ -1103,7 +1102,7 @@ void ModifyPropertySheetForTreeSheet(HWND hPageDlg)
 		return;
 	}
 
-	hWnd = GetParent(hPageDlg);
+	HWND hWnd = GetParent(hPageDlg);
 	
 	if (!hWnd)
 		return;
@@ -1111,12 +1110,12 @@ void ModifyPropertySheetForTreeSheet(HWND hPageDlg)
 	prevProc = GetWindowLongPtr(hWnd, GWLP_WNDPROC);
 	pfnOldSheetProc = (WNDPROC)prevProc;
 	SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG_PTR)NewSheetWndProc);
-	hTabWnd = PropSheet_GetTabControl(hWnd);
+	HWND hTabWnd = PropSheet_GetTabControl(hWnd);
 
 	if (!hTabWnd)
 		return;
 
-	tabStyle = (GetWindowLong(hTabWnd, GWL_STYLE) & ~TCS_MULTILINE);
+	DWORD tabStyle = (GetWindowLong(hTabWnd, GWL_STYLE) & ~TCS_MULTILINE);
 	SetWindowLong(hTabWnd, GWL_STYLE, tabStyle | TCS_SINGLELINE);
 	ShowWindow(hTabWnd, SW_HIDE);
 	EnableWindow(hTabWnd, FALSE);
@@ -1136,14 +1135,14 @@ void ModifyPropertySheetForTreeSheet(HWND hPageDlg)
 	}
 
 	memset(&rectTree, 0, sizeof(RECT));
-	hTempTab = CreateWindowEx(0, WC_TABCONTROL, NULL, WS_CHILD | WS_CLIPSIBLINGS,
+	HWND hTempTab = CreateWindowEx(0, WC_TABCONTROL, NULL, WS_CHILD | WS_CLIPSIBLINGS,
 		rectTree.left, rectTree.top, rectTree.right - rectTree.left, rectTree.bottom - rectTree.top,
 		hWnd, (HMENU)0x1234, hSheetInstance, NULL);
 
 	item.mask = TCIF_TEXT;
 	item.iImage = 0;
 	item.lParam = 0;
-	item.pszText = (LPTSTR)"";
+	item.pszText = (TCHAR*)TEXT("");
 	
 	(void)TabCtrl_InsertItem(hTempTab, 0, &item);
 	(void)TabCtrl_GetItemRect(hTempTab, 0, &rcTabCaption);
@@ -1174,16 +1173,16 @@ void ModifyPropertySheetForTreeSheet(HWND hPageDlg)
 		ErrorMessageBox("PropertySheet TreeCtrl creation error %d %X", (int)dwError, (int)dwError);
 	}
 
-	hTreeSheetFont = CreateFont(-11, 0, 0, 0, 400, 0, 0, 0, 0, 3, 2, 1, 34, TEXT("Verdana"));
+	HFONT hTreeSheetFont = CreateFont(-11, 0, 0, 0, 400, 0, 0, 0, 0, 3, 2, 1, 34, TEXT("Verdana"));
 	SetWindowFont(hSheetTreeCtrl, hTreeSheetFont, TRUE);
 	(void)TreeView_DeleteAllItems(hSheetTreeCtrl);
-	nPageCount = TabCtrl_GetItemCount(hTabWnd);
- 	hTreeList = ImageList_Create(32, 32, ILC_COLORDDB | ILC_MASK, nPageCount, 0);
-	start = 14 - nPageCount;
+	int nPageCount = TabCtrl_GetItemCount(hTabWnd);
+ 	HIMAGELIST hTreeList = ImageList_Create(32, 32, ILC_COLORDDB | ILC_MASK, nPageCount, 0);
+	int start = 14 - nPageCount;
 	
-	for (i = 0; i < nPageCount; i++)
+	for (int i = 0; i < nPageCount; i++)
 	{
-		hIconList = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_GENERALSHEET + i + start));
+		HICON hIconList = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_GENERALSHEET + i + start));
 		ImageList_AddIcon(hTreeList, hIconList);
 	}
 	
@@ -1191,7 +1190,7 @@ void ModifyPropertySheetForTreeSheet(HWND hPageDlg)
 	
 	for (nPage = 0; nPage < nPageCount; nPage++)
 	{
-		WCHAR szText[256];
+		TCHAR szText[256];
 		TCITEM ti;
 		TVINSERTSTRUCT tvis;
 		LPTVITEM lpTvItem;
@@ -1200,7 +1199,7 @@ void ModifyPropertySheetForTreeSheet(HWND hPageDlg)
 		memset(&ti, 0, sizeof(TCITEM));
 		ti.mask = TCIF_TEXT | TCIF_IMAGE;
 		ti.cchTextMax = sizeof(szText);
-		ti.pszText = (LPTSTR)szText;
+		ti.pszText = szText;
 
 		(void)TabCtrl_GetItem(hTabWnd, nPage, &ti);
 		lpTvItem = &tvis.item;
@@ -1209,7 +1208,7 @@ void ModifyPropertySheetForTreeSheet(HWND hPageDlg)
 		tvis.hParent = TVI_ROOT;
 		tvis.hInsertAfter = TVI_LAST;
 		lpTvItem->mask = TVIF_TEXT | TVIF_IMAGE | TVIF_SELECTEDIMAGE;
-		lpTvItem->pszText = (LPTSTR)szText;
+		lpTvItem->pszText = szText;
 		lpTvItem->iImage = nPage;
 		lpTvItem->iSelectedImage = nPage;
 		lpTvItem->state = 0;
@@ -1377,7 +1376,7 @@ INT_PTR CALLBACK GameOptionsDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARA
 		case IDC_ASPECT:
 			nCurSelection = Button_GetCheck(GetDlgItem(hDlg, IDC_ASPECT));
 			
-			if( g_bAutoAspect[GetSelectedScreen(hDlg)] != nCurSelection )
+			if(g_bAutoAspect[GetSelectedScreen(hDlg)] != nCurSelection)
 			{
 				changed = TRUE;
 				g_bAutoAspect[GetSelectedScreen(hDlg)] = nCurSelection;
@@ -1388,7 +1387,7 @@ INT_PTR CALLBACK GameOptionsDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARA
 		case IDC_SNAPSIZE:
 			nCurSelection = Button_GetCheck(GetDlgItem(hDlg, IDC_SNAPSIZE));
 			
-			if( g_bAutoSnapSize != nCurSelection )
+			if(g_bAutoSnapSize != nCurSelection)
 			{
 				changed = TRUE;
 				g_bAutoSnapSize = nCurSelection;
@@ -1666,15 +1665,10 @@ INT_PTR CALLBACK GameOptionsDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARA
 /* Read controls that are not handled in the DataMap */
 static void PropToOptions(HWND hWnd, windows_options &opts)
 {
-	HWND hCtrl;
-	HWND hCtrl2;
-	HWND hCtrl3;
+	HWND hCtrl = NULL;
+	HWND hCtrl2 = NULL;
+	HWND hCtrl3 = NULL;
 	std::string error_string;
-	char aspect_option[32];
-	int n = 0;
-	int d = 0;
-	int width = 0;
-	int height = 0;
 	TCHAR buffer[200];
 	char buffer2[200];
 	
@@ -1685,6 +1679,10 @@ static void PropToOptions(HWND hWnd, windows_options &opts)
 
 	if (hCtrl && hCtrl2 && hCtrl3)
 	{
+		int n = 0;
+		int d = 0;		
+		char aspect_option[32];
+		
 		snprintf(aspect_option, ARRAY_LENGTH(aspect_option), "aspect%d", GetSelectedScreen(hWnd));
 
 		if (Button_GetCheck(hCtrl3))
@@ -1714,6 +1712,9 @@ static void PropToOptions(HWND hWnd, windows_options &opts)
 	
 	if (hCtrl && hCtrl2 && hCtrl3)
 	{
+		int width = 0;
+		int height = 0;		
+			
 		if (Button_GetCheck(hCtrl3))
 			opts.set_value(OPTION_SNAPSIZE, "auto", OPTION_PRIORITY_CMDLINE, error_string);
 		else
@@ -1771,14 +1772,9 @@ static void UpdateProperties(HWND hDlg, datamap *map, windows_options &opts)
 /* Populate controls that are not handled in the DataMap */
 static void OptionsToProp(HWND hWnd, windows_options &opts)
 {
-	HWND hCtrl;
-	HWND hCtrl2;
+	HWND hCtrl = NULL;
+	HWND hCtrl2 = NULL;
 	TCHAR buf[100];
-	int  n = 0;
-	int  d = 0;
-	int  width = 0;
-	int  height = 0;
-	const char* cBuffer;
 	int i = 0;
 	char aspect_option[32];
 	char buffer[MAX_PATH];
@@ -1807,7 +1803,7 @@ static void OptionsToProp(HWND hWnd, windows_options &opts)
 
 		for (i = 0; i < iCount; i++)
 		{
-			cBuffer = (const char*)ComboBox_GetItemData(hCtrl, i);
+			const char *cBuffer = (const char*)ComboBox_GetItemData(hCtrl, i);
 			
 			if (strcmp(cBuffer, pCurrentOpts.value(OPTION_BIOS)) == 0)
 			{
@@ -1842,6 +1838,9 @@ static void OptionsToProp(HWND hWnd, windows_options &opts)
 	
 	if (hCtrl && hCtrl2)
 	{
+		int n = 0;
+		int d = 0;
+
 		snprintf(aspect_option, ARRAY_LENGTH(aspect_option), "aspect%d", GetSelectedScreen(hWnd));
 		
 		if (sscanf(opts.value(aspect_option), "%d:%d", &n, &d) == 2 && n != 0 && d != 0)
@@ -1944,6 +1943,9 @@ static void OptionsToProp(HWND hWnd, windows_options &opts)
 	
 	if (hCtrl && hCtrl2)
 	{
+		int width = 0;
+		int height = 0;
+
 		if (sscanf(opts.value(OPTION_SNAPSIZE), "%dx%d", &width, &height) == 2 && width != 0 && height != 0)
 		{
 			_sntprintf(buf, ARRAY_LENGTH(buf), TEXT("%d"), width);
@@ -1962,14 +1964,12 @@ static void OptionsToProp(HWND hWnd, windows_options &opts)
 /* Adjust controls - tune them to the currently selected game */
 static void SetPropEnabledControls(HWND hWnd)
 {
-	int  nIndex = g_nGame;
+	int nIndex = g_nGame;
 	BOOL d3d = (!core_stricmp(pCurrentOpts.value(OSDOPTION_VIDEO), "d3d") || !core_stricmp(pCurrentOpts.value(OSDOPTION_VIDEO), "auto"));
 	BOOL ddraw = !core_stricmp(pCurrentOpts.value(OSDOPTION_VIDEO), "ddraw");
 	BOOL opengl = !core_stricmp(pCurrentOpts.value(OSDOPTION_VIDEO), "opengl");
 	BOOL in_window = pCurrentOpts.bool_value(OSDOPTION_WINDOW);
-	BOOL joystick_attached = DIJoystick.Available();
 
-	Button_SetCheck(GetDlgItem(hWnd, IDC_ASPECT), g_bAutoAspect[GetSelectedScreen(hWnd)]);
 	/* Video options */
 	EnableWindow(GetDlgItem(hWnd, IDC_D3D_FILTER),		(opengl || d3d));
 	EnableWindow(GetDlgItem(hWnd, IDC_HWSTRETCH),       ddraw);
@@ -2021,22 +2021,6 @@ static void SetPropEnabledControls(HWND hWnd)
 	EnableWindow(GetDlgItem(hWnd, IDC_SNAPSIZEHEIGHT), 	!g_bAutoSnapSize);
 	EnableWindow(GetDlgItem(hWnd, IDC_SNAPSIZEWIDTH), 	!g_bAutoSnapSize);
 	EnableWindow(GetDlgItem(hWnd, IDC_SNAPSIZEX), 		!g_bAutoSnapSize);
-	/* Joystick options */
-	EnableWindow(GetDlgItem(hWnd, IDC_JOYSTICK),		joystick_attached);
-	EnableWindow(GetDlgItem(hWnd, IDC_JDZTEXT),			joystick_attached);
-	EnableWindow(GetDlgItem(hWnd, IDC_JDZDISP),			joystick_attached);
-	EnableWindow(GetDlgItem(hWnd, IDC_JDZ),				joystick_attached);
-	EnableWindow(GetDlgItem(hWnd, IDC_JSATTEXT),		joystick_attached);
-	EnableWindow(GetDlgItem(hWnd, IDC_JSATDISP),		joystick_attached);
-	EnableWindow(GetDlgItem(hWnd, IDC_JSAT),			joystick_attached);
-	EnableWindow(GetDlgItem(hWnd, IDC_JOYSTICK_ID_1),	joystick_attached);
-	EnableWindow(GetDlgItem(hWnd, IDC_JOYSTICK_ID_2),	joystick_attached);
-	EnableWindow(GetDlgItem(hWnd, IDC_JOYSTICK_ID_3),	joystick_attached);
-	EnableWindow(GetDlgItem(hWnd, IDC_JOYSTICK_ID_4),	joystick_attached);
-	EnableWindow(GetDlgItem(hWnd, IDC_JOYSTICK_ID_5),	joystick_attached);
-	EnableWindow(GetDlgItem(hWnd, IDC_JOYSTICK_ID_6),	joystick_attached);
-	EnableWindow(GetDlgItem(hWnd, IDC_JOYSTICK_ID_7),	joystick_attached);
-	EnableWindow(GetDlgItem(hWnd, IDC_JOYSTICK_ID_8),	joystick_attached);
 	/* Misc options */
 	if (Button_GetCheck(GetDlgItem(hWnd, IDC_AUTOFRAMESKIP)))
 		EnableWindow(GetDlgItem(hWnd, IDC_FRAMESKIP), 	FALSE);
@@ -2115,14 +2099,11 @@ static BOOL RotatePopulateControl(datamap *map, HWND dialog, HWND control, windo
 static BOOL ScreenReadControl(datamap *map, HWND dialog, HWND control, windows_options &opts, const char *option_name)
 {
 	char screen_option_name[32];
-	const char *screen_option_value;
-	int selected_screen;
-	int screen_option_index;
 	std::string error_string;
 
-	selected_screen = GetSelectedScreen(dialog);
-	screen_option_index = ComboBox_GetCurSel(control);
-	screen_option_value = (const char*)ComboBox_GetItemData(control, screen_option_index);
+	int selected_screen = GetSelectedScreen(dialog);
+	int screen_option_index = ComboBox_GetCurSel(control);
+	const char *screen_option_value = (const char*)ComboBox_GetItemData(control, screen_option_index);
 	snprintf(screen_option_name, ARRAY_LENGTH(screen_option_name), "screen%d", selected_screen);
 	opts.set_value(screen_option_name, screen_option_value, OPTION_PRIORITY_CMDLINE, error_string);
 	assert(error_string.empty());
@@ -2132,12 +2113,7 @@ static BOOL ScreenReadControl(datamap *map, HWND dialog, HWND control, windows_o
 static BOOL ScreenPopulateControl(datamap *map, HWND dialog, HWND control, windows_options &opts, const char *option_name)
 {
 	DISPLAY_DEVICE dd;
-	int i = 0;
 	int nSelection = 0;
-	const char *option;
-	char *device;
-	TCHAR *t_device;
-	char screen_option[32];
 
 	/* Remove all items in the list. */
 	(void)ComboBox_ResetContent(control);
@@ -2147,17 +2123,18 @@ static BOOL ScreenPopulateControl(datamap *map, HWND dialog, HWND control, windo
 	memset(&dd, 0, sizeof(DISPLAY_DEVICE));
 	dd.cb = sizeof(DISPLAY_DEVICE);
 	
-	for (i = 0; EnumDisplayDevices(NULL, i, &dd, 0); i++)
+	for (int i = 0; EnumDisplayDevices(NULL, i, &dd, 0); i++)
 	{
 		if (!(dd.StateFlags & DISPLAY_DEVICE_MIRRORING_DRIVER))
 		{
 			//we have to add 1 to account for the "auto" entry
-			device = utf8_from_tstring(dd.DeviceName);
-			t_device = tstring_from_utf8(device);
+			char screen_option[32];
+			char *device = utf8_from_tstring(dd.DeviceName);
+			TCHAR *t_device = tstring_from_utf8(device);
 			(void)ComboBox_InsertString(control, i + 1, t_device);
 			(void)ComboBox_SetItemData(control, i + 1, device);
 			snprintf(screen_option, ARRAY_LENGTH(screen_option), "screen%d", GetSelectedScreen(dialog));
-			option = opts.value(screen_option);
+			const char *option = opts.value(screen_option);
 			
 			if (strcmp(option, device) == 0)
 				nSelection = i + 1;
@@ -2171,25 +2148,23 @@ static BOOL ScreenPopulateControl(datamap *map, HWND dialog, HWND control, windo
 	return FALSE;
 }
 
-static void ViewSetOptionName(datamap *map, HWND dialog, HWND control, char *buffer)
+static void ViewSetOptionName(datamap *map, HWND dialog, HWND control, char *buffer, size_t buffer_size)
 {
-	snprintf(buffer, ARRAY_LENGTH(buffer), "view%d", GetSelectedScreen(dialog));
+	snprintf(buffer, buffer_size, "view%d", GetSelectedScreen(dialog));
 }
 
 static BOOL ViewPopulateControl(datamap *map, HWND dialog, HWND control, windows_options &opts, const char *option_name)
 {
-	int i;
 	int selected_index = 0;
 	char view_option[32];
-	const char *view;
 
 	// determine the view option value
 	snprintf(view_option, ARRAY_LENGTH(view_option), "view%d", GetSelectedScreen(dialog));
-	view = opts.value(view_option);
+	const char *view = opts.value(view_option);
 
 	(void)ComboBox_ResetContent(control);
 	
-	for (i = 0; i < NUMVIEW; i++)
+	for (int i = 0; i < NUMVIEW; i++)
 	{
 		(void)ComboBox_InsertString(control, i, g_ComboBoxView[i].m_pText);
 		(void)ComboBox_SetItemData(control, i, g_ComboBoxView[i].m_pData);
@@ -2204,12 +2179,10 @@ static BOOL ViewPopulateControl(datamap *map, HWND dialog, HWND control, windows
 
 static BOOL DefaultInputReadControl(datamap *map, HWND dialog, HWND control, windows_options &opts, const char *option_name)
 {
-	const char *input_option_value;
-	int input_option_index;
 	std::string error_string;
 
-	input_option_index = ComboBox_GetCurSel(control);
-	input_option_value = (const char*)ComboBox_GetItemData(control, input_option_index);
+	int input_option_index = ComboBox_GetCurSel(control);
+	const char *input_option_value = (const char*)ComboBox_GetItemData(control, input_option_index);
 	opts.set_value(OPTION_CTRLR, input_option_index ? input_option_value : "", OPTION_PRIORITY_CMDLINE, error_string);
 	assert(error_string.empty());
 	return FALSE;
@@ -2218,17 +2191,12 @@ static BOOL DefaultInputReadControl(datamap *map, HWND dialog, HWND control, win
 static BOOL DefaultInputPopulateControl(datamap *map, HWND dialog, HWND control, windows_options &opts, const char *option_name)
 {
 	WIN32_FIND_DATA FindFileData;
-	HANDLE hFind;
-	char *ext;
-	char *root;
 	char path[MAX_PATH];
 	int selected = 0;
 	int index = 0;
-	const char *ctrlr_option;
-	TCHAR *t_root;
 
 	// determine the ctrlr option
-	ctrlr_option = opts.value(OPTION_CTRLR);
+	const char *ctrlr_option = opts.value(OPTION_CTRLR);
 
 	// reset the controllers dropdown
 	(void)ComboBox_ResetContent(control);
@@ -2236,16 +2204,16 @@ static BOOL DefaultInputPopulateControl(datamap *map, HWND dialog, HWND control,
 	(void)ComboBox_SetItemData(control, index, "");
 	index++;
 	snprintf(path, ARRAY_LENGTH(path), "%s\\*.*", GetCtrlrDir());
-	hFind = win_find_first_file_utf8(path, &FindFileData);
+	HANDLE hFind = win_find_first_file_utf8(path, &FindFileData);
 
 	if (hFind != INVALID_HANDLE_VALUE)
 	{
 		while (FindNextFile (hFind, &FindFileData) != 0)
 		{
 			// copy the filename
-			root = utf8_from_tstring(FindFileData.cFileName);
+			char *root = utf8_from_tstring(FindFileData.cFileName);
 			// find the extension
-			ext = strrchr(root, '.');
+			char *ext = strrchr(root, '.');
 			
 			if (ext)
 			{
@@ -2260,7 +2228,7 @@ static BOOL DefaultInputPopulateControl(datamap *map, HWND dialog, HWND control,
 						selected = index;
 
 					// add it as an option
-					t_root = tstring_from_utf8(root);
+					TCHAR *t_root = tstring_from_utf8(root);
 					(void)ComboBox_InsertString(control, index, t_root);
 					(void)ComboBox_SetItemData(control, index, root);
 					free(t_root);
@@ -2278,33 +2246,35 @@ static BOOL DefaultInputPopulateControl(datamap *map, HWND dialog, HWND control,
 	return FALSE;
 }
 
-static void ResolutionSetOptionName(datamap *map, HWND dialog, HWND control, char *buffer)
+static void ResolutionSetOptionName(datamap *map, HWND dialog, HWND control, char *buffer, size_t buffer_size)
 {
-	snprintf(buffer, ARRAY_LENGTH(buffer), "resolution%d", GetSelectedScreen(dialog));
+	snprintf(buffer, buffer_size, "resolution%d", GetSelectedScreen(dialog));
 }
 
 static BOOL ResolutionReadControl(datamap *map, HWND dialog, HWND control, windows_options &opts, const char *option_name)
 {
 	HWND refresh_control = GetDlgItem(dialog, IDC_REFRESH);
 	HWND sizes_control = GetDlgItem(dialog, IDC_SIZES);
-	int refresh_index, refresh_value, width, height;
-	char option_value[256];
-	TCHAR buffer[256];
-	std::string error_string;
 
 	if (refresh_control && sizes_control)
 	{
-		(void)ComboBox_GetText(sizes_control, buffer, ARRAY_LENGTH(buffer) - 1);
+		char option_value[256];
+		int width = 0; 
+		int height = 0;
+		TCHAR buffer[256];
 		
+		(void)ComboBox_GetText(sizes_control, buffer, ARRAY_LENGTH(buffer) - 1);
+
 		if (_stscanf(buffer, TEXT("%d x %d"), &width, &height) == 2)
 		{
-			refresh_index = ComboBox_GetCurSel(refresh_control);
-			refresh_value = ComboBox_GetItemData(refresh_control, refresh_index);
+			int refresh_index = ComboBox_GetCurSel(refresh_control);
+			int refresh_value = ComboBox_GetItemData(refresh_control, refresh_index);
 			snprintf(option_value, ARRAY_LENGTH(option_value), "%dx%d@%d", width, height, refresh_value);
 		}
 		else
 			strcpy(option_value, "auto");
-
+		
+		std::string error_string;
 		opts.set_value(option_name, option_value, OPTION_PRIORITY_CMDLINE, error_string);
 		assert(error_string.empty());
 	}
@@ -2316,23 +2286,23 @@ static BOOL ResolutionPopulateControl(datamap *map, HWND dialog, HWND control_, 
 {
 	HWND sizes_control = GetDlgItem(dialog, IDC_SIZES);
 	HWND refresh_control = GetDlgItem(dialog, IDC_REFRESH);
-	int width, height, refresh;
-	const char *option_value;
-	int sizes_index = 0;
-	int refresh_index = 0;
-	int sizes_selection = 0;
-	int refresh_selection = 0;
-	char screen_option[32];
-	const char *screen;
-	LPTSTR t_screen;
-	TCHAR buf[16];
-	int i;
 	DEVMODE devmode;
 
 	if (sizes_control && refresh_control)
 	{
+		int sizes_index = 0;
+		int refresh_index = 0;
+		int sizes_selection = 0;
+		int refresh_selection = 0;
+		char screen_option[32];
+		int width = 0; 
+		int height = 0; 
+		int refresh = 0;
+		int i = 0;
+		TCHAR buf[32];		
+		
 		// determine the resolution
-		option_value = opts.value(option_name);
+		const char *option_value = opts.value(option_name);
 		
 		if (sscanf(option_value, "%dx%d@%d", &width, &height, &refresh) != 3)
 		{
@@ -2353,17 +2323,17 @@ static BOOL ResolutionPopulateControl(datamap *map, HWND dialog, HWND control_, 
 		refresh_index++;
 		// determine which screen we're using
 		snprintf(screen_option, ARRAY_LENGTH(screen_option), "screen%d", GetSelectedScreen(dialog));
-		screen = opts.value(screen_option);
-		t_screen = tstring_from_utf8(screen);
+		const char *screen = opts.value(screen_option);
+		TCHAR *t_screen = tstring_from_utf8(screen);
 		// retrieve screen information
-		devmode.dmSize = sizeof(devmode);
+		devmode.dmSize = sizeof(DEVMODE);
 		
 		for (i = 0; EnumDisplaySettings(t_screen, i, &devmode); i++)
 		{
 			if ((devmode.dmBitsPerPel == 32 ) // Only 32 bit depth supported by core
 				&& (devmode.dmDisplayFrequency == refresh || refresh == 0))
 			{
-				_sntprintf(buf, ARRAY_LENGTH(buf), TEXT("%li x %li"), devmode.dmPelsWidth, devmode.dmPelsHeight);
+				_sntprintf(buf, ARRAY_LENGTH(buf), TEXT("%d x %d"), devmode.dmPelsWidth, devmode.dmPelsHeight);
 
 				if (ComboBox_FindString(sizes_control, 0, buf) == CB_ERR)
 				{
@@ -2379,7 +2349,7 @@ static BOOL ResolutionPopulateControl(datamap *map, HWND dialog, HWND control_, 
 			if (devmode.dmDisplayFrequency >= 10 )
 			{
 				// I have some devmode "vga" which specifes 1 Hz, which is probably bogus, so we filter it out
-				_sntprintf(buf, ARRAY_LENGTH(buf), TEXT("%li Hz"), devmode.dmDisplayFrequency);
+				_sntprintf(buf, ARRAY_LENGTH(buf), TEXT("%d Hz"), devmode.dmDisplayFrequency);
 
 				if (ComboBox_FindString(refresh_control, 0, buf) == CB_ERR)
 				{
@@ -2619,7 +2589,7 @@ static void BuildDataMap(void)
 	datamap_set_float_format(properties_datamap, IDC_FSCONTRASTDISP,	"%03.2f");
 	datamap_set_float_format(properties_datamap, IDC_JDZDISP,			"%03.2f");
 	datamap_set_float_format(properties_datamap, IDC_JSATDISP,			"%03.2f");
-	datamap_set_float_format(properties_datamap, IDC_SPEEDDISP,			"%03.2f");
+	datamap_set_float_format(properties_datamap, IDC_SPEEDDISP,			"%03.1f");
 	// trackbar ranges - slider-name,start,end,step
 	datamap_set_trackbar_range(properties_datamap, IDC_JDZ,         	0.0, 1.0, (float)0.05);
 	datamap_set_trackbar_range(properties_datamap, IDC_JSAT,        	0.0, 1.0, (float)0.05);
@@ -2644,17 +2614,13 @@ static void BuildDataMap(void)
 //mamefx: for coloring of changed elements
 static BOOL IsControlOptionValue(HWND hDlg, HWND hWnd_ctrl, windows_options &opts, windows_options &ref)
 {
-	const char *option_name;
-	const char *opts_value;
-	const char *ref_value;
-
-	option_name = datamap_get_control_option_name(properties_datamap, hDlg, hWnd_ctrl);
+	const char *option_name = datamap_get_control_option_name(properties_datamap, hDlg, hWnd_ctrl);
 	
 	if (option_name == NULL)
 		return TRUE;
 
-	opts_value = opts.value(option_name);
-	ref_value = ref.value(option_name);
+	const char *opts_value = opts.value(option_name);
+	const char *ref_value = ref.value(option_name);
 
 	if (opts_value == ref_value)
 		return TRUE;
@@ -2697,9 +2663,7 @@ static void NumScreensSelectionChange(HWND hWnd)
 /* Handle changes to the Refresh drop down */
 static void RefreshSelectionChange(HWND hWnd, HWND hWndCtrl)
 {
-	int nCurSelection;
-
-	nCurSelection = ComboBox_GetCurSel(hWndCtrl);
+	int nCurSelection = ComboBox_GetCurSel(hWndCtrl);
 	
 	if (nCurSelection != CB_ERR)
 	{
@@ -2712,11 +2676,10 @@ static void RefreshSelectionChange(HWND hWnd, HWND hWndCtrl)
 static void InitializeSampleRateUI(HWND hWnd)
 {
 	HWND hCtrl = GetDlgItem(hWnd, IDC_SAMPLERATE);
-	int i;
 
 	if (hCtrl)
 	{
-		for (i = 0; i < NUMSAMPLERATE; i++)
+		for (int i = 0; i < NUMSAMPLERATE; i++)
 		{
 			(void)ComboBox_InsertString(hCtrl, i, g_ComboBoxSampleRate[i].m_pText);
 			(void)ComboBox_SetItemData(hCtrl, i, g_ComboBoxSampleRate[i].m_pData);
@@ -2728,11 +2691,10 @@ static void InitializeSampleRateUI(HWND hWnd)
 static void InitializeSoundModeUI(HWND hWnd)
 {
 	HWND hCtrl = GetDlgItem(hWnd, IDC_SOUND_MODE);
-	int i;
 
 	if (hCtrl)
 	{
-		for (i = 0; i < NUMSOUND; i++)
+		for (int i = 0; i < NUMSOUND; i++)
 		{
 			(void)ComboBox_InsertString(hCtrl, i, g_ComboBoxSound[i].m_pText);
 			(void)ComboBox_SetItemData(hCtrl, i, g_ComboBoxSound[i].m_pData);
@@ -2744,11 +2706,10 @@ static void InitializeSoundModeUI(HWND hWnd)
 static void InitializeSkippingUI(HWND hWnd)
 {
 	HWND hCtrl = GetDlgItem(hWnd, IDC_FRAMESKIP);
-	int i;
 
 	if (hCtrl)
 	{
-		for (i = 0; i < NUMFRAMESKIP; i++)
+		for (int i = 0; i < NUMFRAMESKIP; i++)
 		{
 			(void)ComboBox_InsertString(hCtrl, i, g_ComboBoxFrameSkip[i].m_pText);
 			(void)ComboBox_SetItemData(hCtrl, i, g_ComboBoxFrameSkip[i].m_pData);
@@ -2776,11 +2737,10 @@ static void InitializeRotateUI(HWND hWnd)
 static void InitializeVideoUI(HWND hWnd)
 {
 	HWND hCtrl = GetDlgItem(hWnd, IDC_VIDEO_MODE);
-	int i;
 
 	if (hCtrl)
 	{
-		for (i = 0; i < NUMVIDEO; i++)
+		for (int i = 0; i < NUMVIDEO; i++)
 		{
 			(void)ComboBox_InsertString(hCtrl, i, g_ComboBoxVideo[i].m_pText);
 			(void)ComboBox_SetItemData(hCtrl, i, g_ComboBoxVideo[i].m_pData);
@@ -2791,11 +2751,10 @@ static void InitializeVideoUI(HWND hWnd)
 static void InitializeSnapNameUI(HWND hWnd)
 {
 	HWND hCtrl = GetDlgItem(hWnd, IDC_SNAPNAME);
-	int i;
 
 	if (hCtrl)
 	{
-		for (i = 0; i < NUMSNAPNAME; i++)
+		for (int i = 0; i < NUMSNAPNAME; i++)
 		{
 			(void)ComboBox_InsertString(hCtrl, i, g_ComboBoxSnapName[i].m_pText);
 			(void)ComboBox_SetItemData(hCtrl, i, g_ComboBoxSnapName[i].m_pData);
@@ -2806,11 +2765,10 @@ static void InitializeSnapNameUI(HWND hWnd)
 static void InitializeSnapViewUI(HWND hWnd)
 {
 	HWND hCtrl = GetDlgItem(hWnd, IDC_SNAPVIEW);
-	int i;
 
 	if (hCtrl)
 	{
-		for (i = 0; i < NUMSNAPVIEW; i++)
+		for (int i = 0; i < NUMSNAPVIEW; i++)
 		{
 			(void)ComboBox_InsertString(hCtrl, i, g_ComboBoxSnapView[i].m_pText);
 			(void)ComboBox_SetItemData(hCtrl, i, g_ComboBoxSnapView[i].m_pData);
@@ -2821,11 +2779,11 @@ static void InitializeSnapViewUI(HWND hWnd)
 static void UpdateSelectScreenUI(HWND hWnd)
 {
 	HWND hCtrl = GetDlgItem(hWnd, IDC_SCREENSELECT);
-	int i, curSel;
-	
+
 	if (hCtrl)
 	{
-		curSel = ComboBox_GetCurSel(hCtrl);
+		int curSel = ComboBox_GetCurSel(hCtrl);
+		int i = 0;
 		
 		if ((curSel < 0) || (curSel >= NUMSELECTSCREEN))
 			curSel = 0;
@@ -2839,7 +2797,7 @@ static void UpdateSelectScreenUI(HWND hWnd)
 		}
 		
 		// Smaller Amount of screens was selected, so use 0
-		if( i < curSel )
+		if (i < curSel)
 			(void)ComboBox_SetCurSel(hCtrl, 0);
 		else
 			(void)ComboBox_SetCurSel(hCtrl, curSel);
@@ -2854,7 +2812,7 @@ static void InitializeSelectScreenUI(HWND hWnd)
 
 static void InitializeControllerMappingUI(HWND hWnd)
 {
-	int i;
+	int i = 0;
 	HWND hCtrl  = GetDlgItem(hWnd, IDC_PADDLE);
 	HWND hCtrl1 = GetDlgItem(hWnd, IDC_ADSTICK);
 	HWND hCtrl2 = GetDlgItem(hWnd, IDC_PEDAL);
@@ -2940,14 +2898,13 @@ static void InitializeControllerMappingUI(HWND hWnd)
 static void InitializeBIOSUI(HWND hWnd)
 {
 	HWND hCtrl = GetDlgItem(hWnd, IDC_BIOS);
-	int i;
-	TCHAR* t_s;
 	
 	if (hCtrl)
 	{
 		const game_driver *gamedrv = &driver_list::driver(g_nGame);
 		const rom_entry *rom;
-
+		int i = 0;
+		
 		if (g_nGame == GLOBAL_OPTIONS)
 		{
 			(void)ComboBox_InsertString(hCtrl, i, TEXT("None"));
@@ -2977,7 +2934,7 @@ static void InitializeBIOSUI(HWND hWnd)
 					{
 						const char *name = ROM_GETHASHDATA(rom);
 						const char *biosname = ROM_GETNAME(rom);
-						t_s = tstring_from_utf8(name);
+						TCHAR *t_s = tstring_from_utf8(name);
 						
 						if(!t_s)
 							return;
@@ -3010,7 +2967,7 @@ static void InitializeBIOSUI(HWND hWnd)
 				{
 					const char *name = ROM_GETHASHDATA(rom);
 					const char *biosname = ROM_GETNAME(rom);
-					t_s = tstring_from_utf8(name);
+					TCHAR *t_s = tstring_from_utf8(name);
 					
 					if(!t_s)
 						return;
@@ -3026,15 +2983,13 @@ static void InitializeBIOSUI(HWND hWnd)
 
 static void InitializeJoystickIDUI(HWND hWnd)
 {
-	int i, j;
-	
-	for (j = 0; j < 8; j++)
+	for (int j = 0; j < 8; j++)
 	{
 		HWND hCtrl = GetDlgItem(hWnd, IDC_JOYSTICK_ID_1 + j);
 
 		if (hCtrl)
 		{
-			for (i = 0; i < NUMJOYSTICKID; i++)
+			for (int i = 0; i < NUMJOYSTICKID; i++)
 			{
 				(void)ComboBox_InsertString(hCtrl, i, g_ComboBoxJoystickID[i].m_pText);
 				(void)ComboBox_SetItemData(hCtrl, i, g_ComboBoxJoystickID[i].m_pData);
@@ -3047,12 +3002,12 @@ static BOOL SelectEffect(HWND hWnd)
 {
 	char filename[MAX_PATH];
 	BOOL changed = FALSE;
-	char option[MAX_PATH];
 	
 	*filename = 0;
 	
 	if (CommonFileDialog(GetOpenFileName, filename, FILETYPE_EFFECT_FILES))
 	{
+		char option[MAX_PATH];
 		TCHAR *t_filename = tstring_from_utf8(filename);
 		TCHAR *tempname = PathFindFileName(t_filename);
 		PathRemoveExtension(tempname);
@@ -3095,16 +3050,15 @@ static BOOL SelectMameShader(HWND hWnd, int slot)
 {
 	char filename[MAX_PATH];
 	BOOL changed = FALSE;
-	char option[MAX_PATH];
 	char shader[32];
-	int dialog = 0;
+	int dialog = IDC_MAME_SHADER0 + slot;
 	
 	*filename = 0;
 	snprintf(shader, ARRAY_LENGTH(shader), "glsl_shader_mame%d", slot);
-	dialog = IDC_MAME_SHADER0 + slot;
 	
 	if (CommonFileDialog(GetOpenFileName, filename, FILETYPE_SHADER_FILES))
 	{
+		char option[MAX_PATH];		
 		TCHAR *t_filename = tstring_from_utf8(filename);
 		TCHAR *tempname = PathFindFileName(t_filename);
 		PathRemoveExtension(tempname);
@@ -3131,10 +3085,9 @@ static BOOL ResetMameShader(HWND hWnd, int slot)
 	BOOL changed = FALSE;
 	const char *new_value = "none";
 	char option[32];
-	int dialog = 0;
+	int dialog = IDC_MAME_SHADER0 + slot;
 	
 	snprintf(option, ARRAY_LENGTH(option), "glsl_shader_mame%d", slot);
-	dialog = IDC_MAME_SHADER0 + slot;
 	
 	if (strcmp(new_value, pCurrentOpts.value(option)))
 	{
@@ -3152,16 +3105,15 @@ static BOOL SelectScreenShader(HWND hWnd, int slot)
 {
 	char filename[MAX_PATH];
 	BOOL changed = FALSE;
-	char option[MAX_PATH];
 	char shader[32];
-	int dialog = 0;
+	int dialog = IDC_SCREEN_SHADER0 + slot;
 	
 	*filename = 0;
 	snprintf(shader, ARRAY_LENGTH(shader), "glsl_shader_screen%d", slot);
-	dialog = IDC_SCREEN_SHADER0 + slot;
-	
+		
 	if (CommonFileDialog(GetOpenFileName, filename, FILETYPE_SHADER_FILES))
 	{
+		char option[MAX_PATH];
 		TCHAR *t_filename = tstring_from_utf8(filename);
 		TCHAR *tempname = PathFindFileName(t_filename);
 		PathRemoveExtension(tempname);
@@ -3188,10 +3140,9 @@ static BOOL ResetScreenShader(HWND hWnd, int slot)
 	BOOL changed = FALSE;
 	const char *new_value = "none";
 	char option[32];
-	int dialog = 0;
+	int dialog = IDC_SCREEN_SHADER0 + slot;
 	
 	snprintf(option, ARRAY_LENGTH(option), "glsl_shader_screen%d", slot);
-	dialog = IDC_SCREEN_SHADER0 + slot;
 	
 	if (strcmp(new_value, pCurrentOpts.value(option)))
 	{
@@ -3207,13 +3158,11 @@ static BOOL ResetScreenShader(HWND hWnd, int slot)
 
 static void UpdateMameShader(HWND hWnd, int slot, windows_options &opts)
 {
-	char option[32];
-	HWND hCtrl;
-	
-	hCtrl = GetDlgItem(hWnd, IDC_MAME_SHADER0 + slot);
+	HWND hCtrl = GetDlgItem(hWnd, IDC_MAME_SHADER0 + slot);
 
 	if (hCtrl)
 	{
+		char option[32];
 		snprintf(option, ARRAY_LENGTH(option), "glsl_shader_mame%d", slot);
 		const char* value = opts.value(option);
 		
@@ -3226,13 +3175,11 @@ static void UpdateMameShader(HWND hWnd, int slot, windows_options &opts)
 
 static void UpdateScreenShader(HWND hWnd, int slot, windows_options &opts)
 {
-	char option[32];
-	HWND hCtrl;
-	
-	hCtrl = GetDlgItem(hWnd, IDC_SCREEN_SHADER0 + slot);
+	HWND hCtrl = GetDlgItem(hWnd, IDC_SCREEN_SHADER0 + slot);
 
 	if (hCtrl)
 	{
+		char option[32];
 		snprintf(option, ARRAY_LENGTH(option), "glsl_shader_screen%d", slot);
 		const char* value = opts.value(option);
 		
@@ -3247,13 +3194,13 @@ static BOOL SelectCheatFile(HWND hWnd)
 {
 	char filename[MAX_PATH];
 	BOOL changed = FALSE;
-	char optvalue[MAX_PATH];
-	char option[MAX_PATH];
 
 	*filename = 0;
 	
 	if (CommonFileDialog(GetOpenFileName, filename, FILETYPE_CHEAT_FILES))
 	{
+		char option[MAX_PATH];
+		char optvalue[MAX_PATH];
 		TCHAR *t_filename = tstring_from_utf8(filename);
 		TCHAR *t_cheatopt = tstring_from_utf8(filename);
 		TCHAR *tempname = PathFindFileName(t_filename);
@@ -3303,7 +3250,7 @@ static BOOL ChangeJoystickMap(HWND hWnd)
 	BOOL changed = FALSE;
 	char joymap[90];
 	
-	win_get_window_text_utf8(GetDlgItem(hWnd, IDC_JOYSTICKMAP), joymap, sizeof(joymap));
+	win_get_window_text_utf8(GetDlgItem(hWnd, IDC_JOYSTICKMAP), joymap, ARRAY_LENGTH(joymap));
 
 	if (strcmp(joymap, pCurrentOpts.value(OPTION_JOYSTICK_MAP)))
 	{
@@ -3337,12 +3284,12 @@ static BOOL SelectDebugscript(HWND hWnd)
 {
 	char filename[MAX_PATH];
 	BOOL changed = FALSE;
-	char option[MAX_PATH];
 
 	*filename = 0;
 	
 	if (CommonFileDialog(GetOpenFileName, filename, FILETYPE_DEBUGSCRIPT_FILES))
 	{
+		char option[MAX_PATH];
 		TCHAR *t_filename = tstring_from_utf8(filename);
 		TCHAR *tempname = PathFindFileName(t_filename);
 		PathRemoveExtension(tempname);

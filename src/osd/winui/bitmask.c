@@ -25,10 +25,8 @@ static UCHAR maskTable[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
  */
 LPBITS NewBits(UINT nLength)
 {
-	LPBITS lpBits = 0;
+	LPBITS lpBits = (LPBITS)malloc(sizeof(BITS));
 	UINT nSize = (nLength + 7) / 8;
-
-	lpBits = (LPBITS)malloc(sizeof(BITS));
 	
 	if (lpBits)
 	{
@@ -63,54 +61,45 @@ void DeleteBits(LPBITS lpBits)
 /* Test the 'nBit'th bit */
 BOOL TestBit(LPBITS lpBits, UINT nBit)
 {
-	UINT offset;
-	UCHAR mask;
-
 	if (nBit < 0 || !lpBits || !lpBits->m_lpBits)
 		return FALSE;
 
-	offset = nBit >> 3;
+	UINT offset = nBit >> 3;
 
 	if (offset >= lpBits->m_nSize)
 		return FALSE;
 
-	mask = maskTable[nBit & 7];
+	UCHAR mask = maskTable[nBit & 7];
 	return	(lpBits->m_lpBits[offset] & mask) ? TRUE : FALSE;
 }
 
 /* Set the 'nBit'th bit */
 void SetBit(LPBITS lpBits, UINT nBit)
 {
-	UINT offset;
-	UCHAR mask;
-
 	if (nBit < 0 || !lpBits || !lpBits->m_lpBits)
 		return;
 
-	offset = nBit >> 3;
+	UINT offset = nBit >> 3;
 
 	if (offset >= lpBits->m_nSize)
 		return;
 
-	mask = maskTable[nBit & 7];
+	UCHAR mask = maskTable[nBit & 7];
 	lpBits->m_lpBits[offset] |= mask;
 }
 
 /* Clear the 'nBit'th bit */
 void ClearBit(LPBITS lpBits, UINT nBit)
 {
-	UINT offset;
-	UCHAR mask;
-
 	if (nBit < 0 || !lpBits || !lpBits->m_lpBits)
 		return;
 
-	offset = nBit >> 3;
+	UINT offset = nBit >> 3;
 
 	if (offset >= lpBits->m_nSize)
 		return;
 
-	mask = maskTable[nBit & 7];
+	UCHAR mask = maskTable[nBit & 7];
 	lpBits->m_lpBits[offset] &= ~mask;
 }
 
@@ -130,21 +119,19 @@ void SetAllBits(LPBITS lpBits, BOOL bSet)
  */
 int FindBit(LPBITS lpBits, int nStartPos, BOOL bSet)
 {
-	UINT end;
-	UINT i;
-	BOOL res;
+	UINT i = 0;
 
 	if (!lpBits || !lpBits->m_nSize || !lpBits->m_lpBits)
 		return -1;
 
-	end = lpBits->m_nSize << 3;
+	UINT end = lpBits->m_nSize << 3;
 
 	if (nStartPos < 0)
 		nStartPos = 0;
 
 	for (i = nStartPos; i < end; i++)
 	{
-		res = (TestBit(lpBits, i)) ? TRUE : FALSE;
+		BOOL res = (TestBit(lpBits, i)) ? TRUE : FALSE;
 		
 		if ((res && bSet) || (!res && !bSet))
 			return i;

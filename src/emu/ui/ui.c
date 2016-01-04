@@ -1254,10 +1254,18 @@ std::string &ui_manager::game_info_astring(std::string &str)
 			{
 				const rectangle &visarea = screen->visible_area();
 
-				strcatprintf(str, "%d " UTF8_MULTIPLY " %d (%s) %f" UTF8_NBSP "Hz\n",
-						visarea.width(), visarea.height(),
-						(machine().system().flags & ORIENTATION_SWAP_XY) ? "V" : "H",
-						ATTOSECONDS_TO_HZ(screen->frame_period().attoseconds()));
+				if (machine().system().flags & ORIENTATION_SWAP_XY)
+				{
+					strcatprintf(str, "%d " UTF8_MULTIPLY " %d (%s) %f" UTF8_NBSP "Hz\n",
+							visarea.height(), visarea.width(), "V",
+							ATTOSECONDS_TO_HZ(screen->frame_period().attoseconds()));
+				}
+				else
+				{
+					strcatprintf(str, "%d " UTF8_MULTIPLY " %d (%s) %f" UTF8_NBSP "Hz\n",
+							visarea.width(), visarea.height(), "H",
+							ATTOSECONDS_TO_HZ(screen->frame_period().attoseconds()));
+				}
 			}
 		}
 	}

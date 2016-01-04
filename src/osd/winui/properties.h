@@ -26,15 +26,6 @@ char * GameInfoTitle(OPTIONS_TYPE opt_type, int nIndex);
 void InitPropertyPage(HINSTANCE hInst, HWND hWnd, HICON hIcon, OPTIONS_TYPE opt_type, int folder_id, int game_num);
 void InitPropertyPageToPage(HINSTANCE hInst, HWND hWnd, HICON hIcon, OPTIONS_TYPE opt_type, int folder_id, int game_num, int start_page);
 void InitDefaultPropertyPage(HINSTANCE hInst, HWND hWnd);
-
-typedef struct
-{
-	BOOL bOnDefaultPage;
-	BOOL (*pfnFilterProc)(int nDriver);
-	DWORD dwDlgID;
-	DLGPROC pfnDlgProc;
-} PROPERTYSHEETINFO;
-
 INT_PTR CALLBACK GamePropertiesDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lParam);
 INT_PTR CALLBACK GameOptionsDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lParam);
 void ModifyPropertySheetForTreeSheet(HWND);

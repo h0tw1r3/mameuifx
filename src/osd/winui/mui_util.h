@@ -38,7 +38,7 @@ BOOL DriverIsVertical(int driver_index);
 BOOL DriverIsMechanical(int driver_index);
 BOOL DriverIsImperfect(int driver_index);
 HICON win_extract_icon_utf8(HINSTANCE inst, const char* exefilename, UINT iconindex);
-HANDLE win_find_first_file_utf8(const char* filename, LPWIN32_FIND_DATA findfiledata);
+HANDLE win_find_first_file_utf8(const char* filename, WIN32_FIND_DATA *findfiledata);
 void CenterWindow(HWND hWnd);
 BOOL IsWindowsSevenOrHigher(void);
 

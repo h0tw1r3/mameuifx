@@ -29,28 +29,22 @@
 
 WRITE16_MEMBER(darkseal_state::control_w)
 {
-	switch (offset << 1) 
-	{
-		case 6: /* DMA flag */
-			m_spriteram->copy();
-			break;
-
-		case 8: /* Sound CPU write */
-			if (ACCESSING_BITS_0_7)
-			{
-				soundlatch_byte_w(space, 0, data & 0xff);
-				m_audiocpu->set_input_line(0, HOLD_LINE);
-			}
-			break;
-
-		case 0xa: /* IRQ Ack (VBL) */
-			break;
+	switch (offset<<1) {
+	case 6: /* DMA flag */
+		m_spriteram->copy();
+		return;
+	case 8: /* Sound CPU write */
+		soundlatch_byte_w(space, 0, data & 0xff);
+		m_audiocpu->set_input_line(0, HOLD_LINE);
+		return;
+	case 0xa: /* IRQ Ack (VBL) */
+		return;
 	}
 }
 
 READ16_MEMBER(darkseal_state::control_r)
 {
-	switch (offset << 1)
+	switch (offset<<1)
 	{
 		case 0:
 			return ioport("DSW")->read();

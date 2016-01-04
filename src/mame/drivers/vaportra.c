@@ -20,22 +20,12 @@
 
 /******************************************************************************/
 
-WRITE16_MEMBER(vaportra_state::vaportra_control_w)
+WRITE16_MEMBER(vaportra_state::vaportra_sound_w)
 {
-	switch (offset << 1) 
-	{
-		case 6: /* Sound CPU write */
-			if (ACCESSING_BITS_0_7)
-			{
-				soundlatch_byte_w(space, 0, data & 0xff);
-				m_audiocpu->set_input_line(0, HOLD_LINE);
-			}
-			break;
-
-		default: 
-			break;
-	}
-
+	/* Force synchronisation between CPUs with fake timer */
+	machine().scheduler().synchronize();
+	soundlatch_byte_w(space, 0, data & 0xff);
+	m_audiocpu->set_input_line(0, ASSERT_LINE);
 }
 
 READ16_MEMBER(vaportra_state::vaportra_control_r)
@@ -59,7 +49,8 @@ READ16_MEMBER(vaportra_state::vaportra_control_r)
 static ADDRESS_MAP_START( main_map, AS_PROGRAM, 16, vaportra_state )
 	AM_RANGE(0x000000, 0x07ffff) AM_ROM
 	AM_RANGE(0x100000, 0x100003) AM_WRITE(vaportra_priority_w)
-	AM_RANGE(0x100000, 0x10000f) AM_READWRITE(vaportra_control_r, vaportra_control_w)
+	AM_RANGE(0x100006, 0x100007) AM_WRITE(vaportra_sound_w)
+	AM_RANGE(0x100000, 0x10000f) AM_READ(vaportra_control_r)
 	AM_RANGE(0x200000, 0x201fff) AM_DEVREADWRITE("tilegen2", deco16ic_device, pf1_data_r, pf1_data_w)
 	AM_RANGE(0x202000, 0x203fff) AM_DEVREADWRITE("tilegen2", deco16ic_device, pf2_data_r, pf2_data_w)
 	AM_RANGE(0x240000, 0x24000f) AM_DEVWRITE("tilegen2", deco16ic_device, pf_control_w)
@@ -77,13 +68,19 @@ ADDRESS_MAP_END
 
 /******************************************************************************/
 
+READ8_MEMBER(vaportra_state::vaportra_soundlatch_r)
+{
+	m_audiocpu->set_input_line(0, CLEAR_LINE);
+	return soundlatch_byte_r(space, offset);
+}
+
 static ADDRESS_MAP_START( sound_map, AS_PROGRAM, 8, vaportra_state )
 	AM_RANGE(0x000000, 0x00ffff) AM_ROM
 	AM_RANGE(0x100000, 0x100001) AM_DEVREADWRITE("ym1", ym2203_device, read, write)
 	AM_RANGE(0x110000, 0x110001) AM_DEVREADWRITE("ym2", ym2151_device, read, write)
 	AM_RANGE(0x120000, 0x120001) AM_DEVREADWRITE("oki1", okim6295_device, read, write)
 	AM_RANGE(0x130000, 0x130001) AM_DEVREADWRITE("oki2", okim6295_device, read, write)
-	AM_RANGE(0x140000, 0x140001) AM_READ(soundlatch_byte_r)
+	AM_RANGE(0x140000, 0x140001) AM_READ(vaportra_soundlatch_r)
 	AM_RANGE(0x1f0000, 0x1f1fff) AM_RAMBANK("bank8")  /* ??? LOOKUP ??? */
 //	AM_RANGE(0x1fec00, 0x1fec01) AM_DEVWRITE("audiocpu", h6280_device, timer_w)
 	AM_RANGE(0x1ff400, 0x1ff403) AM_DEVWRITE("audiocpu", h6280_device, irq_status_w)

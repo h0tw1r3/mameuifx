@@ -36,15 +36,15 @@ static const char * StatusString(int iStatus);
     Internal variables
  ***************************************************************************/
 
-static HWND hAudit;
-static int rom_index;
-static int roms_correct;
-static int roms_incorrect;
-static int roms_notfound;
-static int sample_index;
-static int samples_correct;
-static int samples_incorrect;
-static int samples_notfound;
+static HWND hAudit = NULL;
+static int rom_index = 0;
+static int roms_correct = 0;
+static int roms_incorrect = 0;
+static int roms_notfound = 0;
+static int sample_index = 0;
+static int samples_correct = 0;
+static int samples_incorrect = 0;
+static int samples_notfound = 0;
 static int audit_color = 0;
 static int audit_samples = 0;
 static BOOL bCancel = FALSE;
@@ -52,9 +52,8 @@ static HICON audit_icon = NULL;
 static HICON hIcon = NULL;
 static HBRUSH hBrush = NULL;
 static HDC hDC = NULL;
+static HANDLE hThread = NULL;
 static CHARFORMAT font;
-static HANDLE hThread;
-static const char *ptr;
 
 /***************************************************************************
     External functions
@@ -163,7 +162,7 @@ static DWORD WINAPI AuditThreadProc(LPVOID hDlg)
 
 static INT_PTR CALLBACK AuditWindowProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
-	DWORD dwExitCode;
+	DWORD dwExitCode = 0;
 	bCancel = FALSE;
 	
 	switch (Msg)
@@ -192,7 +191,7 @@ static INT_PTR CALLBACK AuditWindowProc(HWND hDlg, UINT Msg, WPARAM wParam, LPAR
 		SendMessage(GetDlgItem(hAudit, IDC_ROMS_PROGRESS), PBM_SETRANGE, 0, MAKELPARAM(0, driver_list::total()));
 		SendMessage(GetDlgItem(hAudit, IDC_SAMPLES_PROGRESS), PBM_SETRANGE, 0, MAKELPARAM(0, driver_list::total()));
 		rom_index = 0;
-		hThread = CreateThread(NULL, 0, AuditThreadProc, hDlg, 0, 0);
+		hThread = CreateThread(NULL, 0, AuditThreadProc, hAudit, 0, 0);
 		return 1;
 	
 	case WM_CTLCOLORDLG:
@@ -240,7 +239,7 @@ static INT_PTR CALLBACK AuditWindowProc(HWND hDlg, UINT Msg, WPARAM wParam, LPAR
 	
 				if (GetExitCodeThread(hThread, &dwExitCode) && (dwExitCode == STILL_ACTIVE))
 				{
-					PostMessage(hDlg, WM_COMMAND, wParam, lParam);
+					PostMessage(hAudit, WM_COMMAND, wParam, lParam);
 					return 1;
 				}
 
@@ -262,18 +261,17 @@ static INT_PTR CALLBACK AuditWindowProc(HWND hDlg, UINT Msg, WPARAM wParam, LPAR
 /* Callback for the Audit property sheet */
 INT_PTR CALLBACK GameAuditDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
-	const game_driver *game = &driver_list::driver(rom_index);
-	machine_config config(*game, MameUIGlobal());
-	int iStatus;
-	LPCSTR lpStatus;
-	char buffer[4096];
-	char details[4096];
-	UINT32 crctext;
-
 	switch (Msg)
 	{
 	case WM_INITDIALOG:
 		{
+		const game_driver *game = &driver_list::driver(rom_index);
+		machine_config config(*game, MameUIGlobal());
+		char buffer[4096];
+		char details[4096];
+		UINT32 crctext = 0;
+
+		zip_file_cache_clear();
 		memset(&buffer, 0, sizeof(buffer));
 		memset(&details, 0, sizeof(details));
 		ModifyPropertySheetForTreeSheet(hDlg);
@@ -294,7 +292,7 @@ INT_PTR CALLBACK GameAuditDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 		font.crTextColor = RGB(136, 0, 21);
 		SendMessage(GetDlgItem(hAudit, IDC_AUDIT_DETAILS_PROP), EM_SETBKGNDCOLOR, 0, GetSysColor(COLOR_WINDOW));
 		SendMessage(GetDlgItem(hAudit, IDC_AUDIT_DETAILS_PROP), EM_SETCHARFORMAT, 0, (LPARAM)&font);
-		iStatus = MameUIVerifyRomSet(rom_index, 0);
+		int iStatus = MameUIVerifyRomSet(rom_index, 0);
 		
 		switch (iStatus)
 		{
@@ -311,7 +309,7 @@ INT_PTR CALLBACK GameAuditDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 		}
 		
 		SendMessage(GetDlgItem(hAudit, IDC_AUDIT_ICON), STM_SETICON, (WPARAM)audit_icon, 0);
-		lpStatus = StatusString(iStatus);
+		const char *lpStatus = StatusString(iStatus);
 		win_set_window_text_utf8(GetDlgItem(hAudit, IDC_PROP_ROMS), lpStatus);
 
 		if (DriverUsesSamples(rom_index))
@@ -331,11 +329,13 @@ INT_PTR CALLBACK GameAuditDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 		strcat(details, buffer);
 		device_iterator deviter(config.root_device());
 
-		for (device_t *device = deviter.first(); device != NULL; device = deviter.next())
-			for (const rom_entry *region = rom_first_region(*device); region != NULL; region = rom_next_region(region))
-				for (const rom_entry *rom = rom_first_file(region); rom != NULL; rom = rom_next_file(rom))
+		for (device_t *device = deviter.first(); device; device = deviter.next())
+		{
+			for (const rom_entry *region = rom_first_region(*device); region; region = rom_next_region(region))
+			{
+				for (const rom_entry *rom = rom_first_file(region); rom; rom = rom_next_file(rom))
 				{
-					UINT32 crc;
+					UINT32 crc = 0;
 					
 					if (hash_collection(ROM_GETHASHDATA(rom)).crc(crc))
 						crctext = crc;
@@ -345,10 +345,12 @@ INT_PTR CALLBACK GameAuditDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 					snprintf(buffer, ARRAY_LENGTH(buffer), "%-18s  %09d  %08x\n", ROM_GETNAME(rom), ROM_GETLENGTH(rom), crctext);
 					strcat(details, buffer);
 				}
-
+			}
+		}
+		
 		win_set_window_text_utf8(GetDlgItem(hAudit, IDC_ROM_DETAILS), ConvertToWindowsNewlines(details));
 		ShowWindow(hAudit, SW_SHOW);
-			return 1;
+		return 1;
 		}
 		
 	case WM_CTLCOLORDLG:
@@ -390,10 +392,8 @@ INT_PTR CALLBACK GameAuditDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 
 static void ProcessNextRom(void)
 {
-	int retval;
 	char buffer[200];
-
-	retval = MameUIVerifyRomSet(rom_index, 1);
+	int retval = MameUIVerifyRomSet(rom_index, 1);
 	
 	switch (retval)
 	{
@@ -435,13 +435,11 @@ static void ProcessNextRom(void)
 
 static void ProcessNextSample(void)
 {
-	int  retval;
-	char buffer[200];
-
 	if (DriverUsesSamples(sample_index))
 	{	
-		retval = MameUIVerifySampleSet(sample_index);
-
+		int retval = MameUIVerifySampleSet(sample_index);
+		char buffer[200];
+		
 		switch (retval)
 		{
 		case media_auditor::NOTFOUND:
@@ -480,16 +478,13 @@ static void ProcessNextSample(void)
 
 static void DetailsPrintf(const char *fmt, ...)
 {
-	HWND hEdit;
 	va_list marker;
 	char buffer[8000];
-	TCHAR *t_s;
-	int	textLength;
 	BOOL scroll = TRUE;
 
 	//RS 20030613 Different Ids for Property Page and Dialog
 	// so see which one's currently instantiated
-	hEdit = GetDlgItem(hAudit, IDC_AUDIT_DETAILS);
+	HWND hEdit = GetDlgItem(hAudit, IDC_AUDIT_DETAILS);
 	
 	if (hEdit ==  NULL)
 	{
@@ -503,12 +498,12 @@ static void DetailsPrintf(const char *fmt, ...)
 	va_start(marker, fmt);
 	vsnprintf(buffer, ARRAY_LENGTH(buffer), fmt, marker);
 	va_end(marker);
-	t_s = tstring_from_utf8(ConvertToWindowsNewlines(buffer));
+	TCHAR *t_s = tstring_from_utf8(ConvertToWindowsNewlines(buffer));
 	
 	if( !t_s || _tcscmp(TEXT(""), t_s) == 0)
 		return;
 
-	textLength = Edit_GetTextLength(hEdit);
+	int textLength = Edit_GetTextLength(hEdit);
 	Edit_SetSel(hEdit, textLength, textLength);
 	Edit_ReplaceSel(hEdit, t_s);
 
@@ -524,7 +519,7 @@ static void DetailsPrintf(const char *fmt, ...)
 
 static const char * StatusString(int iStatus)
 {
-	ptr = "None required";
+	static const char *ptr = "None required";
 	audit_color = 2;
 
 	switch (iStatus)

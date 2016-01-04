@@ -163,7 +163,6 @@ static void ParseIniFile(windows_options &opts, const char *name);
     Internal variables
  ***************************************************************************/
 
-static char buf[80];
 static BOOL RequiredDriverCacheStatus = FALSE;
 static winui_options gui_opts;			// INTERFACE.INI options
 static gamelist_options game_opts;		// GAMELIST.INI options
@@ -369,14 +368,14 @@ const char * GetImageTabShortName(int tab_index)
 
 static COLORREF options_get_color(winui_options &opts, const char *name)
 {
-	const char *value_str;
-	unsigned int r, g, b;
+	const char *value_str = opts.value(name);
+	unsigned int r = 0;
+	unsigned int g = 0;
+	unsigned int b = 0;
 	COLORREF value;
 
-	value_str = opts.value( name);
-
 	if (sscanf(value_str, "%u,%u,%u", &r, &g, &b) == 3)
-		value = RGB(r,g,b);
+		value = RGB(r, g, b);
 	else
 		value = (COLORREF) - 1;
 
@@ -388,14 +387,10 @@ static void options_set_color(winui_options &opts, const char *name, COLORREF va
 	char value_str[32];
 
 	if (value == (COLORREF) - 1)
-	{
 		snprintf(value_str, ARRAY_LENGTH(value_str), "%d", (int)value);
-	}
 	else
-	{
 		snprintf(value_str, ARRAY_LENGTH(value_str), "%d,%d,%d", (((int)value) >>  0) & 0xFF,
 			(((int)value) >>  8) & 0xFF, (((int)value) >> 16) & 0xFF);
-	}
 	
 	std::string error_string;
 	opts.set_value(name, value_str, OPTION_PRIORITY_CMDLINE, error_string);
@@ -623,16 +618,14 @@ static void GetsShowFolderFlags(LPBITS bits)
 {
 	char s[1024];
 	extern const FOLDERDATA g_folderData[];
-	char *token;
-	int j;
 
 	snprintf(s, ARRAY_LENGTH(s), "%s", gui_opts.value(MUIOPTION_HIDE_FOLDERS));
 	SetAllBits(bits, TRUE);
-	token = strtok(s,", \t");
+	char *token = strtok(s,", \t");
 	
 	while (token != NULL)
 	{
-		for (j = 0; g_folderData[j].m_lpTitle != NULL; j++)
+		for (int j = 0; g_folderData[j].m_lpTitle != NULL; j++)
 		{
 			if (strcmp(g_folderData[j].short_name,token) == 0)
 			{
@@ -647,22 +640,19 @@ static void GetsShowFolderFlags(LPBITS bits)
 
 BOOL GetShowFolder(int folder)
 {
-	BOOL result;
 	LPBITS show_folder_flags = NewBits(MAX_FOLDERS);
 	GetsShowFolderFlags(show_folder_flags);
-	result = TestBit(show_folder_flags, folder);
+	BOOL result = TestBit(show_folder_flags, folder);
 	DeleteBits(show_folder_flags);
 	return result;
 }
 
-void SetShowFolder(int folder,BOOL show)
+void SetShowFolder(int folder, BOOL show)
 {
 	LPBITS show_folder_flags = NewBits(MAX_FOLDERS);
-	int i;
 	int num_saved = 0;
-	char str[10000];
+	char str[1024];
 	extern const FOLDERDATA g_folderData[];
-	int j;
 	
 	GetsShowFolderFlags(show_folder_flags);
 
@@ -675,14 +665,14 @@ void SetShowFolder(int folder,BOOL show)
 
 	// we save the ones that are NOT displayed, so we can add new ones
 	// and upgraders will see them
-	for (i = 0; i < MAX_FOLDERS; i++)
+	for (int i = 0; i < MAX_FOLDERS; i++)
 	{
 		if (TestBit(show_folder_flags, i) == FALSE)
 		{
 			if (num_saved != 0)
 				strcat(str,", ");
 
-			for (j = 0; g_folderData[j].m_lpTitle != NULL; j++)
+			for (int j = 0; g_folderData[j].m_lpTitle != NULL; j++)
 			{
 				if (g_folderData[j].m_nFolderId == i)
 				{
@@ -795,11 +785,10 @@ int GetWindowState(void)
 
 void SetCustomColor(int iIndex, COLORREF uColor)
 {
-	const char *custom_color_string;
 	COLORREF custom_color[256];
 	char buffer[256];
+	const char *custom_color_string = gui_opts.value(MUIOPTION_CUSTOM_COLOR);
 
-	custom_color_string = gui_opts.value( MUIOPTION_CUSTOM_COLOR);
 	CusColorDecodeString(custom_color_string, custom_color);
 	custom_color[iIndex] = uColor;
 	CusColorEncodeString(custom_color, buffer);
@@ -810,14 +799,13 @@ void SetCustomColor(int iIndex, COLORREF uColor)
 
 COLORREF GetCustomColor(int iIndex)
 {
-	const char *custom_color_string;
 	COLORREF custom_color[256];
+	const char *custom_color_string = gui_opts.value(MUIOPTION_CUSTOM_COLOR);
 
-	custom_color_string = gui_opts.value( MUIOPTION_CUSTOM_COLOR);
 	CusColorDecodeString(custom_color_string, custom_color);
 
-	if (custom_color[iIndex] == (COLORREF)-1)
-		return (COLORREF)RGB(0,0,0);
+	if (custom_color[iIndex] == (COLORREF) - 1)
+		return (COLORREF)RGB(0, 0, 0);
 
 	return custom_color[iIndex];
 }
@@ -825,6 +813,7 @@ COLORREF GetCustomColor(int iIndex)
 void SetListFont(const LOGFONT *font)
 {
 	char font_string[256];
+	
 	FontEncodeString(font, font_string);
 	std::string error_string;
 	gui_opts.set_value(MUIOPTION_LIST_FONT, font_string, OPTION_PRIORITY_CMDLINE, error_string);
@@ -833,19 +822,22 @@ void SetListFont(const LOGFONT *font)
 
 void GetGuiFont(LOGFONT *font)
 {
-	const char *font_string = gui_opts.value( MUIOPTION_GUI_FONT);
+	const char *font_string = gui_opts.value(MUIOPTION_GUI_FONT);
+	
 	FontDecodeString(font_string, font);
 }
 
 void GetListFont(LOGFONT *font)
 {
-	const char *font_string = gui_opts.value( MUIOPTION_LIST_FONT);
+	const char *font_string = gui_opts.value(MUIOPTION_LIST_FONT);
+	
 	FontDecodeString(font_string, font);
 }
 
 void SetHistoryFont(const LOGFONT *font)
 {
 	char font_string[256];
+	
 	FontEncodeString(font, font_string);
 	std::string error_string;
 	gui_opts.set_value(MUIOPTION_HISTORY_FONT, font_string, OPTION_PRIORITY_CMDLINE, error_string);
@@ -854,13 +846,15 @@ void SetHistoryFont(const LOGFONT *font)
 
 void GetHistoryFont(LOGFONT *font)
 {
-	const char *font_string = gui_opts.value( MUIOPTION_HISTORY_FONT);
+	const char *font_string = gui_opts.value(MUIOPTION_HISTORY_FONT);
+	
 	FontDecodeString(font_string, font);
 }
 
 void SetTreeFont(const LOGFONT *font)
 {
-	char font_string[2560];
+	char font_string[256];
+	
 	FontEncodeString(font, font_string);
 	std::string error_string;
 	gui_opts.set_value(MUIOPTION_TREE_FONT, font_string, OPTION_PRIORITY_CMDLINE, error_string);
@@ -869,7 +863,8 @@ void SetTreeFont(const LOGFONT *font)
 
 void GetTreeFont(LOGFONT *font)
 {
-	const char *font_string = gui_opts.value( MUIOPTION_TREE_FONT);
+	const char *font_string = gui_opts.value(MUIOPTION_TREE_FONT);
+	
 	FontDecodeString(font_string, font);
 }
 
@@ -935,22 +930,20 @@ COLORREF GetListBgColor(void)
 
 int GetShowTab(int tab)
 {
-	const char *show_tabs_string;
-	int show_tab_flags;
+	int show_tab_flags = 0;
+	const char *show_tabs_string = gui_opts.value(MUIOPTION_HIDE_TABS);
 
-	show_tabs_string = gui_opts.value( MUIOPTION_HIDE_TABS);
 	TabFlagsDecodeString(show_tabs_string, &show_tab_flags);
 
 	return (show_tab_flags & (1 << tab)) != 0;
 }
 
-void SetShowTab(int tab,BOOL show)
+void SetShowTab(int tab, BOOL show)
 {
-	const char *show_tabs_string;
-	int show_tab_flags;
+	int show_tab_flags = 0;
 	char buffer[256];
+	const char *show_tabs_string = gui_opts.value(MUIOPTION_HIDE_TABS);
 
-	show_tabs_string = gui_opts.value( MUIOPTION_HIDE_TABS);
 	TabFlagsDecodeString(show_tabs_string, &show_tab_flags);
 
 	if (show)
@@ -965,15 +958,14 @@ void SetShowTab(int tab,BOOL show)
 }
 
 // don't delete the last one
-BOOL AllowedToSetShowTab(int tab,BOOL show)
+BOOL AllowedToSetShowTab(int tab, BOOL show)
 {
-	const char *show_tabs_string;
-	int show_tab_flags;
+	int show_tab_flags = 0;
+	const char *show_tabs_string = gui_opts.value(MUIOPTION_HIDE_TABS);
 
 	if (show == TRUE)
 		return TRUE;
 
-	show_tabs_string = gui_opts.value( MUIOPTION_HIDE_TABS);
 	TabFlagsDecodeString(show_tabs_string, &show_tab_flags);
 	show_tab_flags &= ~(1 << tab);
 
@@ -1000,6 +992,7 @@ void SetHistoryTab(int tab, BOOL show)
 void SetColumnWidths(int width[])
 {
 	char column_width_string[256];
+	
 	ColumnEncodeStringWithCount(width, column_width_string, COLUMN_MAX);
 	std::string error_string;
 	gui_opts.set_value(MUIOPTION_COLUMN_WIDTHS, column_width_string, OPTION_PRIORITY_CMDLINE, error_string);
@@ -1008,21 +1001,18 @@ void SetColumnWidths(int width[])
 
 void GetColumnWidths(int width[])
 {
-	const char *column_width_string;
-	column_width_string = gui_opts.value(MUIOPTION_COLUMN_WIDTHS);
+	const char *column_width_string = gui_opts.value(MUIOPTION_COLUMN_WIDTHS);
+	
 	ColumnDecodeStringWithCount(column_width_string, width, COLUMN_MAX);
 }
 
 void SetSplitterPos(int splitterId, int pos)
 {
-	const char *splitter_string;
-	int *splitter;
-	char buffer[256];
-
 	if (splitterId < GetSplitterCount())
 	{
-		splitter_string = gui_opts.value(MUIOPTION_SPLITTERS);
-		splitter = (int *)malloc(GetSplitterCount() * sizeof(*splitter));
+		char buffer[256];
+		const char *splitter_string = gui_opts.value(MUIOPTION_SPLITTERS);
+		int *splitter = (int *)malloc(GetSplitterCount() * sizeof(*splitter));
 		SplitterDecodeString(splitter_string, splitter);
 		splitter[splitterId] = pos;
 		SplitterEncodeString(splitter, buffer);
@@ -1035,28 +1025,26 @@ void SetSplitterPos(int splitterId, int pos)
 
 int GetSplitterPos(int splitterId)
 {
-	const char *splitter_string;
-	int *splitter;
-	int value;
+	const char *splitter_string = gui_opts.value(MUIOPTION_SPLITTERS);
 
-	splitter_string = gui_opts.value(MUIOPTION_SPLITTERS);
-	splitter = (int *)malloc(GetSplitterCount() * sizeof(*splitter));
+	int *splitter = (int *)malloc(GetSplitterCount() * sizeof(*splitter));
 	SplitterDecodeString(splitter_string, splitter);
 
 	if (splitterId < GetSplitterCount())
 	{
-		value = splitter[splitterId];
+		int value = splitter[splitterId];
 		free(splitter);
 		return value;
 	}
 	
 	free(splitter);
-	return -1; /* Error */
+	return -1; 	/* Error */
 }
 
 void SetColumnOrder(int order[])
 {
 	char column_order_string[256];
+	
 	ColumnEncodeStringWithCount(order, column_order_string, COLUMN_MAX);
 	std::string error_string;
 	gui_opts.set_value(MUIOPTION_COLUMN_ORDER, column_order_string, OPTION_PRIORITY_CMDLINE, error_string);
@@ -1065,14 +1053,15 @@ void SetColumnOrder(int order[])
 
 void GetColumnOrder(int order[])
 {
-	const char *column_order_string;
-	column_order_string = gui_opts.value(MUIOPTION_COLUMN_ORDER);
+	const char *column_order_string = gui_opts.value(MUIOPTION_COLUMN_ORDER);
+
 	ColumnDecodeStringWithCount(column_order_string, order, COLUMN_MAX);
 }
 
 void SetColumnShown(int shown[])
 {
 	char column_shown_string[256];
+	
 	ColumnEncodeStringWithCount(shown, column_shown_string, COLUMN_MAX);
 	std::string error_string;
 	gui_opts.set_value(MUIOPTION_COLUMN_SHOWN, column_shown_string, OPTION_PRIORITY_CMDLINE, error_string);
@@ -1081,8 +1070,8 @@ void SetColumnShown(int shown[])
 
 void GetColumnShown(int shown[])
 {
-	const char *column_shown_string;
-	column_shown_string = gui_opts.value(MUIOPTION_COLUMN_SHOWN);
+	const char *column_shown_string = gui_opts.value(MUIOPTION_COLUMN_SHOWN);
+
 	ColumnDecodeStringWithCount(column_shown_string, shown, COLUMN_MAX);
 }
 
@@ -1136,10 +1125,8 @@ void SetSampleDirs(const char* paths)
 
 const char * GetIniDir(void)
 {
-	const char *ini_dir;
-	const char *s;
-
-	ini_dir = core_opts.value(OPTION_INIPATH);
+	const char *s = NULL;
+	const char *ini_dir = core_opts.value(OPTION_INIPATH);
 	
 	while((s = strchr(ini_dir, ';')) != NULL)
 	{
@@ -1506,9 +1493,8 @@ void SetRomAuditResults(int driver_index, int audit_results)
 
 void IncrementPlayCount(int driver_index)
 {
-	int count;
-	
-	count = game_opts.play_count(driver_index);
+	int count = game_opts.play_count(driver_index);;
+
 	game_opts.play_count(driver_index, count + 1);
 }
 
@@ -1524,9 +1510,8 @@ void ResetPlayCount(int driver_index)
 
 void IncrementPlayTime(int driver_index, int playtime)
 {
-	int time;
-
-	time = game_opts.play_time(driver_index);
+	int time = game_opts.play_time(driver_index);
+	
 	game_opts.play_time(driver_index, time + playtime);
 }
 
@@ -1537,14 +1522,13 @@ int GetPlayTime(int driver_index)
 
 void GetTextPlayTime(int driver_index, char *buf)
 {
-	int hour, minute, second;
-	int temp = GetPlayTime(driver_index);
 	char tmp[200];
+	int temp = GetPlayTime(driver_index);
 	
-	hour = temp / 3600;
+	int hour = temp / 3600;
 	temp = temp - 3600 * hour;
-	minute = temp / 60;
-	second = temp - 60 * minute;
+	int minute = temp / 60;
+	int second = temp - 60 * minute;
 	snprintf(tmp, ARRAY_LENGTH(tmp), "%d:%02d:%02d", hour, minute, second);
 	strcpy(buf, tmp);
 }
@@ -1726,24 +1710,21 @@ input_seq* Get_ui_key_quit(void)
 
 static int GetUIJoy(const char *option_name, int joycodeIndex)
 {
-	const char *joycodes_string;
+	const char *joycodes_string = gui_opts.value(option_name);
 	int joycodes[4];
 
 	assert(0 <= joycodeIndex && joycodeIndex < 4);
-	joycodes_string = gui_opts.value( option_name);
 	ColumnDecodeStringWithCount(joycodes_string, joycodes, ARRAY_LENGTH(joycodes));
-
 	return joycodes[joycodeIndex];
 }
 
 static void SetUIJoy(const char *option_name, int joycodeIndex, int val)
 {
-	const char *joycodes_string;
+	const char *joycodes_string = gui_opts.value(option_name);
 	int joycodes[4];
 	char buffer[1024];
 
 	assert(0 <= joycodeIndex && joycodeIndex < 4);
-	joycodes_string = gui_opts.value( option_name);
 	ColumnDecodeStringWithCount(joycodes_string, joycodes, ARRAY_LENGTH(joycodes));
 	joycodes[joycodeIndex] = val;
 	ColumnEncodeStringWithCount(joycodes, buffer, ARRAY_LENGTH(joycodes));
@@ -1902,13 +1883,12 @@ void SetRunFullScreen(BOOL fullScreen)
 
 static void  CusColorEncodeString(const COLORREF *value, char* str)
 {
-	int i;
 	char tmpStr[256];
 
 	snprintf(tmpStr, ARRAY_LENGTH(tmpStr), "%u", (int) value[0]);
 	strcpy(str, tmpStr);
 
-	for (i = 1; i < 16; i++)
+	for (int i = 1; i < 16; i++)
 	{
 		snprintf(tmpStr, ARRAY_LENGTH(tmpStr), ",%u", (unsigned) value[i]);
 		strcat(str, tmpStr);
@@ -1917,18 +1897,16 @@ static void  CusColorEncodeString(const COLORREF *value, char* str)
 
 static void CusColorDecodeString(const char* str, COLORREF *value)
 {
-	int i;
-	char *s, *p;
 	char tmpStr[256];
 
 	strcpy(tmpStr, str);
-	p = tmpStr;
+	char *p = tmpStr;
 
-	for (i = 0; p && i < 16; i++)
+	for (int i = 0; p && i < 16; i++)
 	{
-		s = p;
+		char *s = p;
 
-		if ((p = strchr(s,',')) != NULL && *p == ',')
+		if ((p = strchr(s, ',')) != NULL && *p == ',')
 		{
 			*p = '\0';
 			p++;
@@ -1940,13 +1918,12 @@ static void CusColorDecodeString(const char* str, COLORREF *value)
 
 void ColumnEncodeStringWithCount(const int *value, char *str, int count)
 {
-	int i;
 	char buffer[256];
 
 	snprintf(buffer, ARRAY_LENGTH(buffer),"%d", value[0]);
-	strcpy(str,buffer);
+	strcpy(str, buffer);
 
-    for (i = 1; i < count; i++)
+    for (int i = 1; i < count; i++)
 	{
 		snprintf(buffer, ARRAY_LENGTH(buffer),",%d", value[i]);
 		strcat(str, buffer);
@@ -1955,21 +1932,16 @@ void ColumnEncodeStringWithCount(const int *value, char *str, int count)
 
 void ColumnDecodeStringWithCount(const char* str, int *value, int count)
 {
-	int i;
-	char *s, *p;
 	char tmpStr[256];
-
-	if (str == NULL)
-		return;
-
+	
 	strcpy(tmpStr, str);
-	p = tmpStr;
+	char *p = tmpStr;
 
-    for (i = 0; p && i < count; i++)
+    for (int i = 0; p && i < count; i++)
 	{
-		s = p;
+		char *s = p;
 
-		if ((p = strchr(s,',')) != NULL && *p == ',')
+		if ((p = strchr(s, ',')) != NULL && *p == ',')
 		{
 			*p = '\0';
 			p++;
@@ -1981,13 +1953,12 @@ void ColumnDecodeStringWithCount(const char* str, int *value, int count)
 
 static void SplitterEncodeString(const int *value, char* str)
 {
-	int i;
 	char tmpStr[256];
 
 	snprintf(tmpStr, ARRAY_LENGTH(tmpStr), "%d", value[0]);
 	strcpy(str, tmpStr);
 
-	for (i = 1; i < GetSplitterCount(); i++)
+	for (int i = 1; i < GetSplitterCount(); i++)
 	{
 		snprintf(tmpStr, ARRAY_LENGTH(tmpStr), ",%d", value[i]);
 		strcat(str, tmpStr);
@@ -1996,18 +1967,16 @@ static void SplitterEncodeString(const int *value, char* str)
 
 static void SplitterDecodeString(const char *str, int *value)
 {
-	int i;
-	char *s, *p;
 	char tmpStr[256];
 
 	strcpy(tmpStr, str);
-	p = tmpStr;
+	char *p = tmpStr;
 
-	for (i = 0; p && i < GetSplitterCount(); i++)
+	for (int i = 0; p && i < GetSplitterCount(); i++)
 	{
-		s = p;
+		char *s = p;
 
-		if ((p = strchr(s,',')) != NULL && *p == ',')
+		if ((p = strchr(s, ',')) != NULL && *p == ',')
 		{
 			*p = '\0';
 			p++;
@@ -2020,9 +1989,6 @@ static void SplitterDecodeString(const char *str, int *value)
 /* Parse the given comma-delimited string into a LOGFONT structure */
 static void FontDecodeString(const char *str, LOGFONT *f)
 {
-	const char *ptr;
-	TCHAR *t_ptr;
-
 	sscanf(str, "%li,%li,%li,%li,%li,%i,%i,%i,%i,%i,%i,%i,%i",
 		   &f->lfHeight,
 		   &f->lfWidth,
@@ -2037,11 +2003,11 @@ static void FontDecodeString(const char *str, LOGFONT *f)
 		   (int*)&f->lfClipPrecision,
 		   (int*)&f->lfQuality,
 		   (int*)&f->lfPitchAndFamily);
-	ptr = strrchr(str, ',');
+	const char *ptr = strrchr(str, ',');
 	
 	if (ptr != NULL) 
 	{
-		t_ptr = tstring_from_utf8(ptr + 1);
+		TCHAR *t_ptr = tstring_from_utf8(ptr + 1);
 		
 		if(!t_ptr)
 			return;
@@ -2081,14 +2047,13 @@ static void FontEncodeString(const LOGFONT *f, char *str)
 
 static void TabFlagsEncodeString(int data, char *str)
 {
-	int i;
 	int num_saved = 0;
 
 	strcpy(str,"");
 
 	// we save the ones that are NOT displayed, so we can add new ones
 	// and upgraders will see them
-	for (i = 0; i < MAX_TAB_TYPES; i++)
+	for (int i = 0; i < MAX_TAB_TYPES; i++)
 	{
 		if (((data & (1 << i)) == 0) && GetImageTabShortName(i))
 		{
@@ -2103,18 +2068,16 @@ static void TabFlagsEncodeString(int data, char *str)
 
 static void TabFlagsDecodeString(const char *str, int *data)
 {
-	char s[1000];
-	char *token;
-	int j;
+	char s[256];
 
 	snprintf(s, ARRAY_LENGTH(s), "%s", str);
 	// simple way to set all tab bits "on"
 	*data = (1 << MAX_TAB_TYPES) - 1;
-	token = strtok(s,", \t");
+	char *token = strtok(s,", \t");
 
 	while (token != NULL)
 	{
-		for (j = 0; j < MAX_TAB_TYPES; j++)
+		for (int j = 0; j < MAX_TAB_TYPES; j++)
 		{
 			if (!GetImageTabShortName(j) || (strcmp(GetImageTabShortName(j), token) == 0))
 			{
@@ -2233,7 +2196,7 @@ void SetDirectories(windows_options &opts)
 
 const char * GetFolderNameByID(UINT nID)
 {
-	UINT i;
+	UINT i = 0;
 	extern const FOLDERDATA g_folderData[];
 	extern const LPEXFOLDERDATA ExtraFolderData[];
 
@@ -2246,7 +2209,7 @@ const char * GetFolderNameByID(UINT nID)
 		}
 	}
 	
-	for( i = 0; i < MAX_FOLDERS; i++)
+	for (i = 0; i < MAX_FOLDERS; i++)
 	{
 		if (g_folderData[i].m_nFolderId == nID)
 			return g_folderData[i].m_lpTitle;
@@ -2287,7 +2250,8 @@ static DWORD DecodeFolderFlags(const char *buf)
 static const char * EncodeFolderFlags(DWORD value)
 {
 	int shift = 0;
-
+	static char buf[80];
+	
 	memset(&buf, 0, sizeof(buf));
 
 	while ((1 << shift) & F_MASK) 
@@ -2306,13 +2270,11 @@ static const char * EncodeFolderFlags(DWORD value)
 void LoadFolderFlags(void)
 {
 	winui_options opts;
-	int numFolders;
+	int numFolders = 0;
 	LPTREEFOLDER lpFolder;
-	int i;
+	int i = 0;
 	options_entry entries[2] = { { 0 }, { 0 } };
 	char folder_name[80];
-	char *ptr;
-	const char *value;
 
 	memcpy(entries, filterOptions, sizeof(filterOptions));
 	numFolders = GetNumFolders();
@@ -2325,7 +2287,7 @@ void LoadFolderFlags(void)
 		{
 			// Convert spaces to underscores
 			strcpy(folder_name, lpFolder->m_lpTitle);
-			ptr = folder_name;
+			char *ptr = folder_name;
 			
 			while (*ptr && *ptr != '\0')
 			{
@@ -2356,7 +2318,7 @@ void LoadFolderFlags(void)
 		{
 			// Convert spaces to underscores
 			strcpy(folder_name, lpFolder->m_lpTitle);
-			ptr = folder_name;
+			char *ptr = folder_name;
 			
 			while (*ptr && *ptr != '\0')
 			{
@@ -2368,12 +2330,10 @@ void LoadFolderFlags(void)
 			
 			std::string option_name = std::string(folder_name).append("_filters");
 			// get entry and decode it
-			value = opts.value(option_name.c_str());
+			const char *value = opts.value(option_name.c_str());
 
 			if (value)
-			{
 				lpFolder->m_dwFlags |= DecodeFolderFlags(value) & F_MASK;
-			}
 		}
 	}
 }
@@ -2381,13 +2341,11 @@ void LoadFolderFlags(void)
 // Adds our folder flags to a temporary winui_options, for saving.
 static void AddFolderFlags(winui_options &opts)
 {
-	int numFolders;
-	int i;
-	LPTREEFOLDER lpFolder;
+	int numFolders = 0;
+	int i = 0;
 	int num_entries = 0;
 	options_entry entries[2] = { { 0 }, { 0 } };
 	char folder_name[256];
-	char *ptr;
 
 	entries[0].name = NULL;
 	entries[0].defvalue = NULL;
@@ -2400,12 +2358,13 @@ static void AddFolderFlags(winui_options &opts)
 
 	for (i = 0; i < numFolders; i++)
 	{
-		lpFolder = GetFolder(i);
+		LPTREEFOLDER lpFolder = GetFolder(i);
+		
 		if (lpFolder && (lpFolder->m_dwFlags & F_MASK) != 0)
 		{
 			// Convert spaces to underscores
 			strcpy(folder_name, lpFolder->m_lpTitle);
-			ptr = folder_name;
+			char *ptr = folder_name;
 			
 			while (*ptr && *ptr != '\0')
 			{
@@ -2464,10 +2423,8 @@ void ResetAllGameOptions(void)
 {
 	WIN32_FIND_DATA FindFileData;
 	HANDLE hFindFile;
-	char* utf8_filename;
-	int i;
 	
-	for (i = 0; i < driver_list::total(); i++)
+	for (int i = 0; i < driver_list::total(); i++)
 	{
 		std::string filename = std::string(GetIniDir()).append(PATH_SEPARATOR).append(driver_list::driver(i).name).append(".ini");
 		osd_rmfile(filename.c_str());
@@ -2480,14 +2437,14 @@ void ResetAllGameOptions(void)
 	
 	if ((hFindFile = win_find_first_file_utf8(match.c_str(), &FindFileData)) != INVALID_HANDLE_VALUE)
 	{
-		utf8_filename = utf8_from_tstring(FindFileData.cFileName);
+		char *utf8_filename = utf8_from_tstring(FindFileData.cFileName);
 		std::string match = std::string(pathname.c_str()).append(PATH_SEPARATOR).append(utf8_filename);
 		free(utf8_filename);
 		osd_rmfile(match.c_str());
 
 		while (FindNextFile(hFindFile, &FindFileData) != 0)
 		{
-			utf8_filename = utf8_from_tstring(FindFileData.cFileName);
+			char *utf8_filename = utf8_from_tstring(FindFileData.cFileName);
 			std::string match = std::string(pathname.c_str()).append(PATH_SEPARATOR).append(utf8_filename);
 			free(utf8_filename);
 			osd_rmfile(match.c_str());
@@ -2650,12 +2607,12 @@ void SetDriverCache(int driver_index, int val)
 
 void SetRequiredDriverCacheStatus(void)
 {
-	static bool bFirst = true;
+	static BOOL bFirst = TRUE;
 
 	if (bFirst)
 	{
 		RequiredDriverCacheStatus = RequiredDriverCache(1);
-		bFirst = false;
+		bFirst = FALSE;
 	}
 }
 BOOL GetRequiredDriverCacheStatus(void)
@@ -2667,10 +2624,10 @@ BOOL GetRequiredDriverCacheStatus(void)
 
 BOOL RequiredDriverCache(int check)
 {
-	BOOL ret = false;
+	BOOL ret = FALSE;
 
 	if (strcmp(gui_opts.value(MUIOPTION_VERSION), GetVersionString()) != 0)
-		ret = true;
+		ret = TRUE;
 
 	if (!check)
 	{

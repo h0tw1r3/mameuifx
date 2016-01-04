@@ -72,16 +72,16 @@ static void DisableVisualStylesInterface(HWND hDlg);
 static void DisableVisualStylesReset(HWND hDlg);
 static void DisableVisualStylesFilters(HWND hDlg);
 
-static HICON hIcon;
-static HBRUSH hBrush;
-static HFONT hFont;
-static HFONT hFontFX;
-static HDC hDC;
-static DWORD dwFilters;
-static DWORD dwpFilters;
+static HICON hIcon = NULL;
+static HBRUSH hBrush = NULL;
+static HFONT hFont = NULL;
+static HFONT hFontFX = NULL;
+static HDC hDC = NULL;
+static DWORD dwFilters = 0;
+static DWORD dwpFilters = 0;
 static LPCFOLDERDATA lpFilterRecord;
 static LPTREEFOLDER default_selection = NULL;
-static int driver_index;
+static int driver_index = 0;
 
 /***************************************************************************/
 
@@ -92,12 +92,6 @@ const char * GetFilterText(void)
 
 INT_PTR CALLBACK ResetDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
-	char temp[400];
-	BOOL resetFilters = FALSE;
-	BOOL resetGames = FALSE;
-	BOOL resetUI = FALSE;
-	BOOL resetDefaults = FALSE;
-
 	switch (Msg)
 	{
 	case WM_INITDIALOG:
@@ -122,13 +116,15 @@ INT_PTR CALLBACK ResetDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lPar
 		switch (GET_WM_COMMAND_ID(wParam, lParam))
 		{
 		case IDOK :
-			resetFilters = Button_GetCheck(GetDlgItem(hDlg, IDC_RESET_FILTERS));
-			resetGames = Button_GetCheck(GetDlgItem(hDlg, IDC_RESET_GAMES));
-			resetDefaults = Button_GetCheck(GetDlgItem(hDlg, IDC_RESET_DEFAULT));
-			resetUI = Button_GetCheck(GetDlgItem(hDlg, IDC_RESET_UI));
+		{
+			BOOL resetFilters = Button_GetCheck(GetDlgItem(hDlg, IDC_RESET_FILTERS));
+			BOOL resetGames = Button_GetCheck(GetDlgItem(hDlg, IDC_RESET_GAMES));
+			BOOL resetDefaults = Button_GetCheck(GetDlgItem(hDlg, IDC_RESET_DEFAULT));
+			BOOL resetUI = Button_GetCheck(GetDlgItem(hDlg, IDC_RESET_UI));
 
 			if (resetFilters || resetGames || resetUI || resetDefaults)
 			{
+				char temp[512];
 				strcpy(temp, MAMEUINAME);
 				strcat(temp, " will now reset the following\n");
 				strcat(temp, "to the default settings:\n\n");
@@ -185,6 +181,8 @@ INT_PTR CALLBACK ResetDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lPar
 					// Give the user a chance to change what they want to reset.
 					break;
 			}
+		}
+		
 		// Nothing was selected but OK, just fall through
 		case IDCANCEL :
 			DeleteObject(hBrush);
@@ -231,13 +229,9 @@ static UINT_PTR CALLBACK CCHookProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM l
 
 INT_PTR CALLBACK InterfaceDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
-	CHOOSECOLOR cc;
-	COLORREF choice_colors[16];
 	BOOL bRedrawList = FALSE;
 	BOOL checked = FALSE;
 	char buffer[200];
-	int nCurSelection = 0;
-	int nHistoryTab = 0;
 	int value = 0;
 	int i = 0;
 
@@ -304,6 +298,9 @@ INT_PTR CALLBACK InterfaceDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 		{
 		case IDC_SCREENSHOT_BORDERCOLOR:
 		{
+			CHOOSECOLOR cc;
+			COLORREF choice_colors[16];			
+			
 			for (i = 0; i < 16; i++)
 				choice_colors[i] = GetCustomColor(i);
 
@@ -335,7 +332,7 @@ INT_PTR CALLBACK InterfaceDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 
 			if(Button_GetCheck(GetDlgItem(hDlg, IDC_RESET_PLAYCOUNT)))
 			{
-				for (i = 0; i< driver_list::total(); i++)
+				for (i = 0; i < driver_list::total(); i++)
 					ResetPlayCount(i);
 
 				bRedrawList = TRUE;
@@ -343,7 +340,7 @@ INT_PTR CALLBACK InterfaceDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 
 			if(Button_GetCheck(GetDlgItem(hDlg, IDC_RESET_PLAYTIME)))
 			{
-				for (i = 0; i< driver_list::total(); i++)
+				for (i = 0; i < driver_list::total(); i++)
 					ResetPlayTime(i);
 
 				bRedrawList = TRUE;
@@ -394,7 +391,8 @@ INT_PTR CALLBACK InterfaceDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 				bRedrawList = TRUE;
  			}
 
-			nCurSelection = ComboBox_GetCurSel(GetDlgItem(hDlg, IDC_HISTORY_TAB));
+			int nCurSelection = ComboBox_GetCurSel(GetDlgItem(hDlg, IDC_HISTORY_TAB));
+			int nHistoryTab = 0;
 			
 			if (nCurSelection != CB_ERR)
 				nHistoryTab = ComboBox_GetItemData(GetDlgItem(hDlg, IDC_HISTORY_TAB), nCurSelection);
@@ -431,11 +429,8 @@ INT_PTR CALLBACK InterfaceDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 
 INT_PTR CALLBACK FilterDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
-	char strText[24];
-	int i;
-	char tmp[80];
-	BOOL bShowExplanation = FALSE;
-	
+	int i = 0;
+
 	switch (Msg)
 	{
 	case WM_INITDIALOG:
@@ -448,10 +443,12 @@ INT_PTR CALLBACK FilterDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lPa
 		LPTREEFOLDER folder = GetCurrentFolder();
 		LPTREEFOLDER lpParent = NULL;
 		LPCFILTER_ITEM g_lpFilterList = GetFilterList();
+		BOOL bShowExplanation = FALSE;		
 		dwFilters = 0;
 
 		if (folder != NULL)
 		{
+			char tmp[80];
 			win_set_window_text_utf8(GetDlgItem(hDlg, IDC_FILTER_EDIT), g_FilterText);
 			Edit_SetSel(GetDlgItem(hDlg, IDC_FILTER_EDIT), 0, -1);
 			// Mask out non filter flags
@@ -466,6 +463,7 @@ INT_PTR CALLBACK FilterDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lPa
 
 				if(lpParent)
 				{
+					char strText[24];
 					/* Check the Parent Filters and inherit them on child,
                      * No need to promote all games to parent folder, works as is */
 					dwpFilters = lpParent->m_dwFlags & F_MASK;
@@ -649,12 +647,11 @@ INT_PTR CALLBACK FilterDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lPa
 
 INT_PTR CALLBACK AboutDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
-	char tmp[256];
-	
 	switch (Msg)
 	{
 	case WM_INITDIALOG:
 	{
+		char tmp[256];
 		CenterWindow(hDlg);
 		hBrush = CreateSolidBrush(RGB(235, 233, 237));
 		HBITMAP hBmp = (HBITMAP)LoadImage(GetModuleHandle(NULL), MAKEINTRESOURCE(IDB_SPLASH), IMAGE_BITMAP, 0, 0, LR_SHARED);
@@ -715,8 +712,9 @@ INT_PTR CALLBACK AddCustomFileDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPA
 		SetWindowTheme(GetDlgItem(hDlg, IDC_CUSTOM_TREE), L"Explorer", NULL);
 
 	    TREEFOLDER **folders;
-		int num_folders;
-		int i;
+		int num_folders = 0;
+		int i = 0;
+		int jj = 0;
 		TVINSERTSTRUCT tvis;
 		TVITEM tvi;
 		BOOL first_entry = TRUE;
@@ -725,7 +723,7 @@ INT_PTR CALLBACK AddCustomFileDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPA
 		// current game passed in using DialogBoxParam()
 		driver_index = lParam;
 		(void)TreeView_SetImageList(GetDlgItem(hDlg, IDC_CUSTOM_TREE), treeview_icons, LVSIL_NORMAL);
-		GetFolders(&folders,&num_folders);
+		GetFolders(&folders, &num_folders);
 
 		// insert custom folders into our tree view
 		for (i = 0; i < num_folders; i++)
@@ -733,7 +731,6 @@ INT_PTR CALLBACK AddCustomFileDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPA
 		    if (folders[i]->m_dwFlags & F_CUSTOM)
 			{
 			    HTREEITEM hti;
-				int jj;
 
 				if (folders[i]->m_nParent == -1)
 				{
@@ -807,7 +804,7 @@ INT_PTR CALLBACK AddCustomFileDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPA
 		   	{
 				/* should look for New... */
 			  	default_selection = (LPTREEFOLDER)tvi.lParam; 	/* start here next time */
-			  	AddToCustomFolder((LPTREEFOLDER)tvi.lParam,driver_index);
+			  	AddToCustomFolder((LPTREEFOLDER)tvi.lParam, driver_index);
 		   	}
 
 			DestroyIcon(hIcon);
@@ -865,8 +862,8 @@ static void DisableFilterControls(HWND hWnd, LPCFOLDERDATA lpFilterRecord, LPCFI
 // Handle disabling mutually exclusive controls
 static void EnableFilterExclusions(HWND hWnd, DWORD dwCtrlID)
 {
-	int i;
-	DWORD id;
+	int i = 0;
+	DWORD id = 0;
 
 	for (i = 0; i < NUM_EXCLUSIONS; i++)
 	{
@@ -893,12 +890,10 @@ static void EnableFilterExclusions(HWND hWnd, DWORD dwCtrlID)
 // Validate filter setting, mask out inappropriate filters for this folder
 static DWORD ValidateFilters(LPCFOLDERDATA lpFilterRecord, DWORD dwFlags)
 {
-	DWORD dwFilters;
-
 	if (lpFilterRecord != (LPFOLDERDATA)0)
 	{
 		// Mask out implied and excluded filters
-		dwFilters = lpFilterRecord->m_dwSet | lpFilterRecord->m_dwUnset;
+		DWORD dwFilters = lpFilterRecord->m_dwSet | lpFilterRecord->m_dwUnset;
 		return dwFlags & ~dwFilters;
 	}
 
@@ -908,7 +903,7 @@ static DWORD ValidateFilters(LPCFOLDERDATA lpFilterRecord, DWORD dwFlags)
 
 static void OnHScroll(HWND hWnd, HWND hWndCtl, UINT code, int pos)
 {
-	int value;
+	int value = 0;
 	char tmp[8];
 
 	if (hWndCtl == GetDlgItem(hWnd, IDC_CYCLETIMESEC))

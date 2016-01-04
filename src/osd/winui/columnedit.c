@@ -21,10 +21,11 @@
 
 #include "winui.h"
 
-static HWND hShown;
-static HWND hAvailable;
-static HBRUSH hBrush;
-static HDC hDC;
+static HWND hShown = NULL;
+static HWND hAvailable = NULL;
+static HBRUSH hBrush = NULL;
+static HDC hDC = NULL;
+static HICON hIcon = NULL;
 static BOOL showMsg = FALSE;
 
 // Returns TRUE if successful
@@ -67,10 +68,9 @@ static void DoMoveItem( HWND hWnd, BOOL bDown)
 {
 	LVITEM lvi;
 	TCHAR buf[80];
-	int nMaxpos;
 
 	lvi.iItem = ListView_GetNextItem(hWnd, -1, LVIS_SELECTED | LVIS_FOCUSED);
-	nMaxpos = ListView_GetItemCount(hWnd);
+	int nMaxpos = ListView_GetItemCount(hWnd);
 	
 	if (lvi.iItem == -1 ||
 		(lvi.iItem <  2 && bDown == FALSE) || 	// Disallow moving First column
@@ -108,18 +108,17 @@ static void DoMoveItem( HWND hWnd, BOOL bDown)
 	}
 }
 
-INT_PTR InternalColumnDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lParam,
+static INT_PTR InternalColumnDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lParam,
 	int nColumnMax, int *shown, int *order,
-	const LPCTSTR *names, void (*pfnGetRealColumnOrder)(int *),
+	const TCHAR* const *names, void (*pfnGetRealColumnOrder)(int *),
 	void (*pfnGetColumnInfo)(int *pnOrder, int *pnShown),
 	void (*pfnSetColumnInfo)(int *pnOrder, int *pnShown))
 {
-	HICON hIcon = NULL;
 	RECT rectClient;
 	LVCOLUMN LVCol;
-	int nShown;
-	int nAvail;
-	int i, nCount = 0;
+	int nShown = 0;
+	int nAvail = 0;
+	int i = 0;
 	LVITEM lvi;
 	
 	switch (Msg)
@@ -168,7 +167,7 @@ INT_PTR InternalColumnDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lPar
 
 		for (i = 0 ; i < nColumnMax; i++)
 		{
-			lvi.pszText = (TCHAR *) names[order[i]];
+			lvi.pszText = (TCHAR*)names[order[i]];
 			lvi.lParam = order[i];
 
 			if (shown[order[i]])
@@ -209,7 +208,7 @@ INT_PTR InternalColumnDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lPar
 		{
 			NMHDR *nm = (NMHDR *)lParam;
 			NM_LISTVIEW *pnmv;
-			int nPos;
+			int nPos = 0;
 
 			switch (nm->code)
 			{
@@ -402,7 +401,7 @@ INT_PTR InternalColumnDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lPar
 
 			case IDC_BUTTONREMOVE:
 				// Move selected Item in Show to Available
-				if (DoExchangeItem( hShown, hAvailable, 1))
+				if (DoExchangeItem(hShown, hAvailable, 1))
 				{
 					EnableWindow(hWndCtrl,FALSE);
 					EnableWindow(GetDlgItem(hDlg, IDC_BUTTONADD), TRUE);
@@ -423,10 +422,11 @@ INT_PTR InternalColumnDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lPar
 				break;
 
 			case IDOK:
+			{
 				// Save users choices
 				nShown = ListView_GetItemCount(hShown);
 				nAvail = ListView_GetItemCount(hAvailable);
-				nCount = 0;
+				int nCount = 0;
 
 				for (i = 0; i < nShown; i++)
 				{
@@ -457,7 +457,8 @@ INT_PTR InternalColumnDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lPar
 				DeleteObject(hBrush);
 				EndDialog(hDlg, 1);
 				return TRUE;
-
+			}
+			
 			case IDCANCEL:
 				DestroyIcon(hIcon);
 				DeleteObject(hBrush);
@@ -488,7 +489,7 @@ INT_PTR CALLBACK ColumnDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lPa
 {
 	static int shown[COLUMN_MAX];
 	static int order[COLUMN_MAX];
-	extern const LPCTSTR column_names[COLUMN_MAX]; 		// from winui.c, should improve
+	extern const TCHAR* const column_names[COLUMN_MAX]; 		// from winui.c, should improve
 
 	return InternalColumnDialogProc(hDlg, Msg, wParam, lParam, COLUMN_MAX,
 		shown, order, column_names, GetRealColumnOrder, GetColumnInfo, SetColumnInfo);

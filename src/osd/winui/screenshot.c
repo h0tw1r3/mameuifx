@@ -31,8 +31,17 @@
     function prototypes
 ***************************************************************************/
 
+typedef struct _mybitmapinfo
+{
+	int bmWidth;
+	int bmHeight;
+	int bmColors;
+} MYBITMAPINFO, *LPMYBITMAPINFO;
+
 static BOOL AllocatePNG(png_info *p, HGLOBAL *phDIB, HPALETTE* pPal);
 static int png_read_bitmap_gui(LPVOID mfile, HGLOBAL *phDIB, HPALETTE *pPAL);
+static BOOL LoadDIB(const char *filename, HGLOBAL *phDIB, HPALETTE *pPal, int pic_type);
+static HBITMAP DIBToDDB(HDC hDC, HANDLE hDIB, LPMYBITMAPINFO desc);
 
 /***************************************************************************
     Static global variables
@@ -49,7 +58,7 @@ static int current_image_type = -1;
 static int copy_size = 0;
 static char* pixel_ptr = 0;
 static int row = 0;
-static int effWidth;
+static int effWidth = 0;
 
 /***************************************************************************
     Functions
@@ -63,8 +72,6 @@ BOOL ScreenShotLoaded(void)
 /* Allow us to pre-load the DIB once for future draws */
 BOOL LoadScreenShot(int nGame, int nType)
 {
-	BOOL loaded = FALSE;
-
 	/* No need to reload the same one again */
 	if (nGame == current_image_game && nType == current_image_type)
 		return TRUE;
@@ -72,7 +79,7 @@ BOOL LoadScreenShot(int nGame, int nType)
 	/* Delete the last ones */
 	FreeScreenShot();
 	/* Load the DIB */
-	loaded = LoadDIB(driver_list::driver(nGame).name, &m_hDIB, &m_hPal, nType);
+	BOOL loaded = LoadDIB(driver_list::driver(nGame).name, &m_hDIB, &m_hPal, nType);
 
 	/* If not loaded, see if there is a clone and try that */
 	if (!loaded)
@@ -139,12 +146,10 @@ void FreeScreenShot(void)
 
 static const zip_file_header *zip_file_seek_file(zip_file *zip, const char *filename)
 {
-	const zip_file_header *header;
-	char *new_filename;
-	int i;
+	int i = 0;
 
 	// we need to change filename; allocate a copy
-	new_filename = (char*)malloc(strlen(filename) + 1);
+	char *new_filename = (char*)malloc(strlen(filename) + 1);
 	
 	if (!new_filename)
 		return NULL;
@@ -156,7 +161,7 @@ static const zip_file_header *zip_file_seek_file(zip_file *zip, const char *file
 	new_filename[i] = '\0';
 
 	// find the entry
-	header = zip_file_first_file(zip);
+	const zip_file_header *header = zip_file_first_file(zip);
 	
 	while(header && core_stricmp(header->filename, new_filename))
 	{
@@ -172,7 +177,6 @@ static file_error OpenDIBFile(const char *dir_name, const char *zip_name, const 
 	file_error filerr;
 	zip_error ziperr;
 	zip_file *zip;
-	const zip_file_header *zip_header;
 	char fname[MAX_PATH];
 
 	// clear out result
@@ -190,7 +194,7 @@ static file_error OpenDIBFile(const char *dir_name, const char *zip_name, const 
 		
 		if (ziperr == ZIPERR_NONE)
 		{
-			zip_header = zip_file_seek_file(zip, filename);
+			const zip_file_header *zip_header = zip_file_seek_file(zip, filename);
 			
 			if (zip_header != NULL)
 			{
@@ -198,9 +202,7 @@ static file_error OpenDIBFile(const char *dir_name, const char *zip_name, const 
 				ziperr = zip_file_decompress(zip, *buffer, zip_header->uncompressed_length);
 				
 				if (ziperr == ZIPERR_NONE)
-				{
 					filerr = core_fopen_ram(*buffer, zip_header->uncompressed_length, OPEN_FLAG_READ, file);
-				}
 			}
 			
 			zip_file_close(zip);
@@ -210,20 +212,18 @@ static file_error OpenDIBFile(const char *dir_name, const char *zip_name, const 
 	return filerr;
 }
 
-BOOL LoadDIB(const char *filename, HGLOBAL *phDIB, HPALETTE *pPal, int pic_type)
+static BOOL LoadDIB(const char *filename, HGLOBAL *phDIB, HPALETTE *pPal, int pic_type)
 {
 	file_error filerr;
 	core_file *file = NULL;
 	BOOL success = FALSE;
-	const char *dir_name;
-	const char *zip_name;
+	const char *dir_name = NULL;
+	const char *zip_name = NULL;
 	void *buffer = NULL;
 	char fname[MAX_PATH];
 	
 	if (pPal != NULL ) 
-	{
 		DeletePalette(pPal);
-	}
 
 	switch (pic_type)
 	{
@@ -313,23 +313,18 @@ BOOL LoadDIB(const char *filename, HGLOBAL *phDIB, HPALETTE *pPal, int pic_type)
 	
 	// free the buffer if we have to
 	if (buffer != NULL) 
-	{
 		free(buffer);
-	}
 
 	return success;
 }
 
-HBITMAP DIBToDDB(HDC hDC, HANDLE hDIB, LPMYBITMAPINFO desc)
+static HBITMAP DIBToDDB(HDC hDC, HANDLE hDIB, LPMYBITMAPINFO desc)
 {
-	LPBITMAPINFOHEADER	lpbi;
-	HBITMAP hBM;
-	int nColors;
 	BITMAPINFO *bmInfo = (LPBITMAPINFO)hDIB;
-	LPVOID lpDIBBits;
+	LPVOID lpDIBBits = 0;
 
-	lpbi = (LPBITMAPINFOHEADER)hDIB;
-	nColors = lpbi->biClrUsed ? lpbi->biClrUsed : 1 << lpbi->biBitCount;
+	LPBITMAPINFOHEADER lpbi = (LPBITMAPINFOHEADER)hDIB;
+	int nColors = lpbi->biClrUsed ? lpbi->biClrUsed : 1 << lpbi->biBitCount;
 
 	if (bmInfo->bmiHeader.biBitCount > 8)
 		lpDIBBits = (LPVOID)((LPDWORD)(bmInfo->bmiColors + bmInfo->bmiHeader.biClrUsed) +
@@ -345,12 +340,12 @@ HBITMAP DIBToDDB(HDC hDC, HANDLE hDIB, LPMYBITMAPINFO desc)
 		desc->bmColors = (nColors <= 256) ? nColors : 0;
 	}
 
-	hBM = CreateDIBitmap(hDC,				/* handle to device context */
-				(LPBITMAPINFOHEADER)lpbi, 	/* pointer to bitmap info header  */
-				(LONG)CBM_INIT, 		  	/* initialization flag */
-				lpDIBBits,					/* pointer to initialization data  */
-				(LPBITMAPINFO)lpbi, 	  	/* pointer to bitmap info */
-				DIB_RGB_COLORS);		  	/* color-data usage  */
+	HBITMAP hBM = CreateDIBitmap(hDC,				/* handle to device context */
+		(LPBITMAPINFOHEADER)lpbi, 					/* pointer to bitmap info header  */
+		(LONG)CBM_INIT, 		  					/* initialization flag */
+		lpDIBBits,									/* pointer to initialization data  */
+		(LPBITMAPINFO)lpbi, 	  					/* pointer to bitmap info */
+		DIB_RGB_COLORS);		  					/* color-data usage  */
 
 	return hBM;
 }
@@ -371,20 +366,11 @@ static void store_pixels(UINT8 *buf, int len)
 
 BOOL AllocatePNG(png_info *p, HGLOBAL *phDIB, HPALETTE *pPal)
 {
-	int dibSize;
-	HGLOBAL hDIB;
 	BITMAPINFOHEADER bi;
-	LPBITMAPINFOHEADER lpbi;
-	LPBITMAPINFO bmInfo;
-	LPVOID lpDIBBits = 0;
-	int lineWidth = 0;
 	int nColors = 0;
-	RGBQUAD *pRgb;
-	copy_size = 0;
-	pixel_ptr = 0;
+	int i = 0;
 	row = p->height - 1;
-	lineWidth = p->width;
-	int i;
+	int lineWidth = p->width;
 
 	if (p->color_type != 2 && p->num_palette <= 256)
 		nColors =  p->num_palette;
@@ -402,18 +388,16 @@ BOOL AllocatePNG(png_info *p, HGLOBAL *phDIB, HPALETTE *pPal)
 	bi.biClrImportant = nColors;
 
 	effWidth = (long)(((long)lineWidth*bi.biBitCount + 31) / 32) * 4;
-	dibSize = (effWidth * bi.biHeight);
-	hDIB = GlobalAlloc(GMEM_FIXED, bi.biSize + (nColors * sizeof(RGBQUAD)) + dibSize);
+	int dibSize = (effWidth * bi.biHeight);
+	HGLOBAL hDIB = GlobalAlloc(GMEM_FIXED, bi.biSize + (nColors * sizeof(RGBQUAD)) + dibSize);
 
 	if (!hDIB)
-	{
 		return FALSE;
-	}
 
-	lpbi = (LPBITMAPINFOHEADER)hDIB;
+	LPBITMAPINFOHEADER lpbi = (LPBITMAPINFOHEADER)hDIB;
 	memcpy(lpbi, &bi, sizeof(BITMAPINFOHEADER));
-	pRgb = (RGBQUAD*)((LPSTR)lpbi + bi.biSize);
-	lpDIBBits = (LPVOID)((LPSTR)lpbi + bi.biSize + (nColors * sizeof(RGBQUAD)));
+	RGBQUAD *pRgb = (RGBQUAD*)((char *)lpbi + bi.biSize);
+	LPVOID lpDIBBits = (LPVOID)((char *)lpbi + bi.biSize + (nColors * sizeof(RGBQUAD)));
 	
 	if (nColors)
 	{
@@ -433,7 +417,7 @@ BOOL AllocatePNG(png_info *p, HGLOBAL *phDIB, HPALETTE *pPal)
 		}
 	}
 
-	bmInfo = (LPBITMAPINFO)hDIB;
+	LPBITMAPINFO bmInfo = (LPBITMAPINFO)hDIB;
 
 	/* Create a halftone palette if colors > 256. */
 	if (nColors == 0 || nColors > 256)
@@ -472,10 +456,7 @@ BOOL AllocatePNG(png_info *p, HGLOBAL *phDIB, HPALETTE *pPal)
 static int png_read_bitmap_gui(LPVOID mfile, HGLOBAL *phDIB, HPALETTE *pPAL)
 {
 	png_info p;
-	UINT32 i;
-	int bytespp;
-	int j;
-	UINT8 bTmp;
+	UINT32 i = 0;
 
 	if (png_read_file((core_file*)mfile, &p) != PNGERR_NONE)
 		return 0;
@@ -501,7 +482,7 @@ static int png_read_bitmap_gui(LPVOID mfile, HGLOBAL *phDIB, HPALETTE *pPAL)
 		return 0;
 	}
 
-	bytespp = (p.color_type == 2) ? 3 : 1;
+	int bytespp = (p.color_type == 2) ? 3 : 1;
 
 	for (i = 0; i < p.height; i++)
 	{
@@ -509,9 +490,9 @@ static int png_read_bitmap_gui(LPVOID mfile, HGLOBAL *phDIB, HPALETTE *pPAL)
 
 		if (p.color_type == 2) /*(p->bit_depth > 8) */
 		{
-			for (j = 0; j < p.width; j++)
+			for (int j = 0; j < p.width; j++)
 			{
-				bTmp = ptr[0];
+				UINT8 bTmp = ptr[0];
 				ptr[0] = ptr[2];
 				ptr[2] = bTmp;
 				ptr += 3;

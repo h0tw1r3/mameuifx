@@ -16,7 +16,7 @@
 #ifndef WINUI_H
 #define WINUI_H
 
-// standard windows headers
+// standard Windows headers
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <windowsx.h>
@@ -35,7 +35,6 @@
 #include <string.h>
 #include <tchar.h>
 #include <time.h>
-#include <sys\stat.h>	// FIXME! use WIN32 API instead - directories.c
 
 // MAME headers
 #include "emu.h"
@@ -50,6 +49,11 @@
 #include "png.h"
 #include "window.h"
 #include "sound\samples.h"
+
+// special Windows headers, after MAME ones
+#include <dinput.h>
+#include <shlwapi.h>
+#include <shlobj.h>
 
 // MAMEUIFX headers
 #include "resource.h"
@@ -70,8 +74,7 @@
 #include "splitters.h"
 #include "history.h"
 #include "dialogs.h"
-#include "directinput.h"
-#include "dijoystick.h"
+#include "dinputjoy.h"
 #include "dxdecode.h"   
 #include "screenshot.h"
 
@@ -103,27 +106,15 @@ enum
 enum
 {
 	FILETYPE_INPUT_FILES = 1,
-	FILETYPE_SAVESTATE_FILES = 2,
-	FILETYPE_WAVE_FILES = 3,
-	FILETYPE_AVI_FILES = 4,
-	FILETYPE_MNG_FILES = 5,
-	FILETYPE_EFFECT_FILES = 6,
-	FILETYPE_SHADER_FILES = 7,
-	FILETYPE_CHEAT_FILES = 8,
-	FILETYPE_DEBUGSCRIPT_FILES = 9
+	FILETYPE_SAVESTATE_FILES,
+	FILETYPE_WAVE_FILES,
+	FILETYPE_AVI_FILES,
+	FILETYPE_MNG_FILES,
+	FILETYPE_EFFECT_FILES,
+	FILETYPE_SHADER_FILES,
+	FILETYPE_CHEAT_FILES,
+	FILETYPE_DEBUGSCRIPT_FILES
 };
-
-typedef struct
-{
-	INT resource;
-	const char *icon_name;
-} ICONDATA;
-
-typedef struct
-{
-	const char *name;
-    int index;
-} srcdriver_data_type;
 
 typedef BOOL (WINAPI *common_file_dialog_proc)(LPOPENFILENAME lpofn);
 BOOL CommonFileDialog(common_file_dialog_proc cfd, char *filename, int filetype);
@@ -149,7 +140,7 @@ int GetGameNameIndex(const char *name);
 int GetSrcDriverIndex(const char *name);
 // sets text in part of the status bar on the main window
 void SetStatusBarText(int part_index, const char *message);
-void SetStatusBarTextF(int part_index, const char *fmt, ...) ATTR_PRINTF(2,3);
+void SetStatusBarTextF(int part_index, const char *fmt, ...);
 int MameUIMain(HINSTANCE hInstance, LPWSTR lpCmdLine);
 BOOL MouseHasBeenMoved(void);
 const char * GetSearchText(void);

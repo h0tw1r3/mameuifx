@@ -16,20 +16,11 @@
 #ifndef SCREENSHOT_H
 #define SCREENSHOT_H
 
-typedef struct _mybitmapinfo
-{
-	int bmWidth;
-	int bmHeight;
-	int bmColors;
-} MYBITMAPINFO, *LPMYBITMAPINFO;
-
 BOOL LoadScreenShot(int nGame, int nType);
 HANDLE GetScreenShotHandle(void);
 int GetScreenShotWidth(void);
 int GetScreenShotHeight(void);
 void FreeScreenShot(void);
 BOOL ScreenShotLoaded(void);
-BOOL LoadDIB(const char *filename, HGLOBAL *phDIB, HPALETTE *pPal, BOOL flyer);
-HBITMAP DIBToDDB(HDC hDC, HANDLE hDIB, LPMYBITMAPINFO desc);
 
 #endif

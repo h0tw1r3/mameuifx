@@ -16,6 +16,10 @@ function maintargetosdoptions(_target,_subtarget)
 			"-Wl,--allow-multiple-definition",		
 		}
 
+ 		links {
+			"mingw32",
+		}
+
 	configuration { "x64", "Release" }
 		targetname "mameuifx"
 
@@ -44,7 +48,6 @@ function maintargetosdoptions(_target,_subtarget)
 	links {
 		"comctl32",
 		"comdlg32",
-		"mingw32",
 		"shell32",
 		"uxtheme",
 	}
@@ -169,28 +172,27 @@ project ("osd_" .. _OPTIONS["osd"])
 		MAME_DIR .. "src/osd/modules/debugger/win/memorywininfo.c",
 		MAME_DIR .. "src/osd/modules/debugger/win/pointswininfo.c",
 		MAME_DIR .. "src/osd/modules/debugger/win/uimetrics.c",
-		MAME_DIR .. "src/osd/winui/win_options.c",
-		MAME_DIR .. "src/osd/winui/mui_util.c",
-		MAME_DIR .. "src/osd/winui/directinput.c",
-		MAME_DIR .. "src/osd/winui/dijoystick.c",
-		MAME_DIR .. "src/osd/winui/directories.c",
-		MAME_DIR .. "src/osd/winui/mui_audit.c",
-		MAME_DIR .. "src/osd/winui/columnedit.c",
-		MAME_DIR .. "src/osd/winui/screenshot.c",
-		MAME_DIR .. "src/osd/winui/treeview.c",
-		MAME_DIR .. "src/osd/winui/splitters.c",
 		MAME_DIR .. "src/osd/winui/bitmask.c",
+		MAME_DIR .. "src/osd/winui/columnedit.c",
+		MAME_DIR .. "src/osd/winui/datafile.c",
 		MAME_DIR .. "src/osd/winui/datamap.c",
+		MAME_DIR .. "src/osd/winui/dialogs.c",
+		MAME_DIR .. "src/osd/winui/dinputjoy.c",
+		MAME_DIR .. "src/osd/winui/directories.c",
 		MAME_DIR .. "src/osd/winui/dxdecode.c",
+		MAME_DIR .. "src/osd/winui/history.c",
+		MAME_DIR .. "src/osd/winui/mui_audit.c",
+		MAME_DIR .. "src/osd/winui/mui_opts.c",
+		MAME_DIR .. "src/osd/winui/mui_util.c",
 		MAME_DIR .. "src/osd/winui/picker.c",
 		MAME_DIR .. "src/osd/winui/properties.c",
+		MAME_DIR .. "src/osd/winui/screenshot.c",
+		MAME_DIR .. "src/osd/winui/splitters.c",
 		MAME_DIR .. "src/osd/winui/tabview.c",
-		MAME_DIR .. "src/osd/winui/history.c",
-		MAME_DIR .. "src/osd/winui/dialogs.c",
-		MAME_DIR .. "src/osd/winui/mui_opts.c",
-		MAME_DIR .. "src/osd/winui/datafile.c",
+		MAME_DIR .. "src/osd/winui/treeview.c",
+		MAME_DIR .. "src/osd/winui/win_options.c",
 		MAME_DIR .. "src/osd/winui/winui.c",
-		MAME_DIR .. "src/osd/winui/mui_main.c",
+		MAME_DIR .. "src/osd/winui/winui_main.c",
 	}
 
 

@@ -48,10 +48,8 @@ struct PickerCallbacks
 struct PickerOptions
 {
 	const struct PickerCallbacks *pCallbacks;
-	BOOL bOldControl;
-	BOOL bXPControl;
 	int nColumnCount;
-	const LPCTSTR *ppszColumnNames;
+	const TCHAR* const *ppszColumnNames;
 };
 
 enum
@@ -83,6 +81,6 @@ BOOL Picker_HandleNotify(LPNMHDR lpNmHdr);
 // Accessors
 const struct PickerCallbacks *Picker_GetCallbacks(HWND hWndPicker);
 int Picker_GetColumnCount(HWND hWndPicker);
-const LPCTSTR *Picker_GetColumnNames(HWND hWndPicker);
+const TCHAR* const *Picker_GetColumnNames(HWND hWndPicker);
 
 #endif

@@ -22,35 +22,26 @@ struct TabViewInfo
 
 static struct TabViewInfo *GetTabViewInfo(HWND hWnd)
 {
-	LONG_PTR l;
-	l = GetWindowLongPtr(hWnd, GWLP_USERDATA);
+	LONG_PTR l = GetWindowLongPtr(hWnd, GWLP_USERDATA);
 	return (struct TabViewInfo *) l;
 }
 
 static LRESULT CallParentWndProc(WNDPROC pfnParentWndProc, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	LRESULT rc;
-
 	if (!pfnParentWndProc)
 		pfnParentWndProc = GetTabViewInfo(hWnd)->pfnParentWndProc;
 
-	if (IsWindowUnicode(hWnd))
-		rc = CallWindowProcW(pfnParentWndProc, hWnd, message, wParam, lParam);
-	else
-		rc = CallWindowProcA(pfnParentWndProc, hWnd, message, wParam, lParam);
+	LRESULT	rc = CallWindowProc(pfnParentWndProc, hWnd, message, wParam, lParam);
 
 	return rc;
 }
 
 static LRESULT CALLBACK TabViewWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	struct TabViewInfo *pTabViewInfo;
-	WNDPROC pfnParentWndProc;
+	struct TabViewInfo *pTabViewInfo = GetTabViewInfo(hWnd);
+	WNDPROC pfnParentWndProc = pTabViewInfo->pfnParentWndProc;
 	BOOL bHandled = FALSE;
 	LRESULT rc = 0;
-
-	pTabViewInfo = GetTabViewInfo(hWnd);
-	pfnParentWndProc = pTabViewInfo->pfnParentWndProc;
 
 	switch(message)
 	{
@@ -79,12 +70,9 @@ static LRESULT CALLBACK TabViewWndProc(HWND hWnd, UINT message, WPARAM wParam, L
 static int TabView_GetTabFromTabIndex(HWND hWndTabView, int tab_index)
 {
 	int shown_tabs = -1;
-	int i;
-	struct TabViewInfo *pTabViewInfo;
+	struct TabViewInfo *pTabViewInfo = GetTabViewInfo(hWndTabView);
 
-	pTabViewInfo = GetTabViewInfo(hWndTabView);
-
-	for (i = 0; i < pTabViewInfo->nTabCount; i++)
+	for (int i = 0; i < pTabViewInfo->nTabCount; i++)
 	{
 		if (!pTabViewInfo->pCallbacks->pfnGetShowTab || pTabViewInfo->pCallbacks->pfnGetShowTab(i))
 		{
@@ -100,12 +88,9 @@ static int TabView_GetTabFromTabIndex(HWND hWndTabView, int tab_index)
 
 int TabView_GetCurrentTab(HWND hWndTabView)
 {
-	struct TabViewInfo *pTabViewInfo;
-	LPCSTR pszTab = NULL;
-	LPCSTR pszThatTab;
-	int i, nTab = -1;
-
-	pTabViewInfo = GetTabViewInfo(hWndTabView);
+	struct TabViewInfo *pTabViewInfo = GetTabViewInfo(hWndTabView);
+	const char *pszTab = NULL;
+	int nTab = -1;
 
 	if (pTabViewInfo->pCallbacks->pfnGetCurrentTab)
 		pszTab = pTabViewInfo->pCallbacks->pfnGetCurrentTab();
@@ -114,9 +99,9 @@ int TabView_GetCurrentTab(HWND hWndTabView)
 	{
 		if (pTabViewInfo->pCallbacks->pfnGetTabShortName)
 		{
-			for (i = 0; i < pTabViewInfo->nTabCount; i++)
+			for (int i = 0; i < pTabViewInfo->nTabCount; i++)
 			{
-				pszThatTab = pTabViewInfo->pCallbacks->pfnGetTabShortName(i);
+				const char *pszThatTab = pTabViewInfo->pCallbacks->pfnGetTabShortName(i);
 				
 				if (pszThatTab && !core_stricmp(pszTab, pszThatTab))
 				{
@@ -133,25 +118,19 @@ int TabView_GetCurrentTab(HWND hWndTabView)
 		}
 	}
 	else
-	{
 		nTab = 0;
-	}
 
 	return nTab;
 }
 
 void TabView_SetCurrentTab(HWND hWndTabView, int nTab)
 {
-	struct TabViewInfo *pTabViewInfo;
-	LPCSTR pszName;
+	struct TabViewInfo *pTabViewInfo = GetTabViewInfo(hWndTabView);
+	const char *pszName = NULL;
 	char szBuffer[16];
 
-	pTabViewInfo = GetTabViewInfo(hWndTabView);
-
 	if (pTabViewInfo->pCallbacks->pfnGetTabShortName)
-	{
 		pszName = pTabViewInfo->pCallbacks->pfnGetTabShortName(nTab);
-	}
 	else
 	{
 		snprintf(szBuffer, ARRAY_LENGTH(szBuffer), "%d", nTab);
@@ -165,14 +144,10 @@ void TabView_SetCurrentTab(HWND hWndTabView, int nTab)
 static int TabView_GetCurrentTabIndex(HWND hWndTabView)
 {
 	int shown_tabs = 0;
-	int i;
-	int nCurrentTab;
-	struct TabViewInfo *pTabViewInfo;
+	int nCurrentTab = TabView_GetCurrentTab(hWndTabView);
+	struct TabViewInfo *pTabViewInfo = GetTabViewInfo(hWndTabView);
 
-	pTabViewInfo = GetTabViewInfo(hWndTabView);
-	nCurrentTab = TabView_GetCurrentTab(hWndTabView);
-
-	for (i = 0; i < pTabViewInfo->nTabCount; i++)
+	for (int i = 0; i < pTabViewInfo->nTabCount; i++)
 	{
 		if (i == nCurrentTab)
 			break;
@@ -191,19 +166,15 @@ void TabView_UpdateSelection(HWND hWndTabView)
 
 BOOL TabView_HandleNotify(LPNMHDR lpNmHdr)
 {
-	HWND hWndTabView;
-	struct TabViewInfo *pTabViewInfo;
+	HWND hWndTabView = lpNmHdr->hwndFrom;
+	struct TabViewInfo *pTabViewInfo = GetTabViewInfo(hWndTabView);
 	BOOL bResult = FALSE;
-	int nTabIndex, nTab;
-
-	hWndTabView = lpNmHdr->hwndFrom;
-	pTabViewInfo = GetTabViewInfo(hWndTabView);
 
 	switch (lpNmHdr->code)
 	{
 		case TCN_SELCHANGE:
-			nTabIndex = TabCtrl_GetCurSel(hWndTabView);
-			nTab = TabView_GetTabFromTabIndex(hWndTabView, nTabIndex);
+			int nTabIndex = TabCtrl_GetCurSel(hWndTabView);
+			int nTab = TabView_GetTabFromTabIndex(hWndTabView, nTabIndex);
 			TabView_SetCurrentTab(hWndTabView, nTab);
 			
 			if (pTabViewInfo->pCallbacks->pfnOnSelectionChanged)
@@ -218,16 +189,12 @@ BOOL TabView_HandleNotify(LPNMHDR lpNmHdr)
 
 void TabView_CalculateNextTab(HWND hWndTabView)
 {
-	struct TabViewInfo *pTabViewInfo;
-	int i;
-	int nCurrentTab;
-
-	pTabViewInfo = GetTabViewInfo(hWndTabView);
+	struct TabViewInfo *pTabViewInfo = GetTabViewInfo(hWndTabView);
 
 	// at most loop once through all options
-	for (i = 0; i < pTabViewInfo->nTabCount; i++)
+	for (int i = 0; i < pTabViewInfo->nTabCount; i++)
 	{
-		nCurrentTab = TabView_GetCurrentTab(hWndTabView);
+		int nCurrentTab = TabView_GetCurrentTab(hWndTabView);
 		TabView_SetCurrentTab(hWndTabView, (nCurrentTab + 1) % pTabViewInfo->nTabCount);
 		nCurrentTab = TabView_GetCurrentTab(hWndTabView);
 
@@ -239,25 +206,22 @@ void TabView_CalculateNextTab(HWND hWndTabView)
 
 void TabView_Reset(HWND hWndTabView)
 {
-	struct TabViewInfo *pTabViewInfo;
+	struct TabViewInfo *pTabViewInfo = GetTabViewInfo(hWndTabView);
 	TCITEM tci;
-	int i;
-	TCHAR *t_text;
 
-	pTabViewInfo = GetTabViewInfo(hWndTabView);
 	(void)TabCtrl_DeleteAllItems(hWndTabView);
 
 	memset(&tci, 0, sizeof(TCITEM));
 	tci.mask = TCIF_TEXT | TCIF_IMAGE;
 	tci.cchTextMax = 20;
 
-	for (i = 0; i < pTabViewInfo->nTabCount; i++)
+	for (int i = 0; i < pTabViewInfo->nTabCount; i++)
 	{
 		if (!pTabViewInfo->pCallbacks->pfnGetShowTab || pTabViewInfo->pCallbacks->pfnGetShowTab(i))
 		{
-			t_text = tstring_from_utf8(pTabViewInfo->pCallbacks->pfnGetTabLongName(i));
+			TCHAR *t_text = tstring_from_utf8(pTabViewInfo->pCallbacks->pfnGetTabLongName(i));
 
-			if( !t_text )
+			if(!t_text)
 				return;
 
 			tci.pszText = t_text;
@@ -272,13 +236,11 @@ void TabView_Reset(HWND hWndTabView)
 
 BOOL SetupTabView(HWND hWndTabView, const struct TabViewOptions *pOptions)
 {
-	struct TabViewInfo *pTabViewInfo;
 	LONG_PTR l;
-	BOOL bShowTabView;
 
 	assert(hWndTabView);
 	// Allocate the list view struct
-	pTabViewInfo = (struct TabViewInfo *) malloc(sizeof(struct TabViewInfo));
+	struct TabViewInfo *pTabViewInfo = (struct TabViewInfo *) malloc(sizeof(struct TabViewInfo));
 
 	if (!pTabViewInfo)
 		return FALSE;
@@ -292,7 +254,7 @@ BOOL SetupTabView(HWND hWndTabView, const struct TabViewOptions *pOptions)
 	pTabViewInfo->pfnParentWndProc = (WNDPROC) l;
 	SetWindowLongPtr(hWndTabView, GWLP_USERDATA, (LONG_PTR) pTabViewInfo);
 	SetWindowLongPtr(hWndTabView, GWLP_WNDPROC, (LONG_PTR) TabViewWndProc);
-	bShowTabView = pTabViewInfo->pCallbacks->pfnGetShowTabCtrl ? pTabViewInfo->pCallbacks->pfnGetShowTabCtrl() : TRUE;
+	BOOL bShowTabView = pTabViewInfo->pCallbacks->pfnGetShowTabCtrl ? pTabViewInfo->pCallbacks->pfnGetShowTabCtrl() : TRUE;
 	ShowWindow(hWndTabView, bShowTabView ? SW_SHOW : SW_HIDE);
 	TabView_Reset(hWndTabView);
 	

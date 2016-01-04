@@ -20,15 +20,6 @@
 
 #define DIRLIST_NEWENTRYTEXT "<end of list>"
 
-typedef struct
-{
-	LPCSTR   lpName;
-	LPCSTR   (*pfnGetTheseDirs)(void);
-	void     (*pfnSetTheseDirs)(LPCSTR lpDirs);
-	BOOL     bMulti;
-	int      nDirDlgFlags;
-} DIRECTORYINFO;
-
 INT_PTR CALLBACK DirectoriesDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lParam);
 
 #endif
