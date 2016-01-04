@@ -418,7 +418,7 @@ static const key_trans_entry win_key_trans_table[] =
 //  INLINE FUNCTIONS
 //============================================================
 
-INLINE void poll_if_necessary(running_machine &machine)
+static inline void poll_if_necessary(running_machine &machine)
 {
 	// make sure we poll at least once every 1/4 second
 	if (GetTickCount() > last_poll + 1000 / 4)
@@ -426,7 +426,7 @@ INLINE void poll_if_necessary(running_machine &machine)
 }
 
 
-INLINE input_item_id keyboard_map_scancode_to_itemid(int scancode)
+static inline input_item_id keyboard_map_scancode_to_itemid(int scancode)
 {
 	int tablenum;
 
@@ -440,7 +440,7 @@ INLINE input_item_id keyboard_map_scancode_to_itemid(int scancode)
 }
 
 
-INLINE INT32 normalize_absolute_axis(INT32 raw, INT32 rawmin, INT32 rawmax)
+static inline INT32 normalize_absolute_axis(INT32 raw, INT32 rawmin, INT32 rawmax)
 {
 	INT32 center = (rawmax + rawmin) / 2;
 

@@ -65,7 +65,7 @@ public:
 	bool sync_refresh() const { return m_syncrefresh; }
 	float throttle_rate() const { return m_throttle_rate; }
 	bool fastforward() const { return m_fastforward; }
-	bool is_recording() const { return (m_mng_file != NULL || m_avi_file != NULL); }
+	bool is_recording() const { return (m_mng_file != nullptr || m_avi_file != nullptr); }
 
 	// setters
 	void set_frameskip(int frameskip);
@@ -168,7 +168,7 @@ private:
 	INT32               m_snap_height;              // height of snapshots (0 == auto)
 
 	// movie recording - MNG
-	auto_pointer<emu_file> m_mng_file;              // handle to the open movie file
+	std::unique_ptr<emu_file> m_mng_file;              // handle to the open movie file
 	attotime            m_mng_frame_period;         // period of a single movie frame
 	attotime            m_mng_next_frame_time;      // time of next frame
 	UINT32              m_mng_frame;                // current movie frame number
