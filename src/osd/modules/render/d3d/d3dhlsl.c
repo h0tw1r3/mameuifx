@@ -3416,7 +3416,7 @@ ULONG effect::release()
 	return m_effect->Release();
 }
 
-};
+}
 
 //============================================================
 //  get_slider_list

@@ -46,7 +46,7 @@ private:
 		QUIT_GAME,
 		SELECT_GAME,
 		BIOS_SELECTION,
-		BARCODE_READ,
+		BARCODE_READ
 	};
 };
 

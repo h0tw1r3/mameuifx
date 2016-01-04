@@ -146,7 +146,7 @@ osd_options::osd_options()
 : cli_options()
 {
 	add_entries(osd_options::s_option_entries);
-};
+}
 
 
 //-------------------------------------------------
