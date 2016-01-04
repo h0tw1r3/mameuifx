@@ -1437,9 +1437,9 @@ render_primitive_list &render_target::get_primitives()
 
 bool render_target::map_point_container(INT32 target_x, INT32 target_y, render_container &container, float &container_x, float &container_y)
 {
-	const char *input_tag;
+	ioport_port *input_port;
 	ioport_value input_mask;
-	return map_point_internal(target_x, target_y, &container, container_x, container_y, input_tag, input_mask);
+	return map_point_internal(target_x, target_y, &container, container_x, container_y, input_port, input_mask);
 }
 
 
@@ -1449,9 +1449,9 @@ bool render_target::map_point_container(INT32 target_x, INT32 target_y, render_c
 //  container, if possible
 //-------------------------------------------------
 
-bool render_target::map_point_input(INT32 target_x, INT32 target_y, const char *&input_tag, ioport_value &input_mask, float &input_x, float &input_y)
+bool render_target::map_point_input(INT32 target_x, INT32 target_y, ioport_port *&input_port, ioport_value &input_mask, float &input_x, float &input_y)
 {
-	return map_point_internal(target_x, target_y, NULL, input_x, input_y, input_tag, input_mask);
+	return map_point_internal(target_x, target_y, NULL, input_x, input_y, input_port, input_mask);;
 }
 
 
@@ -1506,6 +1506,22 @@ void render_target::debug_free(render_container &container)
 void render_target::debug_top(render_container &container)
 {
 	m_debug_containers.prepend(m_debug_containers.detach(container));
+}
+
+
+//-------------------------------------------------
+//  resolve_tags - resolve tag lookups
+//-------------------------------------------------
+
+void render_target::resolve_tags()
+{
+	for (layout_file *file = m_filelist.first(); file != NULL; file = file->next())
+	{
+		for (layout_view *view = file->first_view(); view != NULL; view = view->next())
+		{
+			view->resolve_tags();
+		}
+	}
 }
 
 
@@ -1904,7 +1920,7 @@ void render_target::add_element_primitives(render_primitive_list &list, const ob
 //  mapping points
 //-------------------------------------------------
 
-bool render_target::map_point_internal(INT32 target_x, INT32 target_y, render_container *container, float &mapped_x, float &mapped_y, const char *&mapped_input_tag, ioport_value &mapped_input_mask)
+bool render_target::map_point_internal(INT32 target_x, INT32 target_y, render_container *container, float &mapped_x, float &mapped_y, ioport_port *&mapped_input_port, ioport_value &mapped_input_mask)
 {
 	// compute the visible width/height
 	INT32 viswidth, visheight;
@@ -1918,7 +1934,7 @@ bool render_target::map_point_internal(INT32 target_x, INT32 target_y, render_co
 	// default to point not mapped
 	mapped_x = -1.0;
 	mapped_y = -1.0;
-	mapped_input_tag = NULL;
+	mapped_input_port = NULL;
 	mapped_input_mask = 0;
 
 	// convert target coordinates to float
@@ -1969,7 +1985,7 @@ bool render_target::map_point_internal(INT32 target_x, INT32 target_y, render_co
 					// point successfully mapped
 					mapped_x = (target_fx - item->bounds().x0) / (item->bounds().x1 - item->bounds().x0);
 					mapped_y = (target_fy - item->bounds().y0) / (item->bounds().y1 - item->bounds().y0);
-					mapped_input_tag = item->input_tag_and_mask(mapped_input_mask);
+					mapped_input_port = item->input_tag_and_mask(mapped_input_mask);
 					return true;
 				}
 			}
@@ -2628,6 +2644,19 @@ void render_manager::invalidate_all(void *refptr)
 	// loop over targets
 	for (render_target *target = m_targetlist.first(); target != NULL; target = target->next())
 		target->invalidate_all(refptr);
+}
+
+
+//-------------------------------------------------
+//  resolve_tags - resolve tag lookups
+//-------------------------------------------------
+
+void render_manager::resolve_tags()
+{
+	for (render_target *target = m_targetlist.first(); target != NULL; target = target->next())
+	{
+		target->resolve_tags();
+	}
 }
 
 
