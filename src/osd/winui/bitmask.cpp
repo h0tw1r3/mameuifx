@@ -59,18 +59,18 @@ void DeleteBits(LPBITS lpBits)
 }
 
 /* Test the 'nBit'th bit */
-BOOL TestBit(LPBITS lpBits, UINT nBit)
+bool TestBit(LPBITS lpBits, UINT nBit)
 {
 	if (nBit < 0 || !lpBits || !lpBits->m_lpBits)
-		return FALSE;
+		return false;
 
 	UINT offset = nBit >> 3;
 
 	if (offset >= lpBits->m_nSize)
-		return FALSE;
+		return false;
 
 	UCHAR mask = maskTable[nBit & 7];
-	return	(lpBits->m_lpBits[offset] & mask) ? TRUE : FALSE;
+	return	(lpBits->m_lpBits[offset] & mask) ? true : false;
 }
 
 /* Set the 'nBit'th bit */
@@ -104,7 +104,7 @@ void ClearBit(LPBITS lpBits, UINT nBit)
 }
 
 /* Set or Clear all bits as specified by 'bSet' */
-void SetAllBits(LPBITS lpBits, BOOL bSet)
+void SetAllBits(LPBITS lpBits, bool bSet)
 {
 	if (lpBits && lpBits->m_nSize != 0 && lpBits->m_lpBits)
 		memset(lpBits->m_lpBits, (!bSet) ? 0 : 0xff, lpBits->m_nSize);
@@ -117,10 +117,8 @@ void SetAllBits(LPBITS lpBits, BOOL bSet)
  *
  * Returns -1 if no bits are found
  */
-int FindBit(LPBITS lpBits, int nStartPos, BOOL bSet)
+int FindBit(LPBITS lpBits, int nStartPos, bool bSet)
 {
-	UINT i = 0;
-
 	if (!lpBits || !lpBits->m_nSize || !lpBits->m_lpBits)
 		return -1;
 
@@ -129,9 +127,9 @@ int FindBit(LPBITS lpBits, int nStartPos, BOOL bSet)
 	if (nStartPos < 0)
 		nStartPos = 0;
 
-	for (i = nStartPos; i < end; i++)
+	for (int i = nStartPos; i < end; i++)
 	{
-		BOOL res = (TestBit(lpBits, i)) ? TRUE : FALSE;
+		bool res = (TestBit(lpBits, i)) ? true : false;
 		
 		if ((res && bSet) || (!res && !bSet))
 			return i;

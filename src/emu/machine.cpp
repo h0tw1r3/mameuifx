@@ -164,7 +164,7 @@ running_machine::running_machine(const machine_config &_config, machine_manager 
 
 	// hiscore
   	cpu[0] = firstcpu;
- 	for (int cpunum = 1; cpunum < ARRAY_LENGTH(cpu) && cpu[cpunum - 1] != NULL; cpunum++)
+ 	for (int cpunum = 1; cpunum < ARRAY_LENGTH(cpu) && cpu[cpunum - 1] != nullptr; cpunum++)
  		cpu[cpunum] = cpu[cpunum - 1]->next();
 
 	// fetch core options

@@ -1,6 +1,14 @@
 -- license:BSD-3-Clause
 -- copyright-holders:MAMEdev Team
 
+---------------------------------------------------------------------------
+--
+--   winui.lua
+--
+--   Rules for the building for Windows with GUI
+--
+---------------------------------------------------------------------------
+
 dofile("modules.lua")
 
 premake.make.linkoptions_after = false;
@@ -114,6 +122,22 @@ if _OPTIONS["CYGWIN_BUILD"] == "1" then
 	}
 end
 
+
+project ("qtdbg_" .. _OPTIONS["osd"])
+	uuid (os.uuid("qtdbg_" .. _OPTIONS["osd"]))
+	kind (LIBTYPE)
+
+	dofile("windows_cfg.lua")
+	includedirs {
+		MAME_DIR .. "src/emu",
+		MAME_DIR .. "src/devices", -- accessing imagedev from debugger
+		MAME_DIR .. "src/osd",
+		MAME_DIR .. "src/lib",
+		MAME_DIR .. "src/lib/util",
+		MAME_DIR .. "src/osd/modules/render",
+		MAME_DIR .. "3rdparty",
+	}
+	qtdebuggerbuild()
 
 project ("osd_" .. _OPTIONS["osd"])
 	uuid (os.uuid("osd_" .. _OPTIONS["osd"]))

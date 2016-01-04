@@ -34,10 +34,10 @@ typedef struct
 /* Bit functions */
 LPBITS NewBits(UINT nLength);	 /* in bits */
 void DeleteBits(LPBITS lpBits);
-BOOL TestBit(LPBITS lpBits, UINT nBit);
+bool TestBit(LPBITS lpBits, UINT nBit);
 void SetBit(LPBITS lpBits, UINT nBit);
 void ClearBit(LPBITS lpBits, UINT nBit);
-void SetAllBits(LPBITS lpBits, BOOL bSet);
-int FindBit(LPBITS lpBits, int nStartPos, BOOL bSet);
+void SetAllBits(LPBITS lpBits, bool bSet);
+int FindBit(LPBITS lpBits, int nStartPos, bool bSet);
 
 #endif

@@ -26,9 +26,9 @@ static HWND hAvailable = NULL;
 static HBRUSH hBrush = NULL;
 static HDC hDC = NULL;
 static HICON hIcon = NULL;
-static BOOL showMsg = FALSE;
+static bool showMsg = false;
 
-// Returns TRUE if successful
+// Returns true if successful
 static int DoExchangeItem(HWND hFrom, HWND hTo, int nMinItem)
 {
 	LVITEM lvi;
@@ -42,7 +42,7 @@ static int DoExchangeItem(HWND hFrom, HWND hTo, int nMinItem)
 			ErrorMessageBox("Cannot move selected item");
 
 		SetFocus(hFrom);
-		return FALSE;
+		return false;
 	}
 	
 	lvi.iSubItem = 0;
@@ -61,10 +61,10 @@ static int DoExchangeItem(HWND hFrom, HWND hTo, int nMinItem)
 		return lvi.iItem;
 	}
 	
-	return FALSE;
+	return false;
 }
 
-static void DoMoveItem( HWND hWnd, BOOL bDown)
+static void DoMoveItem( HWND hWnd, bool bDown)
 {
 	LVITEM lvi;
 	TCHAR buf[80];
@@ -73,9 +73,9 @@ static void DoMoveItem( HWND hWnd, BOOL bDown)
 	int nMaxpos = ListView_GetItemCount(hWnd);
 	
 	if (lvi.iItem == -1 ||
-		(lvi.iItem <  2 && bDown == FALSE) || 	// Disallow moving First column
-		(lvi.iItem == 0 && bDown == TRUE)  || 	// ""
-		(lvi.iItem == nMaxpos - 1 && bDown == TRUE))
+		(lvi.iItem <  2 && bDown == false) || 	// Disallow moving First column
+		(lvi.iItem == 0 && bDown == true)  || 	// ""
+		(lvi.iItem == nMaxpos - 1 && bDown == true))
 	{
 		SetFocus(hWnd);
 		return;
@@ -95,14 +95,14 @@ static void DoMoveItem( HWND hWnd, BOOL bDown)
 		ListView_SetItemState(hWnd, lvi.iItem, LVIS_FOCUSED | LVIS_SELECTED, LVIS_FOCUSED | LVIS_SELECTED);
 
 		if (lvi.iItem == nMaxpos - 1)
-			EnableWindow(GetDlgItem(GetParent(hWnd), IDC_BUTTONMOVEDOWN), FALSE);
+			EnableWindow(GetDlgItem(GetParent(hWnd), IDC_BUTTONMOVEDOWN), false);
 		else
-			EnableWindow(GetDlgItem(GetParent(hWnd), IDC_BUTTONMOVEDOWN), TRUE);
+			EnableWindow(GetDlgItem(GetParent(hWnd), IDC_BUTTONMOVEDOWN), true);
 
 		if (lvi.iItem < 2)
-			EnableWindow(GetDlgItem(GetParent(hWnd), IDC_BUTTONMOVEUP), FALSE);
+			EnableWindow(GetDlgItem(GetParent(hWnd), IDC_BUTTONMOVEUP), false);
 		else
-			EnableWindow(GetDlgItem(GetParent(hWnd), IDC_BUTTONMOVEUP), TRUE);
+			EnableWindow(GetDlgItem(GetParent(hWnd), IDC_BUTTONMOVEUP), true);
 
 		SetFocus(hWnd);
 	}
@@ -127,7 +127,7 @@ static INT_PTR InternalColumnDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPAR
 		CenterWindow(hDlg);
         hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_MAMEUI_ICON));
         SendMessage(hDlg, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
-		hBrush = CreateSolidBrush(RGB(224, 223, 227));
+		hBrush = CreateSolidBrush(RGB(240, 240, 240));
 		hShown = GetDlgItem(hDlg, IDC_LISTSHOWCOLUMNS);
 		hAvailable = GetDlgItem(hDlg, IDC_LISTAVAILABLECOLUMNS);
 		SetWindowTheme(hShown, L"Explorer", NULL);
@@ -153,7 +153,7 @@ static INT_PTR InternalColumnDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPAR
 		(void)ListView_InsertColumn(hShown, 0, &LVCol);
 		(void)ListView_InsertColumn(hAvailable, 0, &LVCol);
 		pfnGetColumnInfo(order, shown);
-		showMsg = TRUE;
+		showMsg = true;
 		nShown = 0;
 		nAvail = 0;
 
@@ -191,8 +191,8 @@ static INT_PTR InternalColumnDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPAR
 		if( nAvail > 0)
 			ListView_SetItemState(hAvailable, 0, LVIS_FOCUSED | LVIS_SELECTED, LVIS_FOCUSED | LVIS_SELECTED);
 		
-		EnableWindow(GetDlgItem(hDlg, IDC_BUTTONADD), TRUE);
-		return TRUE;
+		EnableWindow(GetDlgItem(hDlg, IDC_BUTTONADD), true);
+		return true;
 
 	case WM_CTLCOLORDLG:
 		return (LRESULT) hBrush;	
@@ -222,10 +222,10 @@ static INT_PTR InternalColumnDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPAR
 					
 					if (nPos)
 					{
-						EnableWindow(GetDlgItem(hDlg, IDC_BUTTONADD), FALSE);
-						EnableWindow(GetDlgItem(hDlg, IDC_BUTTONREMOVE), TRUE);
-						EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEUP), TRUE);
-						EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEDOWN), FALSE);
+						EnableWindow(GetDlgItem(hDlg, IDC_BUTTONADD), false);
+						EnableWindow(GetDlgItem(hDlg, IDC_BUTTONREMOVE), true);
+						EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEUP), true);
+						EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEDOWN), false);
 					}
 					
 					break;
@@ -234,16 +234,16 @@ static INT_PTR InternalColumnDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPAR
 					// Move selected Item from Show to Available column
 					if (DoExchangeItem(hShown, hAvailable, 1))
 					{
-						EnableWindow(GetDlgItem(hDlg, IDC_BUTTONADD), TRUE);
-						EnableWindow(GetDlgItem(hDlg, IDC_BUTTONREMOVE), FALSE);
-						EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEUP), FALSE);
-						EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEDOWN), FALSE);
+						EnableWindow(GetDlgItem(hDlg, IDC_BUTTONADD), true);
+						EnableWindow(GetDlgItem(hDlg, IDC_BUTTONREMOVE), false);
+						EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEUP), false);
+						EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEDOWN), false);
 					}
 					
 					break;
 				}
 				
-				return TRUE;
+				return true;
 
 			case LVN_ITEMCHANGED:
 				// Don't handle this message for now
@@ -259,24 +259,24 @@ static INT_PTR InternalColumnDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPAR
 						if (showMsg)
 						{
 							ErrorMessageBox("Changing this item is not permitted");
-							showMsg = FALSE;
+							showMsg = false;
 						}
 
-						EnableWindow(GetDlgItem(hDlg, IDC_BUTTONREMOVE), FALSE);
-						EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEUP), FALSE);
-						EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEDOWN), FALSE);
-						return TRUE;
+						EnableWindow(GetDlgItem(hDlg, IDC_BUTTONREMOVE), false);
+						EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEUP), false);
+						EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEDOWN), false);
+						return true;
 					}
 					else
-						showMsg = TRUE;
+						showMsg = true;
 				}
 
 				if( pnmv->uOldState & LVIS_SELECTED && pnmv->iItem == 0 && pnmv->hdr.idFrom == IDC_LISTSHOWCOLUMNS)
 				{
 					/*we enable the buttons again, if the first Entry loses selection*/
-					EnableWindow(GetDlgItem(hDlg, IDC_BUTTONREMOVE), TRUE);
-					EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEUP), TRUE);
-					EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEDOWN), TRUE);
+					EnableWindow(GetDlgItem(hDlg, IDC_BUTTONREMOVE), true);
+					EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEUP), true);
+					EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEDOWN), true);
 				}
 				
 				break;
@@ -288,10 +288,10 @@ static INT_PTR InternalColumnDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPAR
 					case IDC_LISTAVAILABLECOLUMNS:
 						if (ListView_GetItemCount(nm->hwndFrom) != 0)
 						{
-							EnableWindow(GetDlgItem(hDlg, IDC_BUTTONADD), TRUE);
-							EnableWindow(GetDlgItem(hDlg, IDC_BUTTONREMOVE), FALSE);
-							EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEDOWN), FALSE);
-							EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEUP), FALSE);
+							EnableWindow(GetDlgItem(hDlg, IDC_BUTTONADD), true);
+							EnableWindow(GetDlgItem(hDlg, IDC_BUTTONREMOVE), false);
+							EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEDOWN), false);
+							EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEUP), false);
 						}
 						
 						break;
@@ -299,19 +299,19 @@ static INT_PTR InternalColumnDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPAR
 					case IDC_LISTSHOWCOLUMNS:
 						if (ListView_GetItemCount(nm->hwndFrom) != 0)
 						{
-							EnableWindow(GetDlgItem(hDlg, IDC_BUTTONADD), FALSE);
+							EnableWindow(GetDlgItem(hDlg, IDC_BUTTONADD), false);
 
 							if (ListView_GetNextItem(hShown, -1, LVIS_SELECTED | LVIS_FOCUSED) == 0)
 							{
-								EnableWindow(GetDlgItem(hDlg, IDC_BUTTONREMOVE), FALSE);
-								EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEDOWN), FALSE);
-								EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEUP), FALSE);
+								EnableWindow(GetDlgItem(hDlg, IDC_BUTTONREMOVE), false);
+								EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEDOWN), false);
+								EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEUP), false);
 							}
 							else
 							{
-								EnableWindow(GetDlgItem(hDlg, IDC_BUTTONREMOVE), TRUE);
-								EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEDOWN), TRUE);
-								EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEUP), TRUE);
+								EnableWindow(GetDlgItem(hDlg, IDC_BUTTONREMOVE), true);
+								EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEDOWN), true);
+								EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEUP), true);
 							}
 						}
 						
@@ -338,10 +338,10 @@ static INT_PTR InternalColumnDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPAR
 				case IDC_LISTAVAILABLECOLUMNS:
 					if (ListView_GetItemCount(nm->hwndFrom) != 0)
 					{
-						EnableWindow(GetDlgItem(hDlg, IDC_BUTTONADD), TRUE);
-						EnableWindow(GetDlgItem(hDlg, IDC_BUTTONREMOVE), FALSE);
-						EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEDOWN), FALSE);
-						EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEUP), FALSE);
+						EnableWindow(GetDlgItem(hDlg, IDC_BUTTONADD), true);
+						EnableWindow(GetDlgItem(hDlg, IDC_BUTTONREMOVE), false);
+						EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEDOWN), false);
+						EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEUP), false);
 					}
 					
 					break;
@@ -349,30 +349,30 @@ static INT_PTR InternalColumnDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPAR
 				case IDC_LISTSHOWCOLUMNS:
 					if (ListView_GetItemCount(nm->hwndFrom) != 0)
 					{
-						EnableWindow(GetDlgItem(hDlg, IDC_BUTTONADD), FALSE);
+						EnableWindow(GetDlgItem(hDlg, IDC_BUTTONADD), false);
 						
 						if (ListView_GetNextItem(hShown, -1, LVIS_SELECTED | LVIS_FOCUSED) == 0)
 						{
-							EnableWindow(GetDlgItem(hDlg, IDC_BUTTONREMOVE), FALSE);
-							EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEDOWN), FALSE);
-							EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEUP), FALSE);
+							EnableWindow(GetDlgItem(hDlg, IDC_BUTTONREMOVE), false);
+							EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEDOWN), false);
+							EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEUP), false);
 						}
 						else
 						{
-							EnableWindow(GetDlgItem(hDlg, IDC_BUTTONREMOVE), TRUE);
-							EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEDOWN), TRUE);
-							EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEUP), TRUE);
+							EnableWindow(GetDlgItem(hDlg, IDC_BUTTONREMOVE), true);
+							EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEDOWN), true);
+							EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEUP), true);
 						}
 					}
 					
 					break;
 				}
 				
-				return TRUE;
+				return true;
 			}
 		}
 		
-		return FALSE;
+		return false;
 		
 	case WM_COMMAND:
 	   {
@@ -391,10 +391,10 @@ static INT_PTR InternalColumnDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPAR
 
 				if (nPos)
 				{
-					EnableWindow(hWndCtrl,FALSE);
-					EnableWindow(GetDlgItem(hDlg, IDC_BUTTONREMOVE), TRUE);
-					EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEUP), TRUE);
-					EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEDOWN), FALSE);
+					EnableWindow(hWndCtrl,false);
+					EnableWindow(GetDlgItem(hDlg, IDC_BUTTONREMOVE), true);
+					EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEUP), true);
+					EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEDOWN), false);
 				}
 				
 				break;
@@ -403,22 +403,22 @@ static INT_PTR InternalColumnDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPAR
 				// Move selected Item in Show to Available
 				if (DoExchangeItem(hShown, hAvailable, 1))
 				{
-					EnableWindow(hWndCtrl,FALSE);
-					EnableWindow(GetDlgItem(hDlg, IDC_BUTTONADD), TRUE);
-					EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEUP), FALSE);
-					EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEDOWN), FALSE);
+					EnableWindow(hWndCtrl,false);
+					EnableWindow(GetDlgItem(hDlg, IDC_BUTTONADD), true);
+					EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEUP), false);
+					EnableWindow(GetDlgItem(hDlg, IDC_BUTTONMOVEDOWN), false);
 				}
 				
 				break;
 
 			case IDC_BUTTONMOVEDOWN:
 				// Move selected item in the Show window up 1 item
-				DoMoveItem(hShown, TRUE);
+				DoMoveItem(hShown, true);
 				break;
 
 			case IDC_BUTTONMOVEUP:
 				// Move selected item in the Show window down 1 item
-				DoMoveItem(hShown, FALSE);
+				DoMoveItem(hShown, false);
 				break;
 
 			case IDOK:
@@ -437,7 +437,7 @@ static INT_PTR InternalColumnDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPAR
 					
 					(void)ListView_GetItem(hShown, &lvi);
 					order[nCount++] = lvi.lParam;
-					shown[lvi.lParam] = TRUE;
+					shown[lvi.lParam] = true;
 				}
 
 				for (i = 0; i < nAvail; i++)
@@ -449,21 +449,21 @@ static INT_PTR InternalColumnDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPAR
 					
 					(void)ListView_GetItem(hAvailable, &lvi);
 					order[nCount++]   = lvi.lParam;
-					shown[lvi.lParam] = FALSE;
+					shown[lvi.lParam] = false;
 				}
 
 				pfnSetColumnInfo(order, shown);
 				DestroyIcon(hIcon);
 				DeleteObject(hBrush);
 				EndDialog(hDlg, 1);
-				return TRUE;
+				return true;
 			}
 			
 			case IDCANCEL:
 				DestroyIcon(hIcon);
 				DeleteObject(hBrush);
 				EndDialog(hDlg, 0);
-				return TRUE;
+				return true;
 		}
 	}
 	

@@ -25,8 +25,8 @@
 #include "winui.h"
 
 /* Local Variables */
-static int firstTime = TRUE;
-static BOOL bTracking = 0;
+static int firstTime = true;
+static bool bTracking = 0;
 static int numSplitters = 0;
 static int currentSplitter = 0;
 static HZSPLITTER *splitter;
@@ -44,7 +44,7 @@ extern const SPLITTERINFO g_splitterInfo[] =
 };
 
 
-BOOL InitSplitters(void)
+bool InitSplitters(void)
 {
 	/* load the cursor for the splitter */
 	hSplitterCursor = LoadCursor(GetModuleHandle(0), MAKEINTRESOURCE(IDC_CURSOR_HSPLIT));
@@ -61,11 +61,11 @@ BOOL InitSplitters(void)
 		goto error;
 	
 	memset(nSplitterOffset, 0, sizeof(int) * nSplitterCount);
-	return TRUE;
+	return true;
 
 error:
 	SplittersExit();
-	return FALSE;
+	return false;
 }
 
 void SplittersExit(void)
@@ -152,7 +152,7 @@ void RecalcSplitters(void)
 
 void OnSizeSplitter(HWND hWnd)
 {
-	int changed = FALSE;
+	int changed = false;
 	RECT rWindowRect;
 	POINT p;
 	int i = 0;
@@ -164,8 +164,8 @@ void OnSizeSplitter(HWND hWnd)
 		for (i = 0; i < nSplitterCount; i++)
 			nSplitterOffset[i] = GetSplitterPos(i);
 		
-		changed = TRUE;
-		firstTime = FALSE;
+		changed = true;
+		firstTime = false;
 	}
 
 	GetWindowRect(hWnd, &rWindowRect);
@@ -176,20 +176,20 @@ void OnSizeSplitter(HWND hWnd)
 		p.y = 0;
 		ClientToScreen(splitter[i].m_hWnd, &p);
 		/* We must change if our window is not in the window rect */
-		BOOL bMustChange = !PtInRect(&rWindowRect, p);
+		bool bMustChange = !PtInRect(&rWindowRect, p);
 		
 		/* We should also change if we are ahead the next splitter */
 		if ((i < nSplitterCount-1) && (nSplitterOffset[i] >= nSplitterOffset[i + 1]))
-			bMustChange = TRUE;
+			bMustChange = true;
 
 		/* ...or if we are behind the previous splitter */
 		if ((i > 0) && (nSplitterOffset[i] <= nSplitterOffset[i - 1]))
-			bMustChange = TRUE;
+			bMustChange = true;
 
 		if (bMustChange)
 		{
 			nSplitterOffset[i] = (rWindowRect.right - rWindowRect.left) * g_splitterInfo[i].dPosition;
-			changed = TRUE;
+			changed = true;
 		}
 	}
 
@@ -247,8 +247,8 @@ static void StartTracking(HWND hWnd, UINT hitArea)
 		OnInvertTracker(hWnd, &lpCurSpltr->m_dragRect);
 		// Capture the mouse
 		SetCapture(hWnd);
-		// Set tracking to TRUE
-		bTracking = TRUE;
+		// Set tracking to true
+		bTracking = true;
 		SetCursor(hSplitterCursor);
 	}
 }
@@ -262,14 +262,14 @@ static void StopTracking(HWND hWnd)
 		// Release the mouse
 		ReleaseCapture();
 		// set tracking to false
-		bTracking = FALSE;
+		bTracking = false;
 		SetCursor(LoadCursor(0, IDC_ARROW));
 		// set the new splitter position
 		nSplitterOffset[currentSplitter] = lpCurSpltr->m_dragRect.left;
 		// Redraw the screen area
 		ResizePickerControls(hWnd);
 		UpdateScreenShot();
-		InvalidateRect(GetMainWindow(), NULL, TRUE);
+		InvalidateRect(GetMainWindow(), NULL, true);
 		// enable main window style
 		LONG_PTR style = GetWindowLongPtr(hWnd, GWL_STYLE);
 		SetWindowLongPtr(hWnd, GWL_STYLE, style | WS_CLIPCHILDREN);

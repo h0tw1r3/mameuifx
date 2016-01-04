@@ -32,7 +32,7 @@ struct CompareProcParams
 	struct PickerInfo *pPickerInfo;
 	int nSortColumn;
 	int nViewMode;
-	BOOL bReverse;
+	bool bReverse;
 };
 
 static struct PickerInfo *GetPickerInfo(HWND hWnd)
@@ -52,7 +52,7 @@ static LRESULT CallParentWndProc(WNDPROC pfnParentWndProc, HWND hWnd, UINT messa
 	return rc;
 }
 
-static BOOL ListViewNotify(HWND hWnd, LPNMHDR lpNmHdr)
+static bool ListViewNotify(HWND hWnd, LPNMHDR lpNmHdr)
 {
 	RECT rcClient;
 	POINT pt;
@@ -65,13 +65,13 @@ static BOOL ListViewNotify(HWND hWnd, LPNMHDR lpNmHdr)
 		GetClientRect(hWnd, &rcClient);
 		ScreenToClient(hWnd, &pt);
 		rcClient.left = pt.x;
-		InvalidateRect(hWnd, &rcClient, FALSE);
+		InvalidateRect(hWnd, &rcClient, false);
 	}
 	
-	return FALSE;
+	return false;
 }
 
-static BOOL ListViewContextMenu(HWND hWndPicker, LPARAM lParam)
+static bool ListViewContextMenu(HWND hWndPicker, LPARAM lParam)
 {
 	struct PickerInfo *pPickerInfo = GetPickerInfo(hWndPicker);
 	POINT pt, headerPt;
@@ -111,7 +111,7 @@ static BOOL ListViewContextMenu(HWND hWndPicker, LPARAM lParam)
 			pPickerInfo->pCallbacks->pfnOnBodyContextMenu(pt);
 	}
 	
-	return TRUE;
+	return true;
 }
 
 static void Picker_Free(struct PickerInfo *pPickerInfo)
@@ -130,7 +130,7 @@ static LRESULT CALLBACK ListViewWndProc(HWND hWnd, UINT message, WPARAM wParam, 
 {
 	struct PickerInfo *pPickerInfo = GetPickerInfo(hWnd);
 	LRESULT rc = 0;
-	BOOL bHandled = FALSE;
+	bool bHandled = false;
 	WNDPROC pfnParentWndProc = pPickerInfo->pfnParentWndProc;
 	HWND hWndHeaderCtrl  = NULL;
 	HFONT hHeaderCtrlFont = NULL;
@@ -139,7 +139,7 @@ static LRESULT CALLBACK ListViewWndProc(HWND hWnd, UINT message, WPARAM wParam, 
 	{
 	    case WM_MOUSEMOVE:
 			if (MouseHasBeenMoved())
-				ShowCursor(TRUE);
+				ShowCursor(true);
 			break;
 
 		case WM_NOTIFY:
@@ -172,13 +172,13 @@ static LRESULT CALLBACK ListViewWndProc(HWND hWnd, UINT message, WPARAM wParam, 
 
 	 // If we received WM_SETFONT, reset header ctrl font back to original font
 	if (hWndHeaderCtrl)
-		SetWindowFont(hWndHeaderCtrl, hHeaderCtrlFont, TRUE);
+		SetWindowFont(hWndHeaderCtrl, hHeaderCtrlFont, true);
 
 	return rc;
 }
 
 // Re/initialize the ListControl Columns
-static void Picker_InternalResetColumnDisplay(HWND hWnd, BOOL bFirstTime)
+static void Picker_InternalResetColumnDisplay(HWND hWnd, bool bFirstTime)
 {
 	LVCOLUMN lvc;
 	int i = 0;
@@ -260,7 +260,7 @@ done:
 
 void Picker_ResetColumnDisplay(HWND hWnd)
 {
-	Picker_InternalResetColumnDisplay(hWnd, FALSE);
+	Picker_InternalResetColumnDisplay(hWnd, false);
 }
 
 void Picker_ClearIdle(HWND hWndPicker)
@@ -277,7 +277,7 @@ void Picker_ClearIdle(HWND hWndPicker)
 static void CALLBACK Picker_TimerProc(HWND hWndPicker, UINT uMsg, UINT_PTR idEvent, DWORD dwTime)
 {
 	struct PickerInfo *pPickerInfo = GetPickerInfo(hWndPicker);
-	BOOL bContinueIdle = FALSE;
+	bool bContinueIdle = false;
 	DWORD nTickCount = 0;
 	DWORD nBaseTickCount = GetTickCount();
 	DWORD nMaxIdleTicks = 50;
@@ -299,7 +299,7 @@ static void CALLBACK Picker_TimerProc(HWND hWndPicker, UINT uMsg, UINT_PTR idEve
 }
 
 // Instructs this picker to reset idling; idling will continue until the
-// idle function returns FALSE
+// idle function returns false
 void Picker_ResetIdle(HWND hWndPicker)
 {
 	struct PickerInfo *pPickerInfo = GetPickerInfo(hWndPicker);
@@ -310,14 +310,14 @@ void Picker_ResetIdle(HWND hWndPicker)
 		pPickerInfo->nTimer = SetTimer(hWndPicker, 0, 0, Picker_TimerProc);
 }
 
-BOOL Picker_IsIdling(HWND hWndPicker)
+bool Picker_IsIdling(HWND hWndPicker)
 {
 	struct PickerInfo *pPickerInfo = GetPickerInfo(hWndPicker);
 
 	return pPickerInfo->nTimer != 0;
 }
 
-BOOL SetupPicker(HWND hWndPicker, const struct PickerOptions *pOptions)
+bool SetupPicker(HWND hWndPicker, const struct PickerOptions *pOptions)
 {
 	LONG_PTR l;
 
@@ -326,7 +326,7 @@ BOOL SetupPicker(HWND hWndPicker, const struct PickerOptions *pOptions)
 	struct PickerInfo *pPickerInfo = (struct PickerInfo *) malloc(sizeof(struct PickerInfo));
 
 	if (!pPickerInfo)
-		return FALSE;
+		return false;
 
 	// And fill it out
 	memset(pPickerInfo, 0, sizeof(*pPickerInfo));
@@ -348,7 +348,7 @@ BOOL SetupPicker(HWND hWndPicker, const struct PickerOptions *pOptions)
 		for (int i = 0; i < pPickerInfo->nColumnCount; i++)
 		{
 			pPickerInfo->pnColumnsOrder[i] = i;
-			pPickerInfo->pnColumnsShown[i] = TRUE;
+			pPickerInfo->pnColumnsShown[i] = true;
 		}
 
 		if (pPickerInfo->pCallbacks->pfnGetColumnOrder)
@@ -363,15 +363,15 @@ BOOL SetupPicker(HWND hWndPicker, const struct PickerOptions *pOptions)
 	pPickerInfo->pfnParentWndProc = (WNDPROC) l;
 	SetWindowLongPtr(hWndPicker, GWLP_USERDATA, (LONG_PTR) pPickerInfo);
 	SetWindowLongPtr(hWndPicker, GWLP_WNDPROC, (LONG_PTR) ListViewWndProc);
-	Picker_InternalResetColumnDisplay(hWndPicker, TRUE);
+	Picker_InternalResetColumnDisplay(hWndPicker, true);
 	Picker_ResetIdle(hWndPicker);
-	return TRUE;
+	return true;
 
 error:
 	if (pPickerInfo)
 		Picker_Free(pPickerInfo);
 	
-	return FALSE;
+	return false;
 }
 
 int Picker_GetViewID(HWND hWndPicker)
@@ -398,7 +398,7 @@ void Picker_SetViewID(HWND hWndPicker, int nViewID)
 	RedrawWindow(hWndPicker, NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_FRAME);
 }
 
-static BOOL PickerHitTest(HWND hWnd)
+static bool PickerHitTest(HWND hWnd)
 {
 	RECT rect;
 	DWORD res = GetMessagePos();
@@ -435,7 +435,7 @@ void Picker_SetSelectedPick(HWND hWnd, int nIndex)
 		nIndex = 0;
 
 	ListView_SetItemState(hWnd, nIndex, LVIS_FOCUSED | LVIS_SELECTED, LVIS_FOCUSED | LVIS_SELECTED);
-	(void)ListView_EnsureVisible(hWnd, nIndex, FALSE);
+	(void)ListView_EnsureVisible(hWnd, nIndex, false);
 }
 
 void Picker_SetSelectedItem(HWND hWnd, int nItem)
@@ -514,7 +514,7 @@ static int CALLBACK Picker_CompareProc(LPARAM index1, LPARAM index2, LPARAM nPar
 {
 	struct CompareProcParams *pcpp = (struct CompareProcParams *) nParamSort;
 	struct PickerInfo *pPickerInfo = pcpp->pPickerInfo;
-	BOOL bCallCompare = TRUE;
+	bool bCallCompare = true;
 	int nResult = 0; 
 	TCHAR szBuffer1[256]; 
 	TCHAR szBuffer2[256];
@@ -560,7 +560,7 @@ static int CALLBACK Picker_CompareProc(LPARAM index1, LPARAM index2, LPARAM nPar
 				{
 					// if this is a child and its parent, put child after
 					nResult = 1;
-					bCallCompare = FALSE;
+					bCallCompare = false;
 				}
 				else
 				{
@@ -575,7 +575,7 @@ static int CALLBACK Picker_CompareProc(LPARAM index1, LPARAM index2, LPARAM nPar
 				{
 					// if this is a child and its parent, put child after
 					nResult = -1;
-					bCallCompare = FALSE;
+					bCallCompare = false;
 				}
 				else
 				{
@@ -621,7 +621,7 @@ void Picker_Sort(HWND hWndPicker)
 	lvfi.flags = LVFI_PARAM;
 	lvfi.lParam = Picker_GetSelectedItem(hWndPicker);
 	int nItem = ListView_FindItem(hWndPicker, -1, &lvfi);
-	(void)ListView_EnsureVisible(hWndPicker, nItem, FALSE);
+	(void)ListView_EnsureVisible(hWndPicker, nItem, false);
 }
 
 int Picker_InsertItemSorted(HWND hWndPicker, int nParam)
@@ -692,12 +692,12 @@ int Picker_GetViewColumnFromRealColumn(HWND hWnd, int nRealColumn)
 	return 0;
 }
 
-BOOL Picker_HandleNotify(LPNMHDR lpNmHdr)
+bool Picker_HandleNotify(LPNMHDR lpNmHdr)
 {
 	HWND hWnd = lpNmHdr->hwndFrom;
 	struct PickerInfo *pPickerInfo = GetPickerInfo(hWnd);
-	BOOL bResult = FALSE;
-	BOOL bReverse = FALSE;
+	bool bResult = false;
+	bool bReverse = false;
 
 	NMLISTVIEW *pnmv = (NM_LISTVIEW *) lpNmHdr;
 
@@ -713,13 +713,13 @@ BOOL Picker_HandleNotify(LPNMHDR lpNmHdr)
 				if (pPickerInfo->nLastItem != -1)
 					Picker_SetSelectedItem(hWnd, pPickerInfo->nLastItem);
 
-				bResult = TRUE;
+				bResult = true;
 			}
 			else if ((lpNmHdr->code == NM_DBLCLK) && (pPickerInfo->pCallbacks->pfnDoubleClick))
 			{
 				// double click!
 				pPickerInfo->pCallbacks->pfnDoubleClick();
-				bResult = TRUE;
+				bResult = true;
 			}
 			
 			break;
@@ -737,13 +737,13 @@ BOOL Picker_HandleNotify(LPNMHDR lpNmHdr)
 				else
 					pDispInfo->item.iImage = 0;
 
-				bResult = TRUE;
+				bResult = true;
 			}
 
 			if (pDispInfo->item.mask & LVIF_STATE)
 			{
 				pDispInfo->item.state = 0;
-				bResult = TRUE;
+				bResult = true;
 			}
 
 			if (pDispInfo->item.mask & LVIF_TEXT)
@@ -752,7 +752,7 @@ BOOL Picker_HandleNotify(LPNMHDR lpNmHdr)
 				int nColumn = Picker_GetRealColumnFromViewColumn(hWnd, pDispInfo->item.iSubItem);
 				const TCHAR *s = Picker_CallGetItemString(hWnd, nItem, nColumn, pDispInfo->item.pszText, pDispInfo->item.cchTextMax);
 				pDispInfo->item.pszText = (TCHAR *) s;
-				bResult = TRUE;
+				bResult = true;
 			}
 			
 			break;
@@ -774,7 +774,7 @@ BOOL Picker_HandleNotify(LPNMHDR lpNmHdr)
 					pPickerInfo->pCallbacks->pfnEnteringItem(hWnd, pnmv->lParam);
 			}
 
-			bResult = TRUE;
+			bResult = true;
 			break;
 
 		case LVN_COLUMNCLICK:
@@ -782,12 +782,12 @@ BOOL Picker_HandleNotify(LPNMHDR lpNmHdr)
 			if (pPickerInfo->pCallbacks->pfnGetSortColumn() == Picker_GetRealColumnFromViewColumn(hWnd, pnmv->iSubItem))
 				bReverse = !pPickerInfo->pCallbacks->pfnGetSortReverse();
 			else
-				bReverse = FALSE;
+				bReverse = false;
 
 			pPickerInfo->pCallbacks->pfnSetSortReverse(bReverse);
 			pPickerInfo->pCallbacks->pfnSetSortColumn(Picker_GetRealColumnFromViewColumn(hWnd, pnmv->iSubItem));
 			Picker_Sort(hWnd);
-			bResult = TRUE;
+			bResult = true;
 			break;
 
 		case LVN_BEGINDRAG:
@@ -849,10 +849,10 @@ const TCHAR* const *Picker_GetColumnNames(HWND hWndPicker)
 	return pPickerInfo->ppszColumnNames;
 }
 
-BOOL Picker_SaveColumnWidths(HWND hWndPicker)
+bool Picker_SaveColumnWidths(HWND hWndPicker)
 {
 	struct PickerInfo *pPickerInfo = GetPickerInfo(hWndPicker);
-	BOOL bSuccess = FALSE;
+	bool bSuccess = false;
 	int nColumnMax = 0;
 	
 	/* allocate space for the column info */
@@ -882,7 +882,7 @@ BOOL Picker_SaveColumnWidths(HWND hWndPicker)
 
 	pPickerInfo->pCallbacks->pfnSetColumnWidths(widths);
 	pPickerInfo->pCallbacks->pfnSetColumnOrder(order);
-	bSuccess = TRUE;
+	bSuccess = true;
 
 done:
 	if (widths)

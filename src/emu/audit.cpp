@@ -422,7 +422,7 @@ media_auditor::summary media_auditor::winui_summarize(const char *name, std::str
 
 	// loop over records
 	summary overall_status = CORRECT;
-	for (audit_record *record = m_record_list.first(); record != NULL; record = record->next())
+	for (audit_record *record = m_record_list.first(); record != nullptr; record = record->next())
 	{
 		summary best_new_status = INCORRECT;
 
@@ -435,7 +435,7 @@ media_auditor::summary media_auditor::winui_summarize(const char *name, std::str
 			continue;
 
 		// output the game name, file name, and length (if applicable)
-		if (output != NULL)
+		if (output != nullptr)
 		{
 			strcatprintf(*output,"%-12s: %s", name, record->name());
 			if (record->expected_length() > 0)
@@ -447,17 +447,17 @@ media_auditor::summary media_auditor::winui_summarize(const char *name, std::str
 		switch (record->substatus())
 		{
 			case audit_record::SUBSTATUS_GOOD_NEEDS_REDUMP:
-				if (output != NULL) strcatprintf(*output,"NEEDS REDUMP\n");
+				if (output != nullptr) strcatprintf(*output,"NEEDS REDUMP\n");
 				best_new_status = BEST_AVAILABLE;
 				break;
 
 			case audit_record::SUBSTATUS_FOUND_NODUMP:
-				if (output != NULL) strcatprintf(*output,"NO GOOD DUMP KNOWN\n");
+				if (output != nullptr) strcatprintf(*output,"NO GOOD DUMP KNOWN\n");
 				best_new_status = BEST_AVAILABLE;
 				break;
 
 			case audit_record::SUBSTATUS_FOUND_BAD_CHECKSUM:
-				if (output != NULL)
+				if (output != nullptr)
 				{
 					std::string tempstr;
 					strcatprintf(*output,"INCORRECT CHECKSUM:\n");
@@ -467,14 +467,14 @@ media_auditor::summary media_auditor::winui_summarize(const char *name, std::str
 				break;
 
 			case audit_record::SUBSTATUS_FOUND_WRONG_LENGTH:
-				if (output != NULL) strcatprintf(*output,"INCORRECT LENGTH: %" I64FMT "d bytes\n", record->actual_length());
+				if (output != nullptr) strcatprintf(*output,"INCORRECT LENGTH: %" I64FMT "d bytes\n", record->actual_length());
 				break;
 
 			case audit_record::SUBSTATUS_NOT_FOUND:
-				if (output != NULL)
+				if (output != nullptr)
 				{
 					device_t *shared_device = record->shared_device();
-					if (shared_device == NULL)
+					if (shared_device == nullptr)
 						strcatprintf(*output,"NOT FOUND\n");
 					else
 						strcatprintf(*output,"NOT FOUND (%s)\n", shared_device->shortname());
@@ -483,12 +483,12 @@ media_auditor::summary media_auditor::winui_summarize(const char *name, std::str
 				break;
 
 			case audit_record::SUBSTATUS_NOT_FOUND_NODUMP:
-				if (output != NULL) strcatprintf(*output,"NOT FOUND - NO GOOD DUMP KNOWN\n");
+				if (output != nullptr) strcatprintf(*output,"NOT FOUND - NO GOOD DUMP KNOWN\n");
 				best_new_status = BEST_AVAILABLE;
 				break;
 
 			case audit_record::SUBSTATUS_NOT_FOUND_OPTIONAL:
-				if (output != NULL) strcatprintf(*output,"NOT FOUND BUT OPTIONAL\n");
+				if (output != nullptr) strcatprintf(*output,"NOT FOUND BUT OPTIONAL\n");
 				best_new_status = BEST_AVAILABLE;
 				break;
 

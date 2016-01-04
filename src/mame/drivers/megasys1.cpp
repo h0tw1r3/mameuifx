@@ -184,35 +184,21 @@ TIMER_DEVICE_CALLBACK_MEMBER(megasys1_state::megasys1A_scanline)
 	// rodland: irq 1 & 3 RTE, irq 2 valid (sets palette, vregs ...)
 	// soldam: irq 1 & 3 RTE, irq 2 valid
 
-	if(scanline == 240) // vblank-out irq
-		m_maincpu->set_input_line(2, HOLD_LINE);
-
-	if(scanline == 16)
-		m_maincpu->set_input_line(1, HOLD_LINE);
-
-	if(scanline == 128)
-		m_maincpu->set_input_line(3, HOLD_LINE);
-}
-
-TIMER_DEVICE_CALLBACK_MEMBER(megasys1_state::megasys1A_scanline_kazan)
-{
-	int scanline = param;
-
 	if(scanline == 240)		// vblank clear all lines
 	{
 		m_maincpu->set_input_line(3, CLEAR_LINE);
 		m_maincpu->set_input_line(2, CLEAR_LINE);
 		m_maincpu->set_input_line(1, CLEAR_LINE);
 	}
-	
+
 	if(scanline == 0)
-		m_maincpu->set_input_line(1, ASSERT_LINE);
+		m_maincpu->set_input_line(1, HOLD_LINE);
 
-	if(scanline == 160)		// completely a guess
-		m_maincpu->set_input_line(2, ASSERT_LINE);
+	if(scanline == 16)
+		m_maincpu->set_input_line(2, HOLD_LINE);
 
-	if(scanline == 192)		// completely a guess 
-		m_maincpu->set_input_line(3, ASSERT_LINE);
+	if(scanline == 32)
+		m_maincpu->set_input_line(3, HOLD_LINE);
 }
 
 static ADDRESS_MAP_START( megasys1A_map, AS_PROGRAM, 16, megasys1_state )
@@ -1555,13 +1541,6 @@ MACHINE_CONFIG_END
 
 static MACHINE_CONFIG_DERIVED( system_A_hachoo, system_A )
 	MCFG_MACHINE_RESET_OVERRIDE(megasys1_state,megasys1_hachoo)
-MACHINE_CONFIG_END
-
-static MACHINE_CONFIG_DERIVED( system_A_kazan, system_A )
-
-	/* basic machine hardware */
-	MCFG_TIMER_MODIFY("scantimer")
-	MCFG_TIMER_DRIVER_CALLBACK(megasys1_state, megasys1A_scanline_kazan)
 MACHINE_CONFIG_END
 
 static MACHINE_CONFIG_DERIVED( system_B, system_A )
@@ -3644,7 +3623,7 @@ ROM_END
 
 Bootleg version of Saint Dragon. Two PCBs connected by two flat cables.
 Sound section can host two oki chips (and roms) but only one is populated.
-No ASICs just logic chips. 
+No ASICs just logic chips.
 
 - ROMs A-19 and A-20 are fitted 'piggy backed' with one pin
   from A-20 bent out and wired to a nearby TTL.
@@ -4369,8 +4348,8 @@ GAME( 1988, p47je,    p47,      system_A,          p47,      driver_device,  0, 
 GAME( 1988, kickoff,  0,        system_A,          kickoff,  driver_device,  0,        ROT0,   "Jaleco", "Kick Off (Japan)", 0 )
 GAME( 1988, tshingen, 0,        system_A,          tshingen, megasys1_state, phantasm, ROT0,   "Jaleco", "Shingen Samurai-Fighter (Japan, English)", MACHINE_IMPERFECT_GRAPHICS )
 GAME( 1988, tshingena,tshingen, system_A,          tshingen, megasys1_state, phantasm, ROT0,   "Jaleco", "Takeda Shingen (Japan, Japanese)", MACHINE_IMPERFECT_GRAPHICS )
-GAME( 1988, kazan,    0,        system_A_kazan,    kazan,    megasys1_state, iganinju, ROT0,   "Jaleco", "Ninja Kazan (World)", 0 )
-GAME( 1988, iganinju, kazan,    system_A_kazan,    kazan,    megasys1_state, iganinju, ROT0,   "Jaleco", "Iga Ninjyutsuden (Japan)", 0 )
+GAME( 1988, kazan,    0,        system_A,          kazan,    megasys1_state, iganinju, ROT0,   "Jaleco", "Ninja Kazan (World)", 0 )
+GAME( 1988, iganinju, kazan,    system_A,          kazan,    megasys1_state, iganinju, ROT0,   "Jaleco", "Iga Ninjyutsuden (Japan)", 0 )
 GAME( 1989, astyanax, 0,        system_A,          astyanax, megasys1_state, astyanax, ROT0,   "Jaleco", "The Astyanax", 0 )
 GAME( 1989, lordofk,  astyanax, system_A,          astyanax, megasys1_state, astyanax, ROT0,   "Jaleco", "The Lord of King (Japan)", 0 )
 GAME( 1989, hachoo,   0,        system_A_hachoo,   hachoo,   megasys1_state, astyanax, ROT0,   "Jaleco", "Hachoo!", 0 )

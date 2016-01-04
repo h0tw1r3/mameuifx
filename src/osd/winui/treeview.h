@@ -32,8 +32,8 @@ typedef struct
 	DWORD       m_dwUnset; 									// Excluded filters
 	DWORD       m_dwSet;   									// Implied filters
 	void        (*m_pfnCreateFolders)(int parent_index); 	// Constructor for special folders
-	BOOL        (*m_pfnQuery)(int nDriver);              	// Query function
-	BOOL        m_bExpectedResult;                       	// Expected query result
+	bool        (*m_pfnQuery)(int nDriver);              	// Query function
+	bool        m_bExpectedResult;                       	// Expected query result
 } FOLDERDATA, *LPFOLDERDATA;
 
 typedef const FOLDERDATA *LPCFOLDERDATA;
@@ -42,8 +42,8 @@ typedef struct
 {
 	DWORD m_dwFilterType;				/* Filter value */
 	DWORD m_dwCtrlID;					/* Control ID that represents it */
-	BOOL (*m_pfnQuery)(int nDriver);	/* Query function */
-	BOOL m_bExpectedResult;				/* Expected query result */
+	bool (*m_pfnQuery)(int nDriver);	/* Query function */
+	bool m_bExpectedResult;				/* Expected query result */
 } FILTER_ITEM, *LPFILTER_ITEM;
 
 typedef const FILTER_ITEM *LPCFILTER_ITEM;
@@ -143,13 +143,13 @@ void RemoveGame(LPTREEFOLDER lpFolder, UINT nGame);
 int  FindGame(LPTREEFOLDER lpFolder, int nGame);
 void ResetWhichGamesInFolders(void);
 LPCFOLDERDATA FindFilter(DWORD folderID);
-BOOL GameFiltered(int nGame, DWORD dwFlags);
-BOOL GetParentFound(int nGame);
+bool GameFiltered(int nGame, DWORD dwFlags);
+bool GetParentFound(int nGame);
 LPCFILTER_ITEM GetFilterList(void);
-void SetTreeIconSize(HWND hWnd, BOOL bLarge);
-BOOL GetTreeIconSize(void);
+void SetTreeIconSize(HWND hWnd, bool bLarge);
+bool GetTreeIconSize(void);
 void GetFolders(TREEFOLDER ***folders,int *num_folders);
-BOOL TryRenameCustomFolder(LPTREEFOLDER lpFolder,const char *new_name);
+bool TryRenameCustomFolder(LPTREEFOLDER lpFolder,const char *new_name);
 void AddToCustomFolder(LPTREEFOLDER lpFolder,int driver_index);
 void RemoveFromCustomFolder(LPTREEFOLDER lpFolder,int driver_index);
 HIMAGELIST GetTreeViewIconList(void);

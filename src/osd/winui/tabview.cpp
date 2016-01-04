@@ -40,7 +40,7 @@ static LRESULT CALLBACK TabViewWndProc(HWND hWnd, UINT message, WPARAM wParam, L
 {
 	struct TabViewInfo *pTabViewInfo = GetTabViewInfo(hWnd);
 	WNDPROC pfnParentWndProc = pTabViewInfo->pfnParentWndProc;
-	BOOL bHandled = FALSE;
+	bool bHandled = false;
 	LRESULT rc = 0;
 
 	switch(message)
@@ -164,11 +164,11 @@ void TabView_UpdateSelection(HWND hWndTabView)
 	(void)TabCtrl_SetCurSel(hWndTabView, TabView_GetCurrentTabIndex(hWndTabView));
 }
 
-BOOL TabView_HandleNotify(LPNMHDR lpNmHdr)
+bool TabView_HandleNotify(LPNMHDR lpNmHdr)
 {
 	HWND hWndTabView = lpNmHdr->hwndFrom;
 	struct TabViewInfo *pTabViewInfo = GetTabViewInfo(hWndTabView);
-	BOOL bResult = FALSE;
+	bool bResult = false;
 
 	switch (lpNmHdr->code)
 	{
@@ -180,7 +180,7 @@ BOOL TabView_HandleNotify(LPNMHDR lpNmHdr)
 			if (pTabViewInfo->pCallbacks->pfnOnSelectionChanged)
 				pTabViewInfo->pCallbacks->pfnOnSelectionChanged();
 			
-			bResult = TRUE;
+			bResult = true;
 			break;
 	}
 	
@@ -234,7 +234,7 @@ void TabView_Reset(HWND hWndTabView)
 	TabView_UpdateSelection(hWndTabView);
 }
 
-BOOL SetupTabView(HWND hWndTabView, const struct TabViewOptions *pOptions)
+bool SetupTabView(HWND hWndTabView, const struct TabViewOptions *pOptions)
 {
 	LONG_PTR l;
 
@@ -243,7 +243,7 @@ BOOL SetupTabView(HWND hWndTabView, const struct TabViewOptions *pOptions)
 	struct TabViewInfo *pTabViewInfo = (struct TabViewInfo *) malloc(sizeof(struct TabViewInfo));
 
 	if (!pTabViewInfo)
-		return FALSE;
+		return false;
 
 	// And fill it out
 	memset(pTabViewInfo, 0, sizeof(*pTabViewInfo));
@@ -254,12 +254,12 @@ BOOL SetupTabView(HWND hWndTabView, const struct TabViewOptions *pOptions)
 	pTabViewInfo->pfnParentWndProc = (WNDPROC) l;
 	SetWindowLongPtr(hWndTabView, GWLP_USERDATA, (LONG_PTR) pTabViewInfo);
 	SetWindowLongPtr(hWndTabView, GWLP_WNDPROC, (LONG_PTR) TabViewWndProc);
-	BOOL bShowTabView = pTabViewInfo->pCallbacks->pfnGetShowTabCtrl ? pTabViewInfo->pCallbacks->pfnGetShowTabCtrl() : TRUE;
+	bool bShowTabView = pTabViewInfo->pCallbacks->pfnGetShowTabCtrl ? pTabViewInfo->pCallbacks->pfnGetShowTabCtrl() : true;
 	ShowWindow(hWndTabView, bShowTabView ? SW_SHOW : SW_HIDE);
 	TabView_Reset(hWndTabView);
 	
 	if (pTabViewInfo->pCallbacks->pfnOnSelectionChanged)
 		pTabViewInfo->pCallbacks->pfnOnSelectionChanged();
 
-	return TRUE;
+	return true;
 }

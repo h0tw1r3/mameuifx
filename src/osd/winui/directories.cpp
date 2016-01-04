@@ -30,7 +30,7 @@ typedef struct
 {
 	TCHAR m_Directories[MAX_DIRS][MAX_PATH];
 	int m_NumDirectories;
-	BOOL m_bModified;
+	bool m_bModified;
 } tPath;
 
 typedef struct
@@ -44,40 +44,40 @@ typedef struct
 	const char *lpName;
 	const char* (*pfnGetTheseDirs)(void);
 	void (*pfnSetTheseDirs)(const char *lpDirs);
-	BOOL bMulti;
+	bool bMulti;
 	int nDirDlgFlags;
 } DIRECTORYINFO;
 
 static const DIRECTORYINFO g_directoryInfo[] =
 {
-	{ "ROMs",                  GetRomDirs,      SetRomDirs,      TRUE,  DIRDLG_ROM },
-	{ "Samples",               GetSampleDirs,   SetSampleDirs,   TRUE,  0 },
-	{ "Config files",          GetCfgDir,       SetCfgDir,       FALSE, 0 },
-	{ "High scores",           GetHiDir,        SetHiDir,        FALSE, 0 },
-	{ "Snapshots",             GetImgDir,       SetImgDir,       FALSE, 0 },
-	{ "Input files",           GetInpDir,       SetInpDir,       FALSE, 0 },
-	{ "State files",           GetStateDir,     SetStateDir,     FALSE, 0 },
-	{ "Artwork files",         GetArtDir,       SetArtDir,       FALSE, 0 },
-	{ "NVRAM files",           GetNvramDir,     SetNvramDir,     FALSE, 0 },
-	{ "Controller files",      GetCtrlrDir,     SetCtrlrDir,     FALSE, 0 },
-	{ "Crosshair files",       GetCrosshairDir, SetCrosshairDir, FALSE, 0 },
-	{ "HLSL files",            GetHLSLDir, 	  	SetHLSLDir, 	 FALSE, 0 },
-	{ "CHD Diff files",        GetDiffDir, 	  	SetDiffDir, 	 FALSE, 0 },
-	{ "GLSL shader files",     GetGLSLDir, 	  	SetGLSLDir, 	 FALSE, 0 },
-	{ "Font files",            GetFontDir,      SetFontDir,      FALSE, 0 },
-	{ "Video files",           GetVideoDir,     SetVideoDir,     FALSE, 0 },
-	{ "ProgettoSnaps movies",  GetMoviesDir,    SetMoviesDir,    FALSE, 0 },
-	{ "Audio files",           GetAudioDir,     SetAudioDir,     FALSE, 0 },
-	{ "Flyers",                GetFlyerDir,     SetFlyerDir,     FALSE, 0 },
-	{ "Cabinets",              GetCabinetDir,   SetCabinetDir,   FALSE, 0 },
-	{ "Marquees",              GetMarqueeDir,   SetMarqueeDir,   FALSE, 0 },
-	{ "Titles",                GetTitlesDir,    SetTitlesDir,    FALSE, 0 },
-	{ "Control panels",        GetControlPanelDir,SetControlPanelDir, FALSE, 0 },
-	{ "Scores snapshots",      GetScoresDir,    SetScoresDir,    FALSE, 0 },
-	{ "PCBs",                  GetPcbDir,       SetPcbDir,       FALSE, 0 },
-	{ "Folders",               GetFolderDir,    SetFolderDir,    FALSE, 0 },
-	{ "Icons",                 GetIconsDir,     SetIconsDir,     FALSE, 0 },
-	{ "Datafiles",             GetDatsDir,      SetDatsDir,      FALSE, 0 },
+	{ "ROMs",                  GetRomDirs,      SetRomDirs,      true,  DIRDLG_ROM },
+	{ "Samples",               GetSampleDirs,   SetSampleDirs,   true,  0 },
+	{ "Config files",          GetCfgDir,       SetCfgDir,       false, 0 },
+	{ "High scores",           GetHiDir,        SetHiDir,        false, 0 },
+	{ "Snapshots",             GetImgDir,       SetImgDir,       false, 0 },
+	{ "Input files",           GetInpDir,       SetInpDir,       false, 0 },
+	{ "State files",           GetStateDir,     SetStateDir,     false, 0 },
+	{ "Artwork files",         GetArtDir,       SetArtDir,       false, 0 },
+	{ "NVRAM files",           GetNvramDir,     SetNvramDir,     false, 0 },
+	{ "Controller files",      GetCtrlrDir,     SetCtrlrDir,     false, 0 },
+	{ "Crosshair files",       GetCrosshairDir, SetCrosshairDir, false, 0 },
+	{ "HLSL files",            GetHLSLDir, 	  	SetHLSLDir, 	 false, 0 },
+	{ "CHD Diff files",        GetDiffDir, 	  	SetDiffDir, 	 false, 0 },
+	{ "GLSL shader files",     GetGLSLDir, 	  	SetGLSLDir, 	 false, 0 },
+	{ "Font files",            GetFontDir,      SetFontDir,      false, 0 },
+	{ "Video files",           GetVideoDir,     SetVideoDir,     false, 0 },
+	{ "ProgettoSnaps movies",  GetMoviesDir,    SetMoviesDir,    false, 0 },
+	{ "Audio files",           GetAudioDir,     SetAudioDir,     false, 0 },
+	{ "Flyers",                GetFlyerDir,     SetFlyerDir,     false, 0 },
+	{ "Cabinets",              GetCabinetDir,   SetCabinetDir,   false, 0 },
+	{ "Marquees",              GetMarqueeDir,   SetMarqueeDir,   false, 0 },
+	{ "Titles",                GetTitlesDir,    SetTitlesDir,    false, 0 },
+	{ "Control panels",        GetControlPanelDir,SetControlPanelDir, false, 0 },
+	{ "Scores snapshots",      GetScoresDir,    SetScoresDir,    false, 0 },
+	{ "PCBs",                  GetPcbDir,       SetPcbDir,       false, 0 },
+	{ "Folders",               GetFolderDir,    SetFolderDir,    false, 0 },
+	{ "Icons",                 GetIconsDir,     SetIconsDir,     false, 0 },
+	{ "Datafiles",             GetDatsDir,      SetDatsDir,      false, 0 },
 	{ NULL }
 };
 
@@ -86,16 +86,16 @@ static const DIRECTORYINFO g_directoryInfo[] =
  ***************************************************************************/
 
 static int CALLBACK BrowseCallbackProc(HWND hwnd, UINT uMsg, LPARAM lParam, LPARAM lpData);
-static BOOL BrowseForDirectory(HWND hwnd, const TCHAR* pStartDir, TCHAR* pResult);
+static bool BrowseForDirectory(HWND hwnd, const TCHAR* pStartDir, TCHAR* pResult);
 static void DirInfo_SetDir(tDirInfo *pInfo, int nType, int nItem, const TCHAR* pText);
 static TCHAR* DirInfo_Dir(tDirInfo *pInfo, int nType);
 static TCHAR* DirInfo_Path(tDirInfo *pInfo, int nType, int nItem);
-static void DirInfo_SetModified(tDirInfo *pInfo, int nType, BOOL bModified);
-static BOOL DirInfo_Modified(tDirInfo *pInfo, int nType);
+static void DirInfo_SetModified(tDirInfo *pInfo, int nType, bool bModified);
+static bool DirInfo_Modified(tDirInfo *pInfo, int nType);
 static TCHAR* FixSlash(TCHAR *s);
 static void UpdateDirectoryList(HWND hDlg);
 static void Directories_OnSelChange(HWND hDlg);
-static BOOL Directories_OnInitDialog(HWND hDlg, HWND hwndFocus, LPARAM lParam);
+static bool Directories_OnInitDialog(HWND hDlg, HWND hwndFocus, LPARAM lParam);
 static void Directories_OnDestroy(HWND hDlg);
 static void Directories_OnClose(HWND hDlg);
 static void Directories_OnOk(HWND hDlg);
@@ -126,7 +126,7 @@ INT_PTR CALLBACK DirectoriesDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARA
 		CenterWindow(hDlg);
         hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_MAMEUI_ICON));
         SendMessage(hDlg, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
-		hBrush = CreateSolidBrush(RGB(224, 223, 227));
+		hBrush = CreateSolidBrush(RGB(240, 240, 240));
 
 		if(IsWindowsSevenOrHigher())
 			(void)ListView_SetExtendedListViewStyle(GetDlgItem(hDlg, IDC_DIR_LIST), LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER);
@@ -149,7 +149,7 @@ INT_PTR CALLBACK DirectoriesDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARA
 
 	case WM_COMMAND:
 		HANDLE_WM_COMMAND(hDlg, wParam, lParam, Directories_OnCommand);
-		return TRUE;
+		return true;
 
 	case WM_CLOSE:
 		HANDLE_WM_CLOSE(hDlg, wParam, lParam, Directories_OnClose);
@@ -162,17 +162,17 @@ INT_PTR CALLBACK DirectoriesDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARA
 		break;
 
 	default:
-		return FALSE;
+		return false;
 	}
 	
-	return FALSE;
+	return false;
 }
 
 /***************************************************************************
     Internal function definitions
  ***************************************************************************/
 
-static BOOL IsMultiDir(int nType)
+static bool IsMultiDir(int nType)
 {
 	return g_directoryInfo[nType].bMulti;
 }
@@ -183,7 +183,7 @@ static void DirInfo_SetDir(tDirInfo *pInfo, int nType, int nItem, const TCHAR* p
 	{
 		assert(nItem >= 0);
 		_tcscpy(DirInfo_Path(pInfo, nType, nItem), pText);
-		DirInfo_SetModified(pInfo, nType, TRUE);
+		DirInfo_SetModified(pInfo, nType, true);
 	}
 	else
 	{
@@ -211,13 +211,13 @@ static TCHAR* DirInfo_Path(tDirInfo *pInfo, int nType, int nItem)
 	return pInfo[nType].m_Path->m_Directories[nItem];
 }
 
-static void DirInfo_SetModified(tDirInfo *pInfo, int nType, BOOL bModified)
+static void DirInfo_SetModified(tDirInfo *pInfo, int nType, bool bModified)
 {
 	assert(IsMultiDir(nType));
 	pInfo[nType].m_Path->m_bModified = bModified;
 }
 
-static BOOL DirInfo_Modified(tDirInfo *pInfo, int nType)
+static bool DirInfo_Modified(tDirInfo *pInfo, int nType)
 {
 	assert(IsMultiDir(nType));
 	return pInfo[nType].m_Path->m_bModified;
@@ -281,17 +281,17 @@ static void Directories_OnSelChange(HWND hDlg)
 
 	if (IsMultiDir(nType))
 	{
-		EnableWindow(GetDlgItem(hDlg, IDC_DIR_DELETE), TRUE);
-		EnableWindow(GetDlgItem(hDlg, IDC_DIR_INSERT), TRUE);
+		EnableWindow(GetDlgItem(hDlg, IDC_DIR_DELETE), true);
+		EnableWindow(GetDlgItem(hDlg, IDC_DIR_INSERT), true);
 	}
 	else
 	{
-		EnableWindow(GetDlgItem(hDlg, IDC_DIR_DELETE), FALSE);
-		EnableWindow(GetDlgItem(hDlg, IDC_DIR_INSERT), FALSE);
+		EnableWindow(GetDlgItem(hDlg, IDC_DIR_DELETE), false);
+		EnableWindow(GetDlgItem(hDlg, IDC_DIR_INSERT), false);
 	}
 }
 
-static BOOL Directories_OnInitDialog(HWND hDlg, HWND hwndFocus, LPARAM lParam)
+static bool Directories_OnInitDialog(HWND hDlg, HWND hwndFocus, LPARAM lParam)
 {
 	RECT rectClient;
 	LVCOLUMN LVCol;
@@ -318,7 +318,7 @@ static BOOL Directories_OnInitDialog(HWND hDlg, HWND hwndFocus, LPARAM lParam)
 		t_s = tstring_from_utf8(g_directoryInfo[i].lpName);
 
 		if(!t_s)
-			return FALSE;
+			return false;
 
 		(void)ComboBox_InsertString(GetDlgItem(hDlg, IDC_DIR_COMBO), 0, t_s);
 		free(t_s);
@@ -341,7 +341,7 @@ static BOOL Directories_OnInitDialog(HWND hDlg, HWND hwndFocus, LPARAM lParam)
 		t_s = tstring_from_utf8(s);
 
 		if(!t_s)
-			return FALSE;
+			return false;
 
 		if (g_directoryInfo[i].bMulti)
 		{
@@ -363,7 +363,7 @@ static BOOL Directories_OnInitDialog(HWND hDlg, HWND hwndFocus, LPARAM lParam)
 				token = _tcstok(NULL, TEXT(";"));
 			}
 			
-			DirInfo_SetModified(g_pDirInfo, i, FALSE);
+			DirInfo_SetModified(g_pDirInfo, i, false);
 		}
 		else
 		{
@@ -375,7 +375,7 @@ static BOOL Directories_OnInitDialog(HWND hDlg, HWND hwndFocus, LPARAM lParam)
 	}
 
 	UpdateDirectoryList(hDlg);
-	return TRUE;
+	return true;
 
 error:
 	if(t_s)
@@ -383,7 +383,7 @@ error:
 
 	Directories_OnDestroy(hDlg);
 	EndDialog(hDlg, -1);
-	return FALSE;
+	return false;
 }
 
 static void Directories_OnDestroy(HWND hDlg)
@@ -473,7 +473,7 @@ static void Directories_OnInsert(HWND hDlg)
 	int nItem = ListView_GetNextItem(hList, -1, LVNI_SELECTED);
 	TCHAR buf[MAX_PATH];
 
-	if (BrowseForDirectory(hDlg, NULL, buf) == TRUE)
+	if (BrowseForDirectory(hDlg, NULL, buf) == true)
 	{
 		/* list was empty */
 		if (nItem == -1)
@@ -491,7 +491,7 @@ static void Directories_OnInsert(HWND hDlg)
 
 			_tcscpy(DirInfo_Path(g_pDirInfo, nType, nItem), buf);
 			DirInfo_NumDir(g_pDirInfo, nType)++;
-			DirInfo_SetModified(g_pDirInfo, nType, TRUE);
+			DirInfo_SetModified(g_pDirInfo, nType, true);
 		}
 
 		UpdateDirectoryList(hDlg);
@@ -523,7 +523,7 @@ static void Directories_OnBrowse(HWND hDlg)
 
 	ListView_GetItemText(hList, nItem, 0, inbuf, MAX_PATH);
 
-	if (BrowseForDirectory(hDlg, inbuf, outbuf) == TRUE)
+	if (BrowseForDirectory(hDlg, inbuf, outbuf) == true)
 	{
 		nType = ComboBox_GetCurSel(GetDlgItem(hDlg, IDC_DIR_COMBO));
 		DirInfo_SetDir(g_pDirInfo, nType, nItem, outbuf);
@@ -553,7 +553,7 @@ static void Directories_OnDelete(HWND hDlg)
 
 		_tcscpy(DirInfo_Path(g_pDirInfo, nType, DirInfo_NumDir(g_pDirInfo, nType) - 1), TEXT(""));
 		DirInfo_NumDir(g_pDirInfo, nType)--;
-		DirInfo_SetModified(g_pDirInfo, nType, TRUE);
+		DirInfo_SetModified(g_pDirInfo, nType, true);
 	}
 
 	UpdateDirectoryList(hDlg);
@@ -626,15 +626,15 @@ static int CALLBACK BrowseCallbackProc(HWND hWnd, UINT uMsg, LPARAM lParam, LPAR
 	if (uMsg == BFFM_INITIALIZED)
 	{
 		if ((const char*)lpData != NULL)
-			SendMessage(hWnd, BFFM_SETSELECTION, TRUE, lpData);
+			SendMessage(hWnd, BFFM_SETSELECTION, true, lpData);
 	}
 	
 	return 0;
 }
 
-BOOL BrowseForDirectory(HWND hWnd, const TCHAR* pStartDir, TCHAR* pResult)
+static bool BrowseForDirectory(HWND hWnd, const TCHAR* pStartDir, TCHAR* pResult)
 {
-	BOOL bResult = FALSE;
+	bool bResult = false;
 	BROWSEINFO Info;
 	LPITEMIDLIST pItemIDList = NULL;
 	TCHAR buf[MAX_PATH];
@@ -651,14 +651,14 @@ BOOL BrowseForDirectory(HWND hWnd, const TCHAR* pStartDir, TCHAR* pResult)
 
 	if (pItemIDList != NULL)
 	{
-		if (SHGetPathFromIDList(pItemIDList, buf) == TRUE)
+		if (SHGetPathFromIDList(pItemIDList, buf) == true)
 		{
 			_sntprintf(pResult, MAX_PATH, TEXT("%s"), buf);
-			bResult = TRUE;
+			bResult = true;
 		}
 	}
 	else
-		bResult = FALSE;
+		bResult = false;
 
 	return bResult;
 }

@@ -55,7 +55,7 @@ void OnLButtonUp(HWND hWnd, UINT nFlags, POINTS p);
 void OnSizeSplitter(HWND hWnd);
 void AddSplitter(HWND hWnd, HWND hWndLeft, HWND hWndRight, void (*func)(HWND hWnd,LPRECT lpRect));
 void RecalcSplitters(void);
-BOOL InitSplitters(void);
+bool InitSplitters(void);
 void SplittersExit(void);
 int GetSplitterCount(void);
 extern int *nSplitterOffset;

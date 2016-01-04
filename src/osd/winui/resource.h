@@ -583,4 +583,4 @@
 #define ID_OPTIONS_TREE_FONT            40115
 #define ID_VIEW_FULLSCREEN              40116
 #define ID_ENABLE_INDENT		    	40117
-#define IDC_STATIC                      -1
+#define IDC_STATIC                      1

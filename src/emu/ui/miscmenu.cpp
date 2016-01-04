@@ -525,7 +525,7 @@ void ui_menu_crosshair::populate()
 	}
 //  else
 //      /* leave a blank filler line when not in auto time so size does not rescale */
-//      item_append("", "", NULL, NULL);
+//      item_append("", "", nullptr, nullptr);
 }
 
 ui_menu_crosshair::~ui_menu_crosshair()
@@ -542,7 +542,7 @@ ui_menu_autofire::ui_menu_autofire(running_machine &machine, render_container *c
 	screen_device_iterator iter(machine.root_device());
 	const screen_device *screen = iter.first();
 
-	if (screen == NULL)
+	if (screen == nullptr)
 		refresh = 60.0;
 	else
 		refresh = ATTOSECONDS_TO_HZ(screen->refresh_attoseconds());
@@ -561,7 +561,7 @@ void ui_menu_autofire::handle()
 	const ui_menu_event *menu_event = process(0);
 	
 	/* handle events */
-	if (menu_event != NULL && menu_event->itemref != NULL)
+	if (menu_event != nullptr && menu_event->itemref != nullptr)
 	{
 		if (menu_event->iptkey == IPT_UI_LEFT || menu_event->iptkey == IPT_UI_RIGHT)
 		{
@@ -635,9 +635,9 @@ void ui_menu_autofire::populate()
 	char temp_text[32];
 
 	/* iterate over the input ports and add autofire toggle items */
-	for (port = machine().ioport().first_port(); port != NULL; port = port->next())
+	for (port = machine().ioport().first_port(); port != nullptr; port = port->next())
 	{
-		for (field = port->first_field(); field != NULL; field = field->next())
+		for (field = port->first_field(); field != nullptr; field = field->next())
 		{
 			if ((field->name()) && ((field->type() >= IPT_BUTTON1 && field->type() < IPT_BUTTON1 + 15)))
 			{

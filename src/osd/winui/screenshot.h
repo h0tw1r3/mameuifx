@@ -16,11 +16,11 @@
 #ifndef SCREENSHOT_H
 #define SCREENSHOT_H
 
-BOOL LoadScreenShot(int nGame, int nType);
+bool LoadScreenShot(int nGame, int nType);
 HANDLE GetScreenShotHandle(void);
 int GetScreenShotWidth(void);
 int GetScreenShotHeight(void);
 void FreeScreenShot(void);
-BOOL ScreenShotLoaded(void);
+bool ScreenShotLoaded(void);
 
 #endif

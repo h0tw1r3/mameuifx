@@ -30,8 +30,8 @@ static int DIJoystick_init(void);
 static void DIJoystick_exit(void);
 static void DIJoystick_poll_joysticks(void);
 static int DIJoystick_is_joy_pressed(int joycode);
-static BOOL DIJoystick_Available(void);
-static BOOL CALLBACK DIJoystick_EnumDeviceProc(LPDIDEVICEINSTANCE pdidi, LPVOID pv);
+static bool DIJoystick_Available(void);
+static int CALLBACK DIJoystick_EnumDeviceProc(LPDIDEVICEINSTANCE pdidi, LPVOID pv);
 
 /***************************************************************************
     External variables
@@ -59,10 +59,10 @@ typedef struct
 
 typedef struct
 {
-	BOOL use_joystick;
+	bool use_joystick;
 	GUID guidDevice;
 	TCHAR *name;
-	BOOL is_light_gun;
+	bool is_light_gun;
 	LPDIRECTINPUTDEVICE2 did;
 	DWORD num_axes;
 	axis_type axes[MAX_AXES];
@@ -75,19 +75,19 @@ typedef struct
 struct tDIJoystick_private
 {
 	int   use_count; /* the gui and game can both init/exit us, so keep track */
-	BOOL  m_bCoinSlot;
+	bool  m_bCoinSlot;
 	DWORD num_joysticks;
 	joystick_type joysticks[MAX_PHYSICAL_JOYSTICKS]; /* actual joystick data! */
 };
 
 /* internal functions needing our declarations */
-static BOOL CALLBACK DIJoystick_EnumAxisObjectsProc(LPCDIDEVICEOBJECTINSTANCE lpddoi, LPVOID pvRef);
-static BOOL CALLBACK DIJoystick_EnumPOVObjectsProc(LPCDIDEVICEOBJECTINSTANCE lpddoi, LPVOID pvRef);
-static BOOL CALLBACK DIJoystick_EnumButtonObjectsProc(LPCDIDEVICEOBJECTINSTANCE lpddoi, LPVOID pvRef);
+static int CALLBACK DIJoystick_EnumAxisObjectsProc(LPCDIDEVICEOBJECTINSTANCE lpddoi, LPVOID pvRef);
+static int CALLBACK DIJoystick_EnumPOVObjectsProc(LPCDIDEVICEOBJECTINSTANCE lpddoi, LPVOID pvRef);
+static int CALLBACK DIJoystick_EnumButtonObjectsProc(LPCDIDEVICEOBJECTINSTANCE lpddoi, LPVOID pvRef);
 static void ClearJoyState(DIJOYSTATE *pdijs);
 static void InitJoystick(joystick_type *joystick);
 static void ExitJoystick(joystick_type *joystick);
-static BOOL CALLBACK inputEnumDeviceProc(LPCDIDEVICEINSTANCE pdidi, LPVOID pv);
+static int CALLBACK inputEnumDeviceProc(LPCDIDEVICEINSTANCE pdidi, LPVOID pv);
 static HRESULT SetDIDwordProperty(LPDIRECTINPUTDEVICE2 pdev, REFGUID guidProperty, DWORD dwObject, DWORD dwHow, DWORD dwValue);
 static LPDIRECTINPUT GetDirectInput(void);
 
@@ -98,8 +98,8 @@ static LPDIRECTINPUT GetDirectInput(void);
 static struct tDIJoystick_private   This;
 static const GUID guidNULL = {0, 0, 0, {0, 0, 0, 0, 0, 0, 0, 0}};
 static LPDIRECTINPUT di = NULL;
-static BOOL bBeenHere = FALSE;
-static BOOL bAvailable = FALSE;
+static bool bBeenHere = false;
+static bool bAvailable = false;
 
 /***************************************************************************
     External OSD functions
@@ -110,7 +110,7 @@ static BOOL bAvailable = FALSE;
 */
 typedef HRESULT (WINAPI *dic_proc)(HINSTANCE hinst, DWORD dwVersion, LPDIRECTINPUT *ppDI, LPUNKNOWN punkOuter);
 
-BOOL DirectInputInitialize(void)
+bool DirectInputInitialize(void)
 {
 	HRESULT hr;
 	dic_proc dic;
@@ -121,12 +121,12 @@ BOOL DirectInputInitialize(void)
 	SetErrorMode(error_mode);
 
 	if (hDLL == NULL)
-		return FALSE;
+		return false;
 
 	dic = (dic_proc)GetProcAddress((HINSTANCE)hDLL, "DirectInputCreateW");
 
 	if (dic == NULL)
-		return FALSE;
+		return false;
 
 	hr = dic(GetModuleHandle(NULL), DIRECTINPUT_VERSION, &di, NULL);
 
@@ -138,11 +138,11 @@ BOOL DirectInputInitialize(void)
 		{
 			ErrorMessageBox("DirectInputCreate failed! error=%x\n", (unsigned int)hr);
 			di = NULL;
-			return FALSE;
+			return false;
 		}
 	}
 
-	return TRUE;
+	return true;
 }
 
 static int DIJoystick_init(void)
@@ -227,7 +227,7 @@ static void DIJoystick_poll_joysticks(void)
 		if (This.joysticks[i].did == NULL)
 			continue;
 
-		if (This.joysticks[i].use_joystick == FALSE)
+		if (This.joysticks[i].use_joystick == false)
 			continue;
 
 		IDirectInputDevice2_Poll(This.joysticks[i].did);
@@ -263,7 +263,7 @@ static int DIJoystick_is_joy_pressed(int joycode)
 
 	joy_num--;
 
-	if (This.joysticks[joy_num].use_joystick == FALSE)
+	if (This.joysticks[joy_num].use_joystick == false)
 		return 0;
 
 	dijs = This.joysticks[joy_num].dijs;
@@ -322,7 +322,7 @@ static int DIJoystick_is_joy_pressed(int joycode)
 		return value >= (128 + 128 * 60 / 100);
 }
 
-static BOOL DIJoystick_Available(void)
+static bool DIJoystick_Available(void)
 {
 	HRESULT hr;
 	GUID guidDevice = guidNULL;
@@ -331,10 +331,10 @@ static BOOL DIJoystick_Available(void)
 	LPDIRECTINPUT di = GetDirectInput();
 
 	if (di == NULL)
-		return FALSE;
+		return false;
 
-	if (bBeenHere == FALSE)
-		bBeenHere = TRUE;
+	if (bBeenHere == false)
+		bBeenHere = true;
 	else
 		return bAvailable;
 
@@ -342,25 +342,25 @@ static BOOL DIJoystick_Available(void)
 	hr = IDirectInput_EnumDevices(di, DIDEVTYPE_JOYSTICK, inputEnumDeviceProc, &guidDevice, DIEDFL_ATTACHEDONLY);
 
 	if (FAILED(hr))
-		return FALSE;
+		return false;
 
 	/* Are there any joysticks attached? */
 	if (IsEqualGUID(guidDevice, guidNULL))
-		return FALSE;
+		return false;
 
 	hr = IDirectInput_CreateDevice(di, guidDevice, &didTemp, NULL);
 
 	if (FAILED(hr))
-		return FALSE;
+		return false;
 
 	/* Determine if DX5 is available by a QI for a DX5 interface. */
 	hr = IDirectInputDevice_QueryInterface(didTemp, IID_IDirectInputDevice2, (void**)&didJoystick);
 
 	if (FAILED(hr))
-		bAvailable = FALSE;
+		bAvailable = false;
 	else
 	{
-		bAvailable = TRUE;
+		bAvailable = true;
 		IDirectInputDevice_Release(didJoystick);
 	}
 
@@ -373,7 +373,7 @@ static BOOL DIJoystick_Available(void)
     Internal functions
  ***************************************************************************/
 
-static BOOL CALLBACK DIJoystick_EnumDeviceProc(LPDIDEVICEINSTANCE pdidi, LPVOID pv)
+static int CALLBACK DIJoystick_EnumDeviceProc(LPDIDEVICEINSTANCE pdidi, LPVOID pv)
 {
 	TCHAR buffer[5000];
 
@@ -385,7 +385,7 @@ static BOOL CALLBACK DIJoystick_EnumDeviceProc(LPDIDEVICEINSTANCE pdidi, LPVOID 
 	return DIENUM_CONTINUE;
 }
 
-static BOOL CALLBACK DIJoystick_EnumAxisObjectsProc(LPCDIDEVICEOBJECTINSTANCE lpddoi, LPVOID pvRef)
+static int CALLBACK DIJoystick_EnumAxisObjectsProc(LPCDIDEVICEOBJECTINSTANCE lpddoi, LPVOID pvRef)
 {
 	joystick_type* joystick = (joystick_type*)pvRef;
 	DIPROPRANGE diprg;
@@ -440,14 +440,14 @@ static BOOL CALLBACK DIJoystick_EnumAxisObjectsProc(LPCDIDEVICEOBJECTINSTANCE lp
 	return DIENUM_CONTINUE;
 }
 
-static BOOL CALLBACK DIJoystick_EnumPOVObjectsProc(LPCDIDEVICEOBJECTINSTANCE lpddoi, LPVOID pvRef)
+static int CALLBACK DIJoystick_EnumPOVObjectsProc(LPCDIDEVICEOBJECTINSTANCE lpddoi, LPVOID pvRef)
 {
 	joystick_type* joystick = (joystick_type*)pvRef;
 	joystick->num_pov++;
 	return DIENUM_CONTINUE;
 }
 
-static BOOL CALLBACK DIJoystick_EnumButtonObjectsProc(LPCDIDEVICEOBJECTINSTANCE lpddoi, LPVOID pvRef)
+static int CALLBACK DIJoystick_EnumButtonObjectsProc(LPCDIDEVICEOBJECTINSTANCE lpddoi, LPVOID pvRef)
 {
 	joystick_type* joystick = (joystick_type*)pvRef;
 	joystick->num_buttons++;
@@ -477,7 +477,7 @@ static void InitJoystick(joystick_type *joystick)
 	HRESULT hr;
 	LPDIRECTINPUT di = GetDirectInput();
 
-	joystick->use_joystick = FALSE;
+	joystick->use_joystick = false;
 	joystick->did = NULL;
 	joystick->num_axes = 0;
 	joystick->is_light_gun = (_tcscmp(joystick->name, TEXT("ACT LABS GS (ACT LABS GS)")) == 0);
@@ -577,7 +577,7 @@ static void InitJoystick(joystick_type *joystick)
 
 	/* start by clearing the structures */
 	ClearJoyState(&joystick->dijs);
-	joystick->use_joystick = TRUE;
+	joystick->use_joystick = true;
 }
 
 static void ExitJoystick(joystick_type *joystick)
@@ -605,7 +605,7 @@ static void ExitJoystick(joystick_type *joystick)
 	}
 }
 
-static BOOL CALLBACK inputEnumDeviceProc(LPCDIDEVICEINSTANCE pdidi, LPVOID pv)
+static int CALLBACK inputEnumDeviceProc(LPCDIDEVICEINSTANCE pdidi, LPVOID pv)
 {
 	/* report back the instance guid of the device we enumerated */
 	if (pv)

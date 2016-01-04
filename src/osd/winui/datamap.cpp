@@ -50,7 +50,7 @@ struct _datamap_entry
 	const char *int_format;
 	const char *float_format;
 	// trackbar options
-	BOOL use_trackbar_options;
+	bool use_trackbar_options;
 	float trackbar_min;
 	float trackbar_max;
 	float trackbar_increments;
@@ -155,7 +155,7 @@ void datamap_set_trackbar_range(datamap *map, int dlgitem, float min, float max,
 {
 	datamap_entry *entry = find_entry(map, dlgitem);
 	
-	entry->use_trackbar_options = TRUE;
+	entry->use_trackbar_options = true;
 	entry->trackbar_min = min;
 	entry->trackbar_max = max;
 	entry->trackbar_increments = increments;
@@ -187,7 +187,7 @@ void datamap_set_float_format(datamap *map, int dlgitem, const char *format)
 //  datamap_read_control
 //============================================================
 
-BOOL datamap_read_control(datamap *map, HWND dialog, windows_options &opts, int dlgitem)
+bool datamap_read_control(datamap *map, HWND dialog, windows_options &opts, int dlgitem)
 {
 	datamap_entry *entry = find_entry(map, dlgitem);
 	
@@ -259,7 +259,7 @@ static datamap_entry *find_entry(datamap *map, int dlgitem)
 	}
 
 	// should not reach here
-	assert(FALSE);
+	assert(false);
 	return NULL;
 }
 
@@ -297,27 +297,27 @@ static control_type get_control_type(HWND control)
 //  is_control_displayonly
 //============================================================
 
-static BOOL is_control_displayonly(HWND control)
+static bool is_control_displayonly(HWND control)
 {
-	BOOL displayonly = FALSE;
+	bool displayonly = false;
 
 	switch(get_control_type(control))
 	{
 		case CT_STATIC:
-			displayonly = TRUE;
+			displayonly = true;
 			break;
 
 		case CT_EDIT:
-			displayonly = (GetWindowLong(control, GWL_STYLE) & ES_READONLY) ? TRUE : FALSE;
+			displayonly = (GetWindowLong(control, GWL_STYLE) & ES_READONLY) ? true : false;
 			break;
 
 		default:
-			displayonly = FALSE;
+			displayonly = false;
 			break;
 	}
 
 	if (!IsWindowEnabled(control))
-		displayonly = TRUE;
+		displayonly = true;
 
 	return displayonly;
 }
@@ -388,7 +388,7 @@ static int control_operation(datamap *map, HWND dialog, windows_options &opts, d
 			switch(callback_type)
 			{
 				case DCT_READ_CONTROL:
-					// For callbacks that returned TRUE, do not broadcast_changes.
+					// For callbacks that returned true, do not broadcast_changes.
 					if (!result) 
 					{
 						// do a check to see if the control changed
@@ -454,7 +454,7 @@ static void read_control(datamap *map, HWND control, windows_options &opts, data
 		case CT_BUTTON:
 		{
 			assert(entry->type == DM_BOOL);
-			BOOL bool_value = Button_GetCheck(control);
+			bool bool_value = Button_GetCheck(control);
 			opts.set_value(option_name, bool_value, OPTION_PRIORITY_CMDLINE, error);
 			assert(!error);
 			break;
@@ -483,7 +483,7 @@ static void read_control(datamap *map, HWND control, windows_options &opts, data
 					}
 					
 					default:
-						assert(FALSE);
+						assert(false);
 						break;
 				}
 			}
@@ -520,7 +520,7 @@ static void read_control(datamap *map, HWND control, windows_options &opts, data
 					break;
 
 				default:
-					assert(FALSE);
+					assert(false);
 					break;
 			}
 			
@@ -557,7 +557,7 @@ static void populate_control(datamap *map, HWND control, windows_options &opts, 
 		case CT_BUTTON:
 		{
 			assert(entry->type == DM_BOOL);
-			BOOL bool_value = opts.bool_value(option_name);
+			bool bool_value = opts.bool_value(option_name);
 			Button_SetCheck(control, bool_value);
 			break;
 		}
@@ -640,7 +640,7 @@ static void populate_control(datamap *map, HWND control, windows_options &opts, 
 					break;
 
 				default:
-					assert(FALSE);
+					assert(false);
 					break;
 			}
 			
@@ -655,7 +655,7 @@ static void populate_control(datamap *map, HWND control, windows_options &opts, 
 			{
 				double trackbar_range_d = floor(((entry->trackbar_max - entry->trackbar_min) / entry->trackbar_increments) + 0.5);
 				int trackbar_range = (int) trackbar_range_d;
-				SendMessage(control, TBM_SETRANGE, TRUE, MAKELPARAM(0, trackbar_range));
+				SendMessage(control, TBM_SETRANGE, true, MAKELPARAM(0, trackbar_range));
 			}
 
 			switch(entry->type)
@@ -672,11 +672,11 @@ static void populate_control(datamap *map, HWND control, windows_options &opts, 
 
 				default:
 					trackbar_pos = 0;
-					assert(FALSE);
+					assert(false);
 					break;
 			}
 			
-			SendMessage(control, TBM_SETPOS, TRUE, trackbar_pos);
+			SendMessage(control, TBM_SETPOS, true, trackbar_pos);
 			break;
 
 		case CT_LISTVIEW:

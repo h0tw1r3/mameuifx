@@ -22,7 +22,7 @@ void InitGameAudit(int gameIndex);
 INT_PTR CALLBACK GameAuditDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lParam);
 int MameUIVerifyRomSet(int game, bool choice);
 int MameUIVerifySampleSet(int game);
-BOOL IsAuditResultYes(int audit_result);
-BOOL IsAuditResultNo(int audit_result);
+bool IsAuditResultYes(int audit_result);
+bool IsAuditResultNo(int audit_result);
 
 #endif

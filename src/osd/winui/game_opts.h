@@ -15,8 +15,9 @@ public:
 	void copy(const char *str)
 	{
 		/* reset the structure */
+		m_index = 0;
 		m_str.clear();
-		m_base = (str != NULL) ? str : "";
+		m_base = (str != nullptr) ? str : "";
 		m_cur = m_base;
 	}
 
@@ -25,36 +26,36 @@ public:
 	{
 		const char *semi;
 
-		/* if none left, return FALSE to indicate we are done */
-		if (m_index != 0 and *m_cur == 0)
+		/* if none left, return false to indicate we are done */
+		if (m_index != 0 && *m_cur == 0)
 			return false;
 
 		/* ignore duplicates of the separator */
-		while (duplicate and m_index == 0 and *m_cur == separator)
+		while (duplicate && m_index == 0 && *m_cur == separator)
 			m_cur++;
 
-		if (duplicate and *m_cur == 0)
+		if (duplicate && *m_cur == 0)
 			return false;
 
 		/* copy up to the next separator */
 		semi = strchr(m_cur, separator);
 
-		if (semi == NULL)
+		if (semi == nullptr)
 			semi = m_cur + strlen(m_cur);
 
 		m_str.assign(m_cur, semi - m_cur);
 		m_cur = (*semi == 0) ? semi : semi + 1;
 
 		/* ignore duplicates of the separator */
-		while (duplicate and *m_cur and *m_cur == separator)
+		while (duplicate && *m_cur && *m_cur == separator)
 			m_cur++;
 
-		/* bump the index and return true */
+		/* bump the index && return true */
 		m_index++;
 		return true;
 	}
 
-	// C string conversion operators and helpers
+	// C string conversion operators && helpers
 	operator const char *() const { return m_str.c_str(); }
 	const char *c_str() const { return m_str.c_str(); }
 
@@ -89,24 +90,24 @@ public:
 			m_list[i] = option;
 	}
 
-	int  rom(int index)                 { assert(0 <= index and index < driver_list::total()); return m_list[index].rom;        }
-	void rom(int index, int val)        { assert(0 <= index and index < driver_list::total()); m_list[index].rom = val;         }
+	int  rom(int index)                 { assert(0 <= index && index < driver_list::total()); return m_list[index].rom;        }
+	void rom(int index, int val)        { assert(0 <= index && index < driver_list::total()); m_list[index].rom = val;         }
 
-	int  cache(int index)               { assert(0 <= index and index < driver_list::total()); return m_list[index].cache;      }
-	void cache(int index, int val)      { assert(0 <= index and index < driver_list::total()); m_list[index].cache = val;       }
+	int  cache(int index)               { assert(0 <= index && index < driver_list::total()); return m_list[index].cache;      }
+	void cache(int index, int val)      { assert(0 <= index && index < driver_list::total()); m_list[index].cache = val;       }
 
-	int  play_count(int index)          { assert(0 <= index and index < driver_list::total()); return m_list[index].play_count; }
-	void play_count(int index, int val) { assert(0 <= index and index < driver_list::total()); m_list[index].play_count = val;  }
+	int  play_count(int index)          { assert(0 <= index && index < driver_list::total()); return m_list[index].play_count; }
+	void play_count(int index, int val) { assert(0 <= index && index < driver_list::total()); m_list[index].play_count = val;  }
 
-	int  play_time(int index)           { assert(0 <= index and index < driver_list::total()); return m_list[index].play_time;  }
-	void play_time(int index, int val)  { assert(0 <= index and index < driver_list::total()); m_list[index].play_time = val;   }
+	int  play_time(int index)           { assert(0 <= index && index < driver_list::total()); return m_list[index].play_time;  }
+	void play_time(int index, int val)  { assert(0 <= index && index < driver_list::total()); m_list[index].play_time = val;   }
 
 	void add_entries()
 	{
 		options_entry entry[2] = { { 0 }, { 0 } };
 		entry[0].defvalue    = "-1,-1";
 		entry[0].flags       = OPTION_STRING;
-		entry[0].description = NULL;
+		entry[0].description = nullptr;
 
 		for (int i = 0; i < m_total; i++)
 		{
@@ -152,13 +153,13 @@ public:
 		return filerr;
 	}
 
-	void output_ini(std::string &buffer, const char *header = NULL)
+	void output_ini(std::string &buffer, const char *header = nullptr)
 	{
 		std::string inibuffer;
 
 		m_info.output_ini(inibuffer);
 
-		if (header != NULL && !inibuffer.empty())
+		if (header != nullptr && !inibuffer.empty())
 		{
 			strcatprintf(buffer, "\n#\n# %s\n#\n", header);
 			buffer.append(inibuffer);
@@ -187,7 +188,7 @@ public:
 		{
 			if (value_str.next(','))
 			{
-				if (value_str and (sscanf(value_str.c_str(), "%d", &value_int) == 1))
+				if (value_str && (sscanf(value_str.c_str(), "%d", &value_int) == 1))
 				{
 					switch (i)
 					{

@@ -19,10 +19,10 @@
 struct TabViewCallbacks
 {
 	// Options retrieval
-	BOOL (*pfnGetShowTabCtrl)(void);
+	bool (*pfnGetShowTabCtrl)(void);
 	void (*pfnSetCurrentTab)(const char *pszShortName);
 	const char* (*pfnGetCurrentTab)(void);
-	void (*pfnSetShowTab)(int nTab, BOOL show);
+	void (*pfnSetShowTab)(int nTab, bool show);
 	int (*pfnGetShowTab)(int nTab);
 	// Accessors
 	const char* (*pfnGetTabShortName)(int nTab);
@@ -38,13 +38,13 @@ struct TabViewOptions
 	int nTabCount;
 };
 
-BOOL SetupTabView(HWND hWndTabView, const struct TabViewOptions *pOptions);
+bool SetupTabView(HWND hWndTabView, const struct TabViewOptions *pOptions);
 void TabView_Reset(HWND hWndTabView);
 void TabView_CalculateNextTab(HWND hWndTabView);
 int TabView_GetCurrentTab(HWND hWndTabView);
 void TabView_SetCurrentTab(HWND hWndTabView, int nTab);
 void TabView_UpdateSelection(HWND hWndTabView);
 // These are used to handle events received by the parent regarding tabview controls
-BOOL TabView_HandleNotify(LPNMHDR lpNmHdr);
+bool TabView_HandleNotify(LPNMHDR lpNmHdr);
 
 #endif

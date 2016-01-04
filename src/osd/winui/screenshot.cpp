@@ -38,9 +38,9 @@ typedef struct _mybitmapinfo
 	int bmColors;
 } MYBITMAPINFO, *LPMYBITMAPINFO;
 
-static BOOL AllocatePNG(png_info *p, HGLOBAL *phDIB, HPALETTE* pPal);
+static bool AllocatePNG(png_info *p, HGLOBAL *phDIB, HPALETTE* pPal);
 static int png_read_bitmap_gui(LPVOID mfile, HGLOBAL *phDIB, HPALETTE *pPAL);
-static BOOL LoadDIB(const char *filename, HGLOBAL *phDIB, HPALETTE *pPal, int pic_type);
+static bool LoadDIB(const char *filename, HGLOBAL *phDIB, HPALETTE *pPal, int pic_type);
 static HBITMAP DIBToDDB(HDC hDC, HANDLE hDIB, LPMYBITMAPINFO desc);
 
 /***************************************************************************
@@ -64,22 +64,22 @@ static int effWidth = 0;
     Functions
 ***************************************************************************/
 
-BOOL ScreenShotLoaded(void)
+bool ScreenShotLoaded(void)
 {
 	return m_hDDB != NULL;
 }
 
 /* Allow us to pre-load the DIB once for future draws */
-BOOL LoadScreenShot(int nGame, int nType)
+bool LoadScreenShot(int nGame, int nType)
 {
 	/* No need to reload the same one again */
 	if (nGame == current_image_game && nType == current_image_type)
-		return TRUE;
+		return true;
 
 	/* Delete the last ones */
 	FreeScreenShot();
 	/* Load the DIB */
-	BOOL loaded = LoadDIB(driver_list::driver(nGame).name, &m_hDIB, &m_hPal, nType);
+	bool loaded = LoadDIB(driver_list::driver(nGame).name, &m_hDIB, &m_hPal, nType);
 
 	/* If not loaded, see if there is a clone and try that */
 	if (!loaded)
@@ -105,7 +105,7 @@ BOOL LoadScreenShot(int nGame, int nType)
 		current_image_type = nType;
 	}
 
-	return (loaded) ? TRUE : FALSE;
+	return (loaded) ? true : false;
 }
 
 HANDLE GetScreenShotHandle()
@@ -212,11 +212,11 @@ static file_error OpenDIBFile(const char *dir_name, const char *zip_name, const 
 	return filerr;
 }
 
-static BOOL LoadDIB(const char *filename, HGLOBAL *phDIB, HPALETTE *pPal, int pic_type)
+static bool LoadDIB(const char *filename, HGLOBAL *phDIB, HPALETTE *pPal, int pic_type)
 {
 	file_error filerr;
 	core_file *file = NULL;
-	BOOL success = FALSE;
+	bool success = false;
 	const char *dir_name = NULL;
 	const char *zip_name = NULL;
 	void *buffer = NULL;
@@ -269,7 +269,7 @@ static BOOL LoadDIB(const char *filename, HGLOBAL *phDIB, HPALETTE *pPal, int pi
 		
 		default :
 			// in case a non-image tab gets here, which can happen
-			return FALSE;
+			return false;
 	}
 	
 	//Add handling for the displaying of all the different supported snapshot patterntypes
@@ -364,7 +364,7 @@ static void store_pixels(UINT8 *buf, int len)
 	}
 }
 
-BOOL AllocatePNG(png_info *p, HGLOBAL *phDIB, HPALETTE *pPal)
+bool AllocatePNG(png_info *p, HGLOBAL *phDIB, HPALETTE *pPal)
 {
 	BITMAPINFOHEADER bi;
 	int nColors = 0;
@@ -392,7 +392,7 @@ BOOL AllocatePNG(png_info *p, HGLOBAL *phDIB, HPALETTE *pPal)
 	HGLOBAL hDIB = GlobalAlloc(GMEM_FIXED, bi.biSize + (nColors * sizeof(RGBQUAD)) + dibSize);
 
 	if (!hDIB)
-		return FALSE;
+		return false;
 
 	LPBITMAPINFOHEADER lpbi = (LPBITMAPINFOHEADER)hDIB;
 	memcpy(lpbi, &bi, sizeof(BITMAPINFOHEADER));
@@ -449,7 +449,7 @@ BOOL AllocatePNG(png_info *p, HGLOBAL *phDIB, HPALETTE *pPal)
 	copy_size = dibSize;
 	pixel_ptr = (char*)lpDIBBits;
 	*phDIB = hDIB;
-	return TRUE;
+	return true;
 }
 
 /* Copied and modified from png.c */

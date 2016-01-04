@@ -61,12 +61,12 @@ struct OSDJoystick
 	void (*exit)(void);
 	int  (*is_joy_pressed)(int joycode);
 	void (*poll_joysticks)(void);
-	BOOL (*Available)(void);
+	bool (*Available)(void);
 };
 
 extern const struct OSDJoystick DIJoystick;
 
-BOOL DirectInputInitialize(void);
+bool DirectInputInitialize(void);
 void DirectInputClose(void);
 
 #endif

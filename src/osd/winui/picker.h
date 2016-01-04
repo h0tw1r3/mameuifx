@@ -21,8 +21,8 @@ struct PickerCallbacks
 	// Options retrieval
 	void (*pfnSetSortColumn)(int column);
 	int (*pfnGetSortColumn)(void);
-	void (*pfnSetSortReverse)(BOOL reverse);
-	BOOL (*pfnGetSortReverse)(void);
+	void (*pfnSetSortReverse)(bool reverse);
+	bool (*pfnGetSortReverse)(void);
 	void (*pfnSetViewMode)(int val);
 	int (*pfnGetViewMode)(void);
 	void (*pfnSetColumnWidths)(int widths[]);
@@ -39,8 +39,8 @@ struct PickerCallbacks
 	void (*pfnEnteringItem)(HWND hWndPicker, int nItem);
 	void (*pfnBeginListViewDrag)(NM_LISTVIEW *pnlv);
 	int (*pfnFindItemParent)(HWND hWndPicker, int nItem);
-	BOOL (*pfnCheckNotWorkingItem)(HWND hWndPicker, int nItem);
-	BOOL (*pfnOnIdle)(HWND hWndPicker);
+	bool (*pfnCheckNotWorkingItem)(HWND hWndPicker, int nItem);
+	bool (*pfnOnIdle)(HWND hWndPicker);
 	void (*pfnOnHeaderContextMenu)(POINT pt, int nColumn);
 	void (*pfnOnBodyContextMenu)(POINT pt);
 };
@@ -59,7 +59,7 @@ enum
 	VIEW_MAX
 };
 
-BOOL SetupPicker(HWND hWndPicker, const struct PickerOptions *pOptions);
+bool SetupPicker(HWND hWndPicker, const struct PickerOptions *pOptions);
 int Picker_GetViewID(HWND hWndPicker);
 void Picker_SetViewID(HWND hWndPicker, int nViewID);
 int Picker_GetRealColumnFromViewColumn(HWND hWndPicker, int nViewColumn);
@@ -72,12 +72,12 @@ void Picker_SetSelectedPick(HWND hWndPicker, int nIndex);
 int Picker_GetNumColumns(HWND hWnd);
 void Picker_ClearIdle(HWND hWndPicker);
 void Picker_ResetIdle(HWND hWndPicker);
-BOOL Picker_IsIdling(HWND hWndPicker);
+bool Picker_IsIdling(HWND hWndPicker);
 int Picker_InsertItemSorted(HWND hWndPicker, int nParam);
-BOOL Picker_SaveColumnWidths(HWND hWndPicker);
+bool Picker_SaveColumnWidths(HWND hWndPicker);
 // These are used to handle events received by the parent regarding
 // picker controls
-BOOL Picker_HandleNotify(LPNMHDR lpNmHdr);
+bool Picker_HandleNotify(LPNMHDR lpNmHdr);
 // Accessors
 const struct PickerCallbacks *Picker_GetCallbacks(HWND hWndPicker);
 int Picker_GetColumnCount(HWND hWndPicker);

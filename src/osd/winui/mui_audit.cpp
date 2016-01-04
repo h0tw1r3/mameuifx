@@ -47,7 +47,7 @@ static int samples_incorrect = 0;
 static int samples_notfound = 0;
 static int audit_color = 0;
 static int audit_samples = 0;
-static BOOL bCancel = FALSE;
+static bool bCancel = false;
 static HICON audit_icon = NULL;
 static HICON hIcon = NULL;
 static HBRUSH hBrush = NULL;
@@ -77,12 +77,12 @@ void InitGameAudit(int gameIndex)
 	rom_index = gameIndex;
 }
 
-BOOL IsAuditResultYes(int audit_result)
+bool IsAuditResultYes(int audit_result)
 {
 	return audit_result == media_auditor::CORRECT || audit_result == media_auditor::BEST_AVAILABLE || audit_result == media_auditor::NONE_NEEDED;
 }
 
-BOOL IsAuditResultNo(int audit_result)
+bool IsAuditResultNo(int audit_result)
 {
 	return audit_result == media_auditor::NOTFOUND || audit_result == media_auditor::INCORRECT;
 }
@@ -163,7 +163,7 @@ static DWORD WINAPI AuditThreadProc(LPVOID hDlg)
 static INT_PTR CALLBACK AuditWindowProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
 	DWORD dwExitCode = 0;
-	bCancel = FALSE;
+	bCancel = false;
 	
 	switch (Msg)
 	{
@@ -172,14 +172,16 @@ static INT_PTR CALLBACK AuditWindowProc(HWND hDlg, UINT Msg, WPARAM wParam, LPAR
 		CenterWindow(hAudit);
         hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_MAMEUI_ICON));
         SendMessage(hAudit, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
-		hBrush = CreateSolidBrush(RGB(224, 223, 227));
+		hBrush = CreateSolidBrush(RGB(240, 240, 240));
 		hFont = CreateFont(-11, 0, 0, 0, 400, 0, 0, 0, 0, 3, 2, 1, 34, TEXT("Lucida Console"));
-		SetWindowFont(GetDlgItem(hAudit, IDC_AUDIT_DETAILS), hFont, TRUE);
+		SetWindowFont(GetDlgItem(hAudit, IDC_AUDIT_DETAILS), hFont, true);
 		SetWindowTheme(GetDlgItem(hAudit, IDC_AUDIT_DETAILS), L" ", L" ");
 		SetWindowTheme(GetDlgItem(hAudit, IDC_ROMS_PROGRESS), L" ", L" ");
 		SetWindowTheme(GetDlgItem(hAudit, IDC_SAMPLES_PROGRESS), L" ", L" ");
 		SendMessage(GetDlgItem(hAudit, IDC_ROMS_PROGRESS), PBM_SETBARCOLOR, 0, RGB(85, 191, 132));
 		SendMessage(GetDlgItem(hAudit, IDC_SAMPLES_PROGRESS), PBM_SETBARCOLOR, 0, RGB(85, 191, 132));
+		SendMessage(GetDlgItem(hAudit, IDC_ROMS_PROGRESS), PBM_SETBKCOLOR, 0, RGB(224, 224, 224));
+		SendMessage(GetDlgItem(hAudit, IDC_SAMPLES_PROGRESS), PBM_SETBKCOLOR, 0, RGB(224, 224, 224));
 		SendMessage(GetDlgItem(hAudit, IDC_ROMS_PROGRESS), PBM_SETRANGE, 0, MAKELPARAM(0, driver_list::total()));
 		SendMessage(GetDlgItem(hAudit, IDC_SAMPLES_PROGRESS), PBM_SETRANGE, 0, MAKELPARAM(0, driver_list::total()));
 		rom_index = 0;
@@ -232,7 +234,7 @@ static INT_PTR CALLBACK AuditWindowProc(HWND hDlg, UINT Msg, WPARAM wParam, LPAR
 		case IDCANCEL:
 			if (hThread)
 			{
-				bCancel = TRUE;
+				bCancel = true;
 	
 				if (GetExitCodeThread(hThread, &dwExitCode) && (dwExitCode == STILL_ACTIVE))
 				{
@@ -274,10 +276,10 @@ INT_PTR CALLBACK GameAuditDialogProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 		memset(&details, 0, sizeof(details));
 		ModifyPropertySheetForTreeSheet(hDlg);
 		hAudit = hDlg;
-		hBrush = CreateSolidBrush(RGB(224, 223, 227));
+		hBrush = CreateSolidBrush(RGB(255, 255, 255));
 		hFont = CreateFont(-11, 0, 0, 0, 400, 0, 0, 0, 0, 3, 2, 1, 34, TEXT("Lucida Console"));
-		SetWindowFont(GetDlgItem(hAudit, IDC_ROM_DETAILS), hFont, TRUE);
-		SetWindowFont(GetDlgItem(hAudit, IDC_AUDIT_DETAILS_PROP), hFont, TRUE);
+		SetWindowFont(GetDlgItem(hAudit, IDC_ROM_DETAILS), hFont, true);
+		SetWindowFont(GetDlgItem(hAudit, IDC_AUDIT_DETAILS_PROP), hFont, true);
 		SetWindowTheme(GetDlgItem(hAudit, IDC_AUDIT_DETAILS_PROP), L" ", L" ");
 		SetWindowTheme(GetDlgItem(hAudit, IDC_ROM_DETAILS), L" ", L" ");
 		win_set_window_text_utf8(GetDlgItem(hAudit, IDC_PROP_TITLE), GameInfoTitle(OPTIONS_GAME, rom_index));
@@ -482,7 +484,7 @@ static void DetailsPrintf(const char *fmt, ...)
 {
 	va_list marker;
 	char buffer[8000];
-	BOOL scroll = TRUE;
+	bool scroll = true;
 
 	//RS 20030613 Different Ids for Property Page and Dialog
 	// so see which one's currently instantiated
@@ -491,7 +493,7 @@ static void DetailsPrintf(const char *fmt, ...)
 	if (hEdit ==  NULL)
 	{
 		hEdit = GetDlgItem(hAudit, IDC_AUDIT_DETAILS_PROP);
-		scroll = FALSE;
+		scroll = false;
 	}
 	
 	if (hEdit == NULL)

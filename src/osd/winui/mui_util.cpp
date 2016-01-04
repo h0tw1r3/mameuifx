@@ -25,20 +25,20 @@
 struct DriversInfo
 {
 	int screenCount;
-	BOOL isClone;
-	BOOL isBroken;
-	BOOL isHarddisk;
-	BOOL hasOptionalBIOS;
-	BOOL isVector;
-	BOOL usesRoms;
-	BOOL usesSamples;
-	BOOL usesTrackball;
-	BOOL usesLightGun;
-	BOOL supportsSaveState;
-	BOOL isVertical;
-	BOOL isImperfect;
-	BOOL isMechanical;
-	BOOL isBIOS;
+	bool isClone;
+	bool isBroken;
+	bool isHarddisk;
+	bool hasOptionalBIOS;
+	bool isVector;
+	bool usesRoms;
+	bool usesSamples;
+	bool usesTrackball;
+	bool usesLightGun;
+	bool supportsSaveState;
+	bool isVertical;
+	bool isImperfect;
+	bool isMechanical;
+	bool isBIOS;
 };
 
 static std::vector<DriversInfo>	drivers_info;
@@ -183,7 +183,7 @@ const char * GetDriverFilename(int nIndex)
 	static char tmp[40];
 	std::string driver;
 
-	core_filename_extract_base(driver, driver_list::driver(nIndex).source_file, FALSE);
+	core_filename_extract_base(driver, driver_list::driver(nIndex).source_file, false);
 	strcpy(tmp, driver.c_str());
 	return tmp;
 }
@@ -200,17 +200,17 @@ static int NumberOfScreens(const machine_config *config)
 	return i;
 }
 
-static BOOL isDriverVector(const machine_config *config)
+static bool isDriverVector(const machine_config *config)
 {
 	const screen_device *screen  = config->first_screen();
 
 	if (screen != NULL) 
 	{
 		if (SCREEN_TYPE_VECTOR == screen->screen_type())
-			return TRUE;
+			return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
 static void SetDriversInfo(void)
@@ -259,16 +259,16 @@ static void InitDriversInfo(void)
 		samples_device_iterator iter(config.root_device());
 		
 		gameinfo->isClone = (GetParentRomSetIndex(gamedrv) != -1);
-		gameinfo->isBroken = (gamedrv->flags & (MACHINE_NOT_WORKING | MACHINE_UNEMULATED_PROTECTION | MACHINE_MECHANICAL)) ? TRUE : FALSE;
-		gameinfo->isImperfect = (gamedrv->flags & (MACHINE_WRONG_COLORS | MACHINE_IMPERFECT_COLORS | MACHINE_IMPERFECT_GRAPHICS	| MACHINE_NO_SOUND | MACHINE_IMPERFECT_SOUND)) ? TRUE : FALSE;
- 		gameinfo->supportsSaveState = (gamedrv->flags & MACHINE_SUPPORTS_SAVE) ? TRUE : FALSE;
-		gameinfo->isVertical = (gamedrv->flags & ORIENTATION_SWAP_XY) ? TRUE : FALSE;
-		gameinfo->isMechanical = (gamedrv->flags & MACHINE_MECHANICAL) ? TRUE : FALSE;
-		gameinfo->isBIOS = (gamedrv->flags & MACHINE_IS_BIOS_ROOT) ? TRUE : FALSE;
+		gameinfo->isBroken = (gamedrv->flags & (MACHINE_NOT_WORKING | MACHINE_UNEMULATED_PROTECTION | MACHINE_MECHANICAL)) ? true : false;
+		gameinfo->isImperfect = (gamedrv->flags & (MACHINE_WRONG_COLORS | MACHINE_IMPERFECT_COLORS | MACHINE_IMPERFECT_GRAPHICS	| MACHINE_NO_SOUND | MACHINE_IMPERFECT_SOUND)) ? true : false;
+ 		gameinfo->supportsSaveState = (gamedrv->flags & MACHINE_SUPPORTS_SAVE) ? true : false;
+		gameinfo->isVertical = (gamedrv->flags & ORIENTATION_SWAP_XY) ? true : false;
+		gameinfo->isMechanical = (gamedrv->flags & MACHINE_MECHANICAL) ? true : false;
+		gameinfo->isBIOS = (gamedrv->flags & MACHINE_IS_BIOS_ROOT) ? true : false;
 		gameinfo->screenCount = NumberOfScreens(&config);
 		gameinfo->isVector = isDriverVector(&config);
-		gameinfo->isHarddisk = FALSE;
-		gameinfo->usesRoms = FALSE;
+		gameinfo->isHarddisk = false;
+		gameinfo->usesRoms = false;
 
 		for (device_t *device = deviter.first(); device; device = deviter.next())
 		{
@@ -277,31 +277,31 @@ static void InitDriversInfo(void)
 				for (const rom_entry *rom = rom_first_file(region); rom; rom = rom_next_file(rom))
 				{
 					if (ROMREGION_ISDISKDATA(region))
-						gameinfo->isHarddisk = TRUE;
+						gameinfo->isHarddisk = true;
 
-					gameinfo->usesRoms = TRUE;
+					gameinfo->usesRoms = true;
 				}
 			}
 		}
 		
-		gameinfo->hasOptionalBIOS = FALSE;
+		gameinfo->hasOptionalBIOS = false;
 		
 		if (gamedrv->rom != NULL)
 		{
 			for (const rom_entry *rom = gamedrv->rom; !ROMENTRY_ISEND(rom); rom++)
 			{
 				if (ROMENTRY_ISSYSTEM_BIOS(rom))
-					gameinfo->hasOptionalBIOS = TRUE;
+					gameinfo->hasOptionalBIOS = true;
 			}
 		}
 		
-		gameinfo->usesSamples = FALSE;
+		gameinfo->usesSamples = false;
 		
 		if (iter.first() != NULL)
-			gameinfo->usesSamples = TRUE;
+			gameinfo->usesSamples = true;
 
-		gameinfo->usesTrackball = FALSE;
-		gameinfo->usesLightGun = FALSE;
+		gameinfo->usesTrackball = false;
+		gameinfo->usesLightGun = false;
 		
 		if (gamedrv->ipt != NULL)
 		{
@@ -327,10 +327,10 @@ static void InitDriversInfo(void)
 					if (type == IPT_DIAL || type == IPT_PADDLE || 
 						type == IPT_TRACKBALL_X || type == IPT_TRACKBALL_Y ||
 						type == IPT_AD_STICK_X || type == IPT_AD_STICK_Y)
-						gameinfo->usesTrackball = TRUE;
+						gameinfo->usesTrackball = true;
 						
 					if (type == IPT_LIGHTGUN_X || type == IPT_LIGHTGUN_Y)
-						gameinfo->usesLightGun = TRUE;
+						gameinfo->usesLightGun = true;
 				}
 			}
 		}
@@ -361,21 +361,21 @@ static int InitDriversCache(void)
 			break;
 		}
 
-		gameinfo->isBroken  = (gamedrv->flags & (MACHINE_NOT_WORKING | MACHINE_UNEMULATED_PROTECTION | MACHINE_MECHANICAL)) ? TRUE : FALSE;
-		gameinfo->supportsSaveState = (gamedrv->flags & MACHINE_SUPPORTS_SAVE) ? TRUE : FALSE;
-		gameinfo->isVertical = (gamedrv->flags & ORIENTATION_SWAP_XY) ? TRUE : FALSE;
+		gameinfo->isBroken  = (gamedrv->flags & (MACHINE_NOT_WORKING | MACHINE_UNEMULATED_PROTECTION | MACHINE_MECHANICAL)) ? true : false;
+		gameinfo->supportsSaveState = (gamedrv->flags & MACHINE_SUPPORTS_SAVE) ? true : false;
+		gameinfo->isVertical = (gamedrv->flags & ORIENTATION_SWAP_XY) ? true : false;
 		gameinfo->screenCount = (cache & DRIVER_CACHE_SCREEN);
-		gameinfo->isClone = (cache & DRIVER_CACHE_CLONE) ? TRUE : FALSE;
-		gameinfo->isHarddisk = (cache & DRIVER_CACHE_HARDDISK) ? TRUE : FALSE;
-		gameinfo->hasOptionalBIOS = (cache & DRIVER_CACHE_BIOS) ? TRUE : FALSE;
-		gameinfo->isVector = (cache & DRIVER_CACHE_VECTOR) ? TRUE : FALSE;
-		gameinfo->usesRoms = (cache & DRIVER_CACHE_ROMS) ? TRUE : FALSE;
-		gameinfo->usesSamples = (cache & DRIVER_CACHE_SAMPLES) ? TRUE : FALSE;
-		gameinfo->usesTrackball = (cache & DRIVER_CACHE_TRACKBALL) ? TRUE : FALSE;
-		gameinfo->usesLightGun = (cache & DRIVER_CACHE_LIGHTGUN) ? TRUE : FALSE;
-		gameinfo->isImperfect = (gamedrv->flags & (MACHINE_WRONG_COLORS | MACHINE_IMPERFECT_COLORS | MACHINE_IMPERFECT_GRAPHICS	| MACHINE_NO_SOUND | MACHINE_IMPERFECT_SOUND)) ? TRUE : FALSE;
-		gameinfo->isMechanical = (gamedrv->flags & MACHINE_MECHANICAL) ? TRUE : FALSE;
-		gameinfo->isBIOS = (gamedrv->flags & MACHINE_IS_BIOS_ROOT) ? TRUE : FALSE;
+		gameinfo->isClone = (cache & DRIVER_CACHE_CLONE) ? true : false;
+		gameinfo->isHarddisk = (cache & DRIVER_CACHE_HARDDISK) ? true : false;
+		gameinfo->hasOptionalBIOS = (cache & DRIVER_CACHE_BIOS) ? true : false;
+		gameinfo->isVector = (cache & DRIVER_CACHE_VECTOR) ? true : false;
+		gameinfo->usesRoms = (cache & DRIVER_CACHE_ROMS) ? true : false;
+		gameinfo->usesSamples = (cache & DRIVER_CACHE_SAMPLES) ? true : false;
+		gameinfo->usesTrackball = (cache & DRIVER_CACHE_TRACKBALL) ? true : false;
+		gameinfo->usesLightGun = (cache & DRIVER_CACHE_LIGHTGUN) ? true : false;
+		gameinfo->isImperfect = (gamedrv->flags & (MACHINE_WRONG_COLORS | MACHINE_IMPERFECT_COLORS | MACHINE_IMPERFECT_GRAPHICS	| MACHINE_NO_SOUND | MACHINE_IMPERFECT_SOUND)) ? true : false;
+		gameinfo->isMechanical = (gamedrv->flags & MACHINE_MECHANICAL) ? true : false;
+		gameinfo->isBIOS = (gamedrv->flags & MACHINE_IS_BIOS_ROOT) ? true : false;
 	}
 
 	return 0;
@@ -383,11 +383,11 @@ static int InitDriversCache(void)
 
 static struct DriversInfo* GetDriversInfo(int driver_index)
 {
-	static BOOL bFirst = TRUE;
+	static bool bFirst = true;
 	
 	if (bFirst)
 	{
-		bFirst = FALSE;
+		bFirst = false;
 		drivers_info.clear();
 		drivers_info.reserve(driver_list::total());
 		InitDriversCache();
@@ -396,32 +396,32 @@ static struct DriversInfo* GetDriversInfo(int driver_index)
 	return &drivers_info[driver_index];
 }
 
-BOOL DriverIsClone(int driver_index)
+bool DriverIsClone(int driver_index)
 {
 	return GetDriversInfo(driver_index)->isClone;
 }
 
-BOOL DriverIsBroken(int driver_index)
+bool DriverIsBroken(int driver_index)
 {
 	return GetDriversInfo(driver_index)->isBroken;
 }
 
-BOOL DriverIsHarddisk(int driver_index)
+bool DriverIsHarddisk(int driver_index)
 {
 	return GetDriversInfo(driver_index)->isHarddisk;
 }
 
-BOOL DriverIsBios(int driver_index)
+bool DriverIsBios(int driver_index)
 {
 	return GetDriversInfo(driver_index)->isBIOS;
 }
 
-BOOL DriverIsMechanical(int driver_index)
+bool DriverIsMechanical(int driver_index)
 {
 	return GetDriversInfo(driver_index)->isMechanical;
 }
 
-BOOL DriverHasOptionalBIOS(int driver_index)
+bool DriverHasOptionalBIOS(int driver_index)
 {
 	return GetDriversInfo(driver_index)->hasOptionalBIOS;
 }
@@ -431,42 +431,42 @@ int DriverNumScreens(int driver_index)
 	return GetDriversInfo(driver_index)->screenCount;
 }
 
-BOOL DriverIsVector(int driver_index)
+bool DriverIsVector(int driver_index)
 {
 	return GetDriversInfo(driver_index)->isVector;
 }
 
-BOOL DriverUsesRoms(int driver_index)
+bool DriverUsesRoms(int driver_index)
 {
 	return GetDriversInfo(driver_index)->usesRoms;
 }
 
-BOOL DriverUsesSamples(int driver_index)
+bool DriverUsesSamples(int driver_index)
 {
 	return GetDriversInfo(driver_index)->usesSamples;
 }
 
-BOOL DriverUsesTrackball(int driver_index)
+bool DriverUsesTrackball(int driver_index)
 {
 	return GetDriversInfo(driver_index)->usesTrackball;
 }
 
-BOOL DriverUsesLightGun(int driver_index)
+bool DriverUsesLightGun(int driver_index)
 {
 	return GetDriversInfo(driver_index)->usesLightGun;
 }
 
-BOOL DriverSupportsSaveState(int driver_index)
+bool DriverSupportsSaveState(int driver_index)
 {
 	return GetDriversInfo(driver_index)->supportsSaveState;
 }
 
-BOOL DriverIsVertical(int driver_index)
+bool DriverIsVertical(int driver_index)
 {
 	return GetDriversInfo(driver_index)->isVertical;
 }
 
-BOOL DriverIsImperfect(int driver_index)
+bool DriverIsImperfect(int driver_index)
 {
 	return GetDriversInfo(driver_index)->isImperfect;
 }
@@ -539,7 +539,7 @@ void CenterWindow(HWND hWnd)
 	SetWindowPos(hWnd, HWND_TOP, xLeft, yTop, -1, -1, SWP_NOSIZE);
 }
 
-BOOL IsWindowsSevenOrHigher(void) 
+bool IsWindowsSevenOrHigher(void) 
 {
 	OSVERSIONINFO osvi;
 	
@@ -549,7 +549,7 @@ BOOL IsWindowsSevenOrHigher(void)
 	GetVersionEx(&osvi);
    
 	if ((osvi.dwMajorVersion >= 6) && (osvi.dwMinorVersion >= 1))
-		return TRUE;
+		return true;
 		
-	return FALSE;
+	return false;
 }

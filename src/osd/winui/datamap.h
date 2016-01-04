@@ -43,8 +43,8 @@ typedef enum _datamap_callback_type datamap_callback_type;
 
 typedef struct _datamap datamap;
 
-// MSH - Callback can now return TRUE, signifying that changes have been made, but should NOT be broadcast.
-typedef BOOL (*datamap_callback)(datamap *map, HWND dialog, HWND control, windows_options &opts, const char *option_name);
+// MSH - Callback can now return true, signifying that changes have been made, but should NOT be broadcast.
+typedef bool (*datamap_callback)(datamap *map, HWND dialog, HWND control, windows_options &opts, const char *option_name);
 typedef void (*get_option_name_callback)(datamap *map, HWND dialog, HWND control, char *buffer, size_t buffer_size);
 
 //============================================================
@@ -62,7 +62,7 @@ void datamap_set_trackbar_range(datamap *map, int dlgitem, float min, float max,
 void datamap_set_int_format(datamap *map, int dlgitem, const char *format);
 void datamap_set_float_format(datamap *map, int dlgitem, const char *format);
 // datamap operations
-BOOL datamap_read_control(datamap *map, HWND dialog, windows_options &opts, int dlgitem);
+bool datamap_read_control(datamap *map, HWND dialog, windows_options &opts, int dlgitem);
 void datamap_read_all_controls(datamap *map, HWND dialog, windows_options &opts);
 void datamap_populate_control(datamap *map, HWND dialog, windows_options &opts, int dlgitem);
 void datamap_populate_all_controls(datamap *map, HWND dialog, windows_options &opts);

@@ -50,21 +50,21 @@ static LPCFILTER_ITEM g_lpFilterList;
     private function prototypes
  ***************************************************************************/
 
-static BOOL	InitFolders(void);
-static BOOL CreateTreeIcons(void);
+static bool	InitFolders(void);
+static bool CreateTreeIcons(void);
 static void	CreateAllChildFolders(void);
-static BOOL AddFolder(LPTREEFOLDER lpFolder);
+static bool AddFolder(LPTREEFOLDER lpFolder);
 static LPTREEFOLDER NewFolder(const char *lpTitle, UINT nFolderId, int nParent, UINT nIconId, DWORD dwFlags);
 static void DeleteFolder(LPTREEFOLDER lpFolder);
 static LRESULT CALLBACK TreeWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 static int InitExtraFolders(void);
 static void FreeExtraFolders(void);
 static void SetExtraIcons(char *name, int *id);
-static BOOL TryAddExtraFolderAndChildren(int parent_index);
-static BOOL TrySaveExtraFolder(LPTREEFOLDER lpFolder);
+static bool TryAddExtraFolderAndChildren(int parent_index);
+static bool TrySaveExtraFolder(LPTREEFOLDER lpFolder);
 static void LoadExternalFolders(int parent_index, const char *fname, int id);
 static void SaveExternalFolders(int parent_index, const char *fname);
-static BOOL FilterAvailable(int driver_index);
+static bool FilterAvailable(int driver_index);
 
 /***************************************************************************
     Functions to build builtin folder lists
@@ -89,28 +89,28 @@ static void CreateDumpingFolders(int parent_index);
 
 extern const FOLDERDATA g_folderData[] =
 {
-	{"All Games",       "allgames",          FOLDER_ALLGAMES,     IDI_FOLDER_ALLGAMES,	    0,             0,            NULL,                       NULL,                    TRUE },
-	{"Available",       "available",         FOLDER_AVAILABLE,    IDI_FOLDER_AVAILABLE,     F_AVAILABLE,   0,            NULL,                       FilterAvailable,         TRUE },
-	{"Unavailable",     "unavailable",       FOLDER_UNAVAILABLE,  IDI_FOLDER_UNAVAILABLE,   0,             F_AVAILABLE,  NULL,                       FilterAvailable,         FALSE },
+	{"All Games",       "allgames",          FOLDER_ALLGAMES,     IDI_FOLDER_ALLGAMES,	    0,             0,            NULL,                       NULL,                    true },
+	{"Available",       "available",         FOLDER_AVAILABLE,    IDI_FOLDER_AVAILABLE,     F_AVAILABLE,   0,            NULL,                       FilterAvailable,         true },
+	{"Unavailable",     "unavailable",       FOLDER_UNAVAILABLE,  IDI_FOLDER_UNAVAILABLE,   0,             F_AVAILABLE,  NULL,                       FilterAvailable,         false },
 	{"Manufacturer",    "manufacturer",      FOLDER_MANUFACTURER, IDI_FOLDER_MANUFACTURER,  0,             0,            CreateManufacturerFolders },
 	{"Year",            "year",              FOLDER_YEAR,         IDI_FOLDER_YEAR,          0,             0,            CreateYearFolders },
 	{"CPU",             "cpu",               FOLDER_CPU,          IDI_FOLDER_CPU,           0,             0,            CreateCPUFolders },
 	{"SOUND",           "sound",             FOLDER_SOUND,        IDI_FOLDER_SOUND,         0,             0,            CreateSoundFolders },
-	{"BIOS",	    	"bios",		     	 FOLDER_BIOS,	      IDI_FOLDER_BIOS,          0,             0,            CreateBIOSFolders, 	 	 DriverIsBios,  		  TRUE },
-	{"CHD",             "harddisk",          FOLDER_HARDDISK,     IDI_HARDDISK,             0,             0,            NULL,                       DriverIsHarddisk,	  	  TRUE },
-	{"Samples",    	  	"samples",           FOLDER_SAMPLES,      IDI_FOLDER_SAMPLES,       0,             0,            NULL,                       DriverUsesSamples,  	  TRUE },
-	{"Mechanical",      "mechanical",        FOLDER_MECHANICAL,   IDI_MECHANICAL,           0,             0,            NULL,                       DriverIsMechanical,      TRUE },
-	{"Lightgun",    	"lightgun",          FOLDER_LIGHTGUN,     IDI_FOLDER_LIGHTGUN,      0,             0,            NULL,                       DriverUsesLightGun,  	  TRUE },
-	{"Trackball",    	"trackball",         FOLDER_TRACKBALL,    IDI_FOLDER_TRACKBALL,     0,             0,            NULL,                       DriverUsesTrackball,  	  TRUE },
-	{"Working",         "working",           FOLDER_WORKING,      IDI_WORKING,              F_WORKING,     F_NONWORKING, NULL,                       DriverIsBroken,    	  FALSE },
+	{"BIOS",	    	"bios",		     	 FOLDER_BIOS,	      IDI_FOLDER_BIOS,          0,             0,            CreateBIOSFolders, 	 	 DriverIsBios,  		  true },
+	{"CHD",             "harddisk",          FOLDER_HARDDISK,     IDI_HARDDISK,             0,             0,            NULL,                       DriverIsHarddisk,	  	  true },
+	{"Samples",    	  	"samples",           FOLDER_SAMPLES,      IDI_FOLDER_SAMPLES,       0,             0,            NULL,                       DriverUsesSamples,  	  true },
+	{"Mechanical",      "mechanical",        FOLDER_MECHANICAL,   IDI_MECHANICAL,           0,             0,            NULL,                       DriverIsMechanical,      true },
+	{"Lightgun",    	"lightgun",          FOLDER_LIGHTGUN,     IDI_FOLDER_LIGHTGUN,      0,             0,            NULL,                       DriverUsesLightGun,  	  true },
+	{"Trackball",    	"trackball",         FOLDER_TRACKBALL,    IDI_FOLDER_TRACKBALL,     0,             0,            NULL,                       DriverUsesTrackball,  	  true },
+	{"Working",         "working",           FOLDER_WORKING,      IDI_WORKING,              F_WORKING,     F_NONWORKING, NULL,                       DriverIsBroken,    	  false },
 	{"Imperfect",       "imperfect",         FOLDER_DEFICIENCY,   IDI_FOLDER_IMPERFECT,     0,             0,            CreateDeficiencyFolders },
-	{"Not Working",     "nonworking",        FOLDER_NONWORKING,   IDI_NONWORKING,           F_NONWORKING,  F_WORKING,    NULL,                       DriverIsBroken,    	  TRUE },
-	{"Originals",       "originals",         FOLDER_ORIGINAL,     IDI_FOLDER_ORIGINALS,     F_ORIGINALS,   F_CLONES,     NULL,                       DriverIsClone,     	  FALSE },
-	{"Clones",          "clones",            FOLDER_CLONES,       IDI_FOLDER_CLONES,        F_CLONES,      F_ORIGINALS,  NULL,                       DriverIsClone,     	  TRUE },
-	{"Horizontal",      "horizontal",        FOLDER_HORIZONTAL,   IDI_FOLDER_HORIZONTAL,    F_HORIZONTAL,  F_VERTICAL,   NULL,                       DriverIsVertical,        FALSE },
-	{"Vertical",        "vertical",          FOLDER_VERTICAL,     IDI_FOLDER_VERTICAL,      F_VERTICAL,    F_HORIZONTAL, NULL,                       DriverIsVertical,        TRUE },
-	{"Raster",          "raster",            FOLDER_RASTER,       IDI_FOLDER_RASTER,        F_RASTER,      F_VECTOR,     NULL,                       DriverIsVector,    	  FALSE },
-	{"Vector",          "vector",            FOLDER_VECTOR,       IDI_FOLDER_VECTOR,        F_VECTOR,      F_RASTER,     NULL,                       DriverIsVector,    	  TRUE },
+	{"Not Working",     "nonworking",        FOLDER_NONWORKING,   IDI_NONWORKING,           F_NONWORKING,  F_WORKING,    NULL,                       DriverIsBroken,    	  true },
+	{"Originals",       "originals",         FOLDER_ORIGINAL,     IDI_FOLDER_ORIGINALS,     F_ORIGINALS,   F_CLONES,     NULL,                       DriverIsClone,     	  false },
+	{"Clones",          "clones",            FOLDER_CLONES,       IDI_FOLDER_CLONES,        F_CLONES,      F_ORIGINALS,  NULL,                       DriverIsClone,     	  true },
+	{"Horizontal",      "horizontal",        FOLDER_HORIZONTAL,   IDI_FOLDER_HORIZONTAL,    F_HORIZONTAL,  F_VERTICAL,   NULL,                       DriverIsVertical,        false },
+	{"Vertical",        "vertical",          FOLDER_VERTICAL,     IDI_FOLDER_VERTICAL,      F_VERTICAL,    F_HORIZONTAL, NULL,                       DriverIsVertical,        true },
+	{"Raster",          "raster",            FOLDER_RASTER,       IDI_FOLDER_RASTER,        F_RASTER,      F_VECTOR,     NULL,                       DriverIsVector,    	  false },
+	{"Vector",          "vector",            FOLDER_VECTOR,       IDI_FOLDER_VECTOR,        F_VECTOR,      F_RASTER,     NULL,                       DriverIsVector,    	  true },
 	{"Screens",         "screens",           FOLDER_SCREENS,      IDI_FOLDER_MONITOR,       0,             0,            CreateScreenFolders },
 	{"Resolution",      "resolution",        FOLDER_RESOLUTION,   IDI_FOLDER_RESOL,         0,             0,            CreateResolutionFolders },
 	{"Refresh",         "refresh",           FOLDER_FPS,          IDI_FOLDER_FPS,           0,             0,            CreateFPSFolders },
@@ -123,16 +123,16 @@ extern const FOLDERDATA g_folderData[] =
 /* list of filter/control Id pairs */
 extern const FILTER_ITEM g_filterList[] =
 {
-	{ F_CLONES,       IDC_FILTER_CLONES,      DriverIsClone, 		TRUE },
-	{ F_NONWORKING,   IDC_FILTER_NONWORKING,  DriverIsBroken, 		TRUE },
-	{ F_UNAVAILABLE,  IDC_FILTER_UNAVAILABLE, FilterAvailable, 		FALSE },
-	{ F_RASTER,       IDC_FILTER_RASTER,      DriverIsVector, 		FALSE },
-	{ F_VECTOR,       IDC_FILTER_VECTOR,      DriverIsVector, 		TRUE },
-	{ F_ORIGINALS,    IDC_FILTER_ORIGINALS,   DriverIsClone, 		FALSE },
-	{ F_WORKING,      IDC_FILTER_WORKING,     DriverIsBroken, 		FALSE },
-	{ F_AVAILABLE,    IDC_FILTER_AVAILABLE,   FilterAvailable, 		TRUE },
-	{ F_HORIZONTAL,   IDC_FILTER_HORIZONTAL,  DriverIsVertical, 	FALSE },
-	{ F_VERTICAL,     IDC_FILTER_VERTICAL,    DriverIsVertical, 	TRUE },
+	{ F_CLONES,       IDC_FILTER_CLONES,      DriverIsClone, 		true },
+	{ F_NONWORKING,   IDC_FILTER_NONWORKING,  DriverIsBroken, 		true },
+	{ F_UNAVAILABLE,  IDC_FILTER_UNAVAILABLE, FilterAvailable, 		false },
+	{ F_RASTER,       IDC_FILTER_RASTER,      DriverIsVector, 		false },
+	{ F_VECTOR,       IDC_FILTER_VECTOR,      DriverIsVector, 		true },
+	{ F_ORIGINALS,    IDC_FILTER_ORIGINALS,   DriverIsClone, 		false },
+	{ F_WORKING,      IDC_FILTER_WORKING,     DriverIsBroken, 		false },
+	{ F_AVAILABLE,    IDC_FILTER_AVAILABLE,   FilterAvailable, 		true },
+	{ F_HORIZONTAL,   IDC_FILTER_HORIZONTAL,  DriverIsVertical, 	false },
+	{ F_VERTICAL,     IDC_FILTER_VERTICAL,    DriverIsVertical, 	true },
 	{ 0 }
 };
 
@@ -282,7 +282,7 @@ void RemoveGame(LPTREEFOLDER lpFolder, UINT nGame)
 
 int FindGame(LPTREEFOLDER lpFolder, int nGame)
 {
-	return FindBit(lpFolder->m_lpGameBits, nGame, TRUE);
+	return FindBit(lpFolder->m_lpGameBits, nGame, true);
 }
 
 // Called to re-associate games with folders
@@ -298,14 +298,14 @@ void ResetWhichGamesInFolders(void)
 			{
 				if (g_lpFolderData[k].m_pfnQuery || g_lpFolderData[k].m_bExpectedResult)
 				{
-					SetAllBits(lpFolder->m_lpGameBits, FALSE);
+					SetAllBits(lpFolder->m_lpGameBits, false);
 					
 					for (int jj = 0; jj < driver_list::total(); jj++)
 					{
 						// invoke the query function
-						BOOL b = g_lpFolderData[k].m_pfnQuery ? g_lpFolderData[k].m_pfnQuery(jj) : TRUE;
+						bool b = g_lpFolderData[k].m_pfnQuery ? g_lpFolderData[k].m_pfnQuery(jj) : true;
 						
-						// if we expect FALSE, flip the result
+						// if we expect false, flip the result
 						if (!g_lpFolderData[k].m_bExpectedResult)
 							b = !b;
 						
@@ -322,21 +322,21 @@ void ResetWhichGamesInFolders(void)
 }
 
 /* Used to build the GameList */
-BOOL GameFiltered(int nGame, DWORD dwMask)
+bool GameFiltered(int nGame, DWORD dwMask)
 {
 	LPTREEFOLDER lpFolder = GetCurrentFolder();
 
 	//Filter out the Bioses on all Folders, except for the Bios Folder
-	if(lpFolder->m_nFolderId != FOLDER_BIOS)
+	if(lpFolder && lpFolder->m_nFolderId != FOLDER_BIOS)
 	{
 		if(DriverIsBios(nGame))
-      		return TRUE;
+      		return true;
 	}
 
 	if(driver_list::driver(nGame).name[0] == '_')
-		return TRUE;
+		return true;
 
-	// Filter games--return TRUE if the game should be HIDDEN in this view
+	// Filter games--return true if the game should be HIDDEN in this view
 	if(GetFilterInherit())
 	{
 		if(lpFolder)
@@ -357,7 +357,7 @@ BOOL GameFiltered(int nGame, DWORD dwMask)
 	{
 		if (MyStrStrI(driver_list::driver(nGame).description, GetSearchText()) == NULL &&
 			MyStrStrI(driver_list::driver(nGame).name, GetSearchText()) == NULL)
-			return TRUE;
+			return true;
 	}
 	
 	/*Filter Text is already global*/
@@ -365,30 +365,30 @@ BOOL GameFiltered(int nGame, DWORD dwMask)
 		MyStrStrI(driver_list::driver(nGame).name, GetFilterText()) == NULL &&
 		MyStrStrI(driver_list::driver(nGame).source_file, GetFilterText()) == NULL &&
 		MyStrStrI(driver_list::driver(nGame).manufacturer, GetFilterText()) == NULL)
-		return TRUE;
+		return true;
 
 	// Are there filters set on this folder?
 	if ((dwMask & F_MASK) == 0)
-		return FALSE;
+		return false;
 
 	// Filter out clones?
 	if (dwMask & F_CLONES && DriverIsClone(nGame))
-		return TRUE;
+		return true;
 
 	for (int i = 0; g_lpFilterList[i].m_dwFilterType; i++)
 	{
 		if (dwMask & g_lpFilterList[i].m_dwFilterType)
 		{
 			if (g_lpFilterList[i].m_pfnQuery(nGame) == g_lpFilterList[i].m_bExpectedResult)
-				return TRUE;
+				return true;
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
 /* Get the parent of game in this view */
-BOOL GetParentFound(int nGame) 	// not used
+bool GetParentFound(int nGame) 	// not used
 {
 	LPTREEFOLDER lpFolder = GetCurrentFolder();
 
@@ -396,22 +396,22 @@ BOOL GetParentFound(int nGame) 	// not used
 	{
 		int nParentIndex = GetParentIndex(&driver_list::driver(nGame));
 
-		/* return FALSE if no parent is there in this view */
+		/* return false if no parent is there in this view */
 		if( nParentIndex == -1)
-			return FALSE;
+			return false;
 
-		/* return FALSE if the folder should be HIDDEN in this view */
+		/* return false if the folder should be HIDDEN in this view */
 		if (TestBit(lpFolder->m_lpGameBits, nParentIndex) == 0)
-			return FALSE;
+			return false;
 
-		/* return FALSE if the game should be HIDDEN in this view */
+		/* return false if the game should be HIDDEN in this view */
 		if (GameFiltered(nParentIndex, lpFolder->m_dwFlags))
-			return FALSE;
+			return false;
 
-		return TRUE;
+		return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
 LPCFILTER_ITEM GetFilterList(void)
@@ -431,7 +431,7 @@ static void CreateSourceFolders(int parent_index)
 	LPTREEFOLDER lpTemp;
 
 	// no games in top level folder
-	SetAllBits(lpFolder->m_lpGameBits, FALSE);
+	SetAllBits(lpFolder->m_lpGameBits, false);
 	
 	for (int jj = 0; jj < driver_list::total(); jj++)
 	{
@@ -471,7 +471,7 @@ static void CreateManufacturerFolders(int parent_index)
 	LPTREEFOLDER lpTemp;
 
 	// no games in top level folder
-	SetAllBits(lpFolder->m_lpGameBits, FALSE);
+	SetAllBits(lpFolder->m_lpGameBits, false);
 
 	for (int jj = 0; jj < driver_list::total(); jj++)
 	{
@@ -507,7 +507,7 @@ static void CreateDeficiencyFolders(int parent_index)
 	LPTREEFOLDER lpProt, lpWrongCol, lpImpCol, lpImpGraph, lpMissSnd, lpImpSnd;
 
 	// no games in top level folder
-	SetAllBits(lpFolder->m_lpGameBits, FALSE);
+	SetAllBits(lpFolder->m_lpGameBits, false);
 	// create our subfolders
 	lpProt = NewFolder("Unemulated Protection", next_folder_id++, parent_index, IDI_FOLDER, GetFolderFlags(numFolders));
 	lpWrongCol = NewFolder("Wrong Colors", next_folder_id++, parent_index, IDI_FOLDER, GetFolderFlags(numFolders));
@@ -552,7 +552,7 @@ static void CreateYearFolders(int parent_index)
 	LPTREEFOLDER lpTemp;
 
 	// no games in top level folder
-	SetAllBits(lpFolder->m_lpGameBits, FALSE);
+	SetAllBits(lpFolder->m_lpGameBits, false);
 
 	for (int jj = 0; jj < driver_list::total(); jj++)
 	{
@@ -592,7 +592,7 @@ static void CreateBIOSFolders(int parent_index)
 	LPTREEFOLDER lpTemp;
 
 	// no games in top level folder
-	SetAllBits(lpFolder->m_lpGameBits, FALSE);
+	SetAllBits(lpFolder->m_lpGameBits, false);
 
 	for (int jj = 0; jj < driver_list::total(); jj++)
 	{
@@ -640,7 +640,7 @@ static void CreateScreenFoldersIni(int parent_index)
 	LPTREEFOLDER lpTemp;
 
 	// no games in top level folder
-	SetAllBits(lpFolder->m_lpGameBits, FALSE);
+	SetAllBits(lpFolder->m_lpGameBits, false);
 	
 	for (int jj = 0; jj < driver_list::total(); jj++)
 	{
@@ -676,7 +676,7 @@ static void CreateCPUFoldersIni(int parent_index)
 	LPTREEFOLDER lpTemp;
 
 	// no games in top level folder
-	SetAllBits(lpFolder->m_lpGameBits, FALSE);
+	SetAllBits(lpFolder->m_lpGameBits, false);
 	
 	for (int jj = 0; jj < driver_list::total(); jj++)
 	{
@@ -720,7 +720,7 @@ static void CreateSoundFoldersIni(int parent_index)
 	LPTREEFOLDER lpTemp;
 
 	// no games in top level folder
-	SetAllBits(lpFolder->m_lpGameBits, FALSE);
+	SetAllBits(lpFolder->m_lpGameBits, false);
 	
 	for (int jj = 0; jj < driver_list::total(); jj++)
 	{
@@ -762,7 +762,7 @@ static void CreateSaveStateFolders(int parent_index)
 	LPTREEFOLDER lpSupported, lpUnsupported;
 	
 	// no games in top level folder
-	SetAllBits(lpFolder->m_lpGameBits,FALSE);
+	SetAllBits(lpFolder->m_lpGameBits,false);
 	// create our two subfolders
 	lpSupported = NewFolder("Supported", next_folder_id++, parent_index, IDI_FOLDER, GetFolderFlags(numFolders));
 	lpUnsupported = NewFolder("Unsupported", next_folder_id++, parent_index, IDI_FOLDER, GetFolderFlags(numFolders));
@@ -786,7 +786,7 @@ static void CreateResolutionFoldersIni(int parent_index)
 	LPTREEFOLDER lpTemp, lpVectorH, lpVectorV, lpScreenless;
 
 	// no games in top level folder
-	SetAllBits(lpFolder->m_lpGameBits, FALSE);
+	SetAllBits(lpFolder->m_lpGameBits, false);
 	// create our two subfolders
 	lpVectorH = NewFolder("Vector (H)", next_folder_id++, parent_index, IDI_FOLDER, GetFolderFlags(numFolders));
 	lpVectorV = NewFolder("Vector (V)", next_folder_id++, parent_index, IDI_FOLDER, GetFolderFlags(numFolders));
@@ -858,7 +858,7 @@ static void CreateFPSFoldersIni(int parent_index)
 	LPTREEFOLDER lpTemp, lpVector, lpScreenless;
 
 	// no games in top level folder
-	SetAllBits(lpFolder->m_lpGameBits, FALSE);
+	SetAllBits(lpFolder->m_lpGameBits, false);
 	// create our two subfolders
 	lpVector = NewFolder("Vector", next_folder_id++, parent_index, IDI_FOLDER, GetFolderFlags(numFolders));
 	lpScreenless = NewFolder("Screenless", next_folder_id++, parent_index, IDI_FOLDER, GetFolderFlags(numFolders));
@@ -913,7 +913,7 @@ void CreateDumpingFoldersIni(int parent_index)
 	LPTREEFOLDER lpBadDump, lpNoDump, lpGoodDump;
 
 	// no games in top level folder
-	SetAllBits(lpFolder->m_lpGameBits,FALSE);
+	SetAllBits(lpFolder->m_lpGameBits,false);
 	// create our two subfolders
 	lpNoDump = NewFolder("No Dump", next_folder_id, parent_index, IDI_FOLDER, GetFolderFlags(numFolders));
 	lpBadDump = NewFolder("Bad Dump", next_folder_id, parent_index, IDI_FOLDER, GetFolderFlags(numFolders));
@@ -925,8 +925,8 @@ void CreateDumpingFoldersIni(int parent_index)
 	for (int jj = 0; jj < driver_list::total(); jj++)
 	{
 		machine_config config(driver_list::driver(jj), MameUIGlobal());
-		BOOL bBadDump = FALSE;
-		BOOL bNoDump = FALSE;
+		bool bBadDump = false;
+		bool bNoDump = false;
 
 		if (!DriverUsesRoms(jj))
 			continue;
@@ -944,10 +944,10 @@ void CreateDumpingFoldersIni(int parent_index)
 						hash_collection hashes(ROM_GETHASHDATA(rom));
 						
 						if (hashes.flag(hash_collection::FLAG_NO_DUMP))
-							bNoDump = TRUE;
+							bNoDump = true;
 						
 						if (hashes.flag(hash_collection::FLAG_BAD_DUMP))
-							bBadDump = TRUE;
+							bBadDump = true;
 					}
 				}
 			}
@@ -1210,7 +1210,7 @@ void CreateAllChildFolders(void)
 				continue;
 
 			// load the extra folder files, which also adds children
-			if (TryAddExtraFolderAndChildren(i) == FALSE)
+			if (TryAddExtraFolderAndChildren(i) == false)
 				lpFolder->m_nFolderId = FOLDER_NONE;
 		}
 	}
@@ -1239,7 +1239,7 @@ void ResetTreeViewFolders(void)
 			if (lpFolder->m_nFolderId < MAX_FOLDERS)
 			{
 				// it's a built in folder, let's see if we should show it
-				if (GetShowFolder(lpFolder->m_nFolderId) == FALSE)
+				if (GetShowFolder(lpFolder->m_nFolderId) == false)
 					continue;
 			}
 
@@ -1354,22 +1354,22 @@ void SelectTreeViewFolder(int folder_id)
 
 /*
  * Does this folder have an INI associated with it?
- * Currently only TRUE for FOLDER_VECTOR and children
+ * Currently only true for FOLDER_VECTOR and children
  * of FOLDER_SOURCE.
  */
-static BOOL FolderHasIni(LPTREEFOLDER lpFolder) 
+static bool FolderHasIni(LPTREEFOLDER lpFolder) 
 {
 	if (FOLDER_RASTER == lpFolder->m_nFolderId || FOLDER_VECTOR == lpFolder->m_nFolderId || FOLDER_VERTICAL == lpFolder->m_nFolderId || FOLDER_HORIZONTAL == lpFolder->m_nFolderId) 
-		return TRUE;
+		return true;
 	
 	if (lpFolder->m_nParent != -1 && FOLDER_SOURCE == treeFolders[lpFolder->m_nParent]->m_nFolderId) 
-		return TRUE;
+		return true;
 	
-	return FALSE;
+	return false;
 }
 
 /* Add a folder to the list.  Does not allocate */
-static BOOL AddFolder(LPTREEFOLDER lpFolder)
+static bool AddFolder(LPTREEFOLDER lpFolder)
 {
 	TREEFOLDER **tmpTree = NULL;
 	UINT oldFolderArrayLength = folderArrayLength;
@@ -1392,7 +1392,7 @@ static BOOL AddFolder(LPTREEFOLDER lpFolder)
 
 	treeFolders[numFolders] = lpFolder;
 	numFolders++;
-	return TRUE;
+	return true;
 }
 
 /* Allocate and initialize a NEW TREEFOLDER */
@@ -1427,12 +1427,12 @@ static void DeleteFolder(LPTREEFOLDER lpFolder)
 		free(lpFolder->m_lpTitle);
 		lpFolder->m_lpTitle = 0;
 		free(lpFolder);
-		lpFolder = 0;
+//		lpFolder = 0;
 	}
 }
 
 /* Can be called to re-initialize the array of treeFolders */
-BOOL InitFolders(void)
+static bool InitFolders(void)
 {
 	int i = 0;
 	DWORD dwFolderFlags = 0;
@@ -1490,11 +1490,11 @@ BOOL InitFolders(void)
 	ResetTreeViewFolders();
 	SelectTreeViewFolder(GetSavedFolderID());
 	LoadFolderFlags();
-	return TRUE;
+	return true;
 }
 
 // create iconlist and Treeview control
-static BOOL CreateTreeIcons(void)
+static bool CreateTreeIcons(void)
 {
 	HICON hIcon = NULL;
 	int i = 0;
@@ -1513,7 +1513,7 @@ static BOOL CreateTreeIcons(void)
 		if (ImageList_AddIcon(hTreeSmall, hIcon) == -1)
 		{
 			ErrorMessageBox("Error creating icon on regular folder, %i %i", i, hIcon != NULL);
-			return FALSE;
+			return false;
 		}
 	}
 
@@ -1525,7 +1525,7 @@ static BOOL CreateTreeIcons(void)
 		if (ImageList_AddIcon(hTreeSmall, hIcon) == -1)
 		{
 			ErrorMessageBox("Error creating icon on extra folder, %i %i", i, hIcon != NULL);
-			return FALSE;
+			return false;
 		}
 	}
 
@@ -1533,19 +1533,19 @@ static BOOL CreateTreeIcons(void)
 	if (ImageList_GetImageCount(hTreeSmall) < numIcons)
 	{
 		ErrorMessageBox("Error with icon list--too few images.  %i %i", ImageList_GetImageCount(hTreeSmall), numIcons);
-		return FALSE;
+		return false;
 	}
 
 	// Be sure that all the small icons were added.
 	if (ImageList_GetImageCount (hTreeSmall) < ICON_MAX)
 	{
 		ErrorMessageBox("Error with icon list--too few images.  %i < %i", ImageList_GetImageCount(hTreeSmall), ICON_MAX);
-		return FALSE;
+		return false;
 	}
 
 	// Associate the image lists with the list view control.
 	(void)TreeView_SetImageList(GetTreeView(), hTreeSmall, TVSIL_NORMAL);
-	return TRUE;
+	return true;
 }
 
 /* Header code - Directional Arrows */
@@ -1556,7 +1556,7 @@ static LRESULT CALLBACK TreeWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 	case WM_MOUSEMOVE:
 	{
 		if (MouseHasBeenMoved())
-			ShowCursor(TRUE);
+			ShowCursor(true);
 		break;
 	}
 	
@@ -1566,7 +1566,7 @@ static LRESULT CALLBACK TreeWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 			if (lpCurrentFolder->m_dwFlags & F_CUSTOM)
 			{
 				(void)TreeView_EditLabel(hWnd, TreeView_GetSelection(hWnd));
-				return TRUE;
+				return true;
 			}
 		}
 		
@@ -1763,7 +1763,7 @@ static void SetExtraIcons(char *name, int *id)
 
 
 // Called to add child folders of the top level extra folders already created
-BOOL TryAddExtraFolderAndChildren(int parent_index)
+bool TryAddExtraFolderAndChildren(int parent_index)
 {
     char fname[MAX_PATH];
     char readbuf[256];
@@ -1777,7 +1777,7 @@ BOOL TryAddExtraFolderAndChildren(int parent_index)
   	FILE *f = fopen(fname, "r");				
  
     if (f == NULL)
-		return FALSE;
+		return false;
 
     while (fgets(readbuf, 256, f))
     {
@@ -1852,7 +1852,7 @@ BOOL TryAddExtraFolderAndChildren(int parent_index)
 	}
 
     fclose(f);
-    return TRUE;
+    return true;
 }
 
 
@@ -1862,7 +1862,7 @@ void GetFolders(TREEFOLDER ***folders,int *num_folders)
 	*num_folders = numFolders;
 }
 
-static BOOL TryRenameCustomFolderIni(LPTREEFOLDER lpFolder, const char *old_name, const char *new_name)
+static bool TryRenameCustomFolderIni(LPTREEFOLDER lpFolder, const char *old_name, const char *new_name)
 {
 	char filename[MAX_PATH];
 	char new_filename[MAX_PATH];
@@ -1891,10 +1891,10 @@ static BOOL TryRenameCustomFolderIni(LPTREEFOLDER lpFolder, const char *old_name
 		win_move_file_utf8(filename, new_filename);
 	}
 
-	return TRUE;
+	return true;
 }
 
-BOOL TryRenameCustomFolder(LPTREEFOLDER lpFolder, const char *new_name)
+bool TryRenameCustomFolder(LPTREEFOLDER lpFolder, const char *new_name)
 {
 	char filename[MAX_PATH];
 	char new_filename[MAX_PATH];
@@ -1909,24 +1909,24 @@ BOOL TryRenameCustomFolder(LPTREEFOLDER lpFolder, const char *new_name)
 		strcpy(lpFolder->m_lpTitle, new_name);
 
 		// try to save
-		if (TrySaveExtraFolder(lpFolder) == FALSE)
+		if (TrySaveExtraFolder(lpFolder) == false)
 		{
 			// failed, so free newly allocated title and restore old
 			free(lpFolder->m_lpTitle);
 			lpFolder->m_lpTitle = old_title;
-			return FALSE;
+			return false;
 		}
 		
 		TryRenameCustomFolderIni(lpFolder, old_title, new_name);
 		// successful, so free old title
 		free(old_title);
-		return TRUE;
+		return true;
 	}
 
 	// a parent extra folder was renamed, so rename the file
 	snprintf(new_filename, ARRAY_LENGTH(new_filename), "%s\\%s.ini", GetFolderDir(), new_name);
 	snprintf(filename, ARRAY_LENGTH(filename), "%s\\%s.ini", GetFolderDir(), lpFolder->m_lpTitle);
-	BOOL retval = win_move_file_utf8(filename, new_filename);
+	bool retval = win_move_file_utf8(filename, new_filename);
 
 	if (retval)
 	{
@@ -1953,7 +1953,7 @@ void AddToCustomFolder(LPTREEFOLDER lpFolder, int driver_index)
 	{
 		AddGame(lpFolder, driver_index);
 		
-		if (TrySaveExtraFolder(lpFolder) == FALSE)
+		if (TrySaveExtraFolder(lpFolder) == false)
 			RemoveGame(lpFolder, driver_index); 	// undo on error
 	}
 }
@@ -1970,15 +1970,15 @@ void RemoveFromCustomFolder(LPTREEFOLDER lpFolder, int driver_index)
 	{
 		RemoveGame(lpFolder, driver_index);
 		
-		if (TrySaveExtraFolder(lpFolder) == FALSE)
+		if (TrySaveExtraFolder(lpFolder) == false)
 			AddGame(lpFolder, driver_index); // undo on error
 	}
 }
 
-BOOL TrySaveExtraFolder(LPTREEFOLDER lpFolder)
+bool TrySaveExtraFolder(LPTREEFOLDER lpFolder)
 {
     char fname[MAX_PATH];
-	BOOL error = FALSE;
+	bool error = false;
     int i = 0;
 	LPTREEFOLDER root_folder = NULL;
 	LPEXFOLDERDATA extra_folder = NULL;
@@ -2003,7 +2003,7 @@ BOOL TrySaveExtraFolder(LPTREEFOLDER lpFolder)
 	if (extra_folder == NULL || root_folder == NULL)
 	{
 		ErrorMessageBox("Error finding custom file name to save");
-	   	return FALSE;
+	   	return false;
 	}
 	
     snprintf(fname, ARRAY_LENGTH(fname), "%s\\%s.ini", GetFolderDir(), extra_folder->m_szTitle);
@@ -2013,7 +2013,7 @@ BOOL TrySaveExtraFolder(LPTREEFOLDER lpFolder)
 	FILE *f = fopen(fname, "w");
 	
     if (f == NULL)
-		error = TRUE;
+		error = true;
 	else
 	{
 	   	TREEFOLDER *folder_data;
@@ -2084,14 +2084,14 @@ int GetTreeViewIconIndex(int icon_id)
 	return - 1;
 }
 
-static BOOL FilterAvailable(int driver_index)
+static bool FilterAvailable(int driver_index)
 {
 	if (!DriverUsesRoms(driver_index))
 	{
 		if (GetDisplayNoRomsGames())
-			return TRUE;
+			return true;
 		else
-			return FALSE;
+			return false;
 	}
 	
 	return IsAuditResultYes(GetRomAuditResults(driver_index));

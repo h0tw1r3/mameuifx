@@ -163,7 +163,7 @@ static void ParseIniFile(windows_options &opts, const char *name);
     Internal variables
  ***************************************************************************/
 
-static BOOL RequiredDriverCacheStatus = FALSE;
+static bool RequiredDriverCacheStatus = false;
 static winui_options gui_opts;			// INTERFACE.INI options
 static gamelist_options game_opts;		// GAMELIST.INI options
 static windows_options core_opts;		// MAME.INI default options
@@ -436,74 +436,74 @@ int GetViewMode(void)
 	return gui_opts.int_value(MUIOPTION_LIST_MODE);
 }
 
-void SetEnableIndent (BOOL value)
+void SetEnableIndent (bool value)
 {
 	std::string error_string;
 	gui_opts.set_value(MUIOPTION_ENABLE_INDENT, value, OPTION_PRIORITY_CMDLINE, error_string);
     assert(error_string.empty());
 }
 
-BOOL GetEnableIndent (void)
+bool GetEnableIndent (void)
 {
 	return gui_opts.bool_value(MUIOPTION_ENABLE_INDENT);
 }
 
-void SetDisplayNoRomsGames (BOOL value)
+void SetDisplayNoRomsGames (bool value)
 {
 	std::string error_string;
 	gui_opts.set_value(MUIOPTION_NOROMS_GAMES, value, OPTION_PRIORITY_CMDLINE, error_string);
     assert(error_string.empty());
 }
 
-BOOL GetDisplayNoRomsGames (void)
+bool GetDisplayNoRomsGames (void)
 {
 	return gui_opts.bool_value(MUIOPTION_NOROMS_GAMES);
 }
 
-void SetExitDialog (BOOL value)
+void SetExitDialog (bool value)
 {
 	std::string error_string;
 	gui_opts.set_value(MUIOPTION_EXIT_DIALOG, value, OPTION_PRIORITY_CMDLINE, error_string);
     assert(error_string.empty());
 }
 
-BOOL GetExitDialog (void)
+bool GetExitDialog (void)
 {
 	return gui_opts.bool_value(MUIOPTION_EXIT_DIALOG);
 }
 
-void SetMinimizeTrayIcon (BOOL value)
+void SetMinimizeTrayIcon (bool value)
 {
 	std::string error_string;
 	gui_opts.set_value(MUIOPTION_TRAY_ICON, value, OPTION_PRIORITY_CMDLINE, error_string);
     assert(error_string.empty());
 }
 
-BOOL GetMinimizeTrayIcon (void)
+bool GetMinimizeTrayIcon (void)
 {
 	return gui_opts.bool_value(MUIOPTION_TRAY_ICON);
 }
 
-void SetJoyGUI(BOOL use_joygui)
+void SetJoyGUI(bool use_joygui)
 {
 	std::string error_string;
 	gui_opts.set_value(MUIOPTION_JOYSTICK_IN_INTERFACE, use_joygui, OPTION_PRIORITY_CMDLINE, error_string);
 	assert(error_string.empty());
 }
 
-BOOL GetJoyGUI(void)
+bool GetJoyGUI(void)
 {
 	return gui_opts.bool_value( MUIOPTION_JOYSTICK_IN_INTERFACE);
 }
 
-void SetKeyGUI(BOOL use_keygui)
+void SetKeyGUI(bool use_keygui)
 {
 	std::string error_string;
 	gui_opts.set_value(MUIOPTION_KEYBOARD_IN_INTERFACE, use_keygui, OPTION_PRIORITY_CMDLINE, error_string);
 	assert(error_string.empty());
 }
 
-BOOL GetKeyGUI(void)
+bool GetKeyGUI(void)
 {
 	return gui_opts.bool_value( MUIOPTION_KEYBOARD_IN_INTERFACE);
 }
@@ -520,14 +520,14 @@ int GetCycleScreenshot(void)
 	return gui_opts.int_value(MUIOPTION_CYCLE_SCREENSHOT);
 }
 
-void SetStretchScreenShotLarger(BOOL stretch)
+void SetStretchScreenShotLarger(bool stretch)
 {
 	std::string error_string;
 	gui_opts.set_value(MUIOPTION_STRETCH_SCREENSHOT_LARGER, stretch, OPTION_PRIORITY_CMDLINE, error_string);
 	assert(error_string.empty());
 }
 
-BOOL GetStretchScreenShotLarger(void)
+bool GetStretchScreenShotLarger(void)
 {
 	return gui_opts.bool_value( MUIOPTION_STRETCH_SCREENSHOT_LARGER);
 }
@@ -554,26 +554,26 @@ COLORREF GetScreenshotBorderColor(void)
 	return options_get_color_default(gui_opts, MUIOPTION_SCREENSHOT_BORDER_COLOR, COLOR_3DFACE);
 }
 
-void SetFilterInherit(BOOL inherit)
+void SetFilterInherit(bool inherit)
 {
 	std::string error_string;
 	gui_opts.set_value(MUIOPTION_INHERIT_FILTER, inherit, OPTION_PRIORITY_CMDLINE, error_string);
 	assert(error_string.empty());
 }
 
-BOOL GetFilterInherit(void)
+bool GetFilterInherit(void)
 {
 	return gui_opts.bool_value( MUIOPTION_INHERIT_FILTER);
 }
 
-void SetUseBrokenIcon(BOOL broken)
+void SetUseBrokenIcon(bool broken)
 {
 	std::string error_string;
 	gui_opts.set_value(MUIOPTION_USE_BROKEN_ICON, broken, OPTION_PRIORITY_CMDLINE, error_string);
 	assert(error_string.empty());
 }
 
-BOOL GetUseBrokenIcon(void)
+bool GetUseBrokenIcon(void)
 {
 	return gui_opts.bool_value(MUIOPTION_USE_BROKEN_ICON);
 }
@@ -590,26 +590,26 @@ int GetSavedFolderID(void)
 	return gui_opts.int_value(MUIOPTION_DEFAULT_FOLDER_ID);
 }
 
-void SetShowScreenShot(BOOL val)
+void SetShowScreenShot(bool val)
 {
 	std::string error_string;
 	gui_opts.set_value(MUIOPTION_SHOW_IMAGE_SECTION, val, OPTION_PRIORITY_CMDLINE, error_string);
 	assert(error_string.empty());
 }
 
-BOOL GetShowScreenShot(void)
+bool GetShowScreenShot(void)
 {
 	return gui_opts.bool_value(MUIOPTION_SHOW_IMAGE_SECTION);
 }
 
-void SetShowFolderList(BOOL val)
+void SetShowFolderList(bool val)
 {
 	std::string error_string;
 	gui_opts.set_value(MUIOPTION_SHOW_FOLDER_SECTION, val, OPTION_PRIORITY_CMDLINE, error_string);
 	assert(error_string.empty());
 }
 
-BOOL GetShowFolderList(void)
+bool GetShowFolderList(void)
 {
 	return gui_opts.bool_value(MUIOPTION_SHOW_FOLDER_SECTION);
 }
@@ -620,7 +620,7 @@ static void GetsShowFolderFlags(LPBITS bits)
 	extern const FOLDERDATA g_folderData[];
 
 	snprintf(s, ARRAY_LENGTH(s), "%s", gui_opts.value(MUIOPTION_HIDE_FOLDERS));
-	SetAllBits(bits, TRUE);
+	SetAllBits(bits, true);
 	char *token = strtok(s,", \t");
 	
 	while (token != NULL)
@@ -638,16 +638,16 @@ static void GetsShowFolderFlags(LPBITS bits)
 	}
 }
 
-BOOL GetShowFolder(int folder)
+bool GetShowFolder(int folder)
 {
 	LPBITS show_folder_flags = NewBits(MAX_FOLDERS);
 	GetsShowFolderFlags(show_folder_flags);
-	BOOL result = TestBit(show_folder_flags, folder);
+	bool result = TestBit(show_folder_flags, folder);
 	DeleteBits(show_folder_flags);
 	return result;
 }
 
-void SetShowFolder(int folder, BOOL show)
+void SetShowFolder(int folder, bool show)
 {
 	LPBITS show_folder_flags = NewBits(MAX_FOLDERS);
 	int num_saved = 0;
@@ -667,7 +667,7 @@ void SetShowFolder(int folder, BOOL show)
 	// and upgraders will see them
 	for (int i = 0; i < MAX_FOLDERS; i++)
 	{
-		if (TestBit(show_folder_flags, i) == FALSE)
+		if (TestBit(show_folder_flags, i) == false)
 		{
 			if (num_saved != 0)
 				strcat(str,", ");
@@ -690,38 +690,38 @@ void SetShowFolder(int folder, BOOL show)
 	DeleteBits(show_folder_flags);
 }
 
-void SetShowStatusBar(BOOL val)
+void SetShowStatusBar(bool val)
 {
 	std::string error_string;
 	gui_opts.set_value(MUIOPTION_SHOW_STATUS_BAR, val, OPTION_PRIORITY_CMDLINE, error_string);
 	assert(error_string.empty());
 }
 
-BOOL GetShowStatusBar(void)
+bool GetShowStatusBar(void)
 {
 	return gui_opts.bool_value( MUIOPTION_SHOW_STATUS_BAR);
 }
 
-void SetShowTabCtrl (BOOL val)
+void SetShowTabCtrl (bool val)
 {
 	std::string error_string;
 	gui_opts.set_value(MUIOPTION_SHOW_TABS, val, OPTION_PRIORITY_CMDLINE, error_string);
 	assert(error_string.empty());
 }
 
-BOOL GetShowTabCtrl (void)
+bool GetShowTabCtrl (void)
 {
 	return gui_opts.bool_value( MUIOPTION_SHOW_TABS);
 }
 
-void SetShowToolBar(BOOL val)
+void SetShowToolBar(bool val)
 {
 	std::string error_string;
 	gui_opts.set_value(MUIOPTION_SHOW_TOOLBAR, val, OPTION_PRIORITY_CMDLINE, error_string);
 	assert(error_string.empty());
 }
 
-BOOL GetShowToolBar(void)
+bool GetShowToolBar(void)
 {
 	return gui_opts.bool_value( MUIOPTION_SHOW_TOOLBAR);
 }
@@ -938,7 +938,7 @@ int GetShowTab(int tab)
 	return (show_tab_flags & (1 << tab)) != 0;
 }
 
-void SetShowTab(int tab, BOOL show)
+void SetShowTab(int tab, bool show)
 {
 	int show_tab_flags = 0;
 	char buffer[256];
@@ -958,13 +958,13 @@ void SetShowTab(int tab, BOOL show)
 }
 
 // don't delete the last one
-BOOL AllowedToSetShowTab(int tab, BOOL show)
+bool AllowedToSetShowTab(int tab, bool show)
 {
 	int show_tab_flags = 0;
 	const char *show_tabs_string = gui_opts.value(MUIOPTION_HIDE_TABS);
 
-	if (show == TRUE)
-		return TRUE;
+	if (show == true)
+		return true;
 
 	TabFlagsDecodeString(show_tabs_string, &show_tab_flags);
 	show_tab_flags &= ~(1 << tab);
@@ -977,7 +977,7 @@ int GetHistoryTab(void)
 	return gui_opts.int_value(MUIOPTION_HISTORY_TAB);
 }
 
-void SetHistoryTab(int tab, BOOL show)
+void SetHistoryTab(int tab, bool show)
 {
 	std::string error_string;
 	
@@ -1087,14 +1087,14 @@ int GetSortColumn(void)
 	return gui_opts.int_value(MUIOPTION_SORT_COLUMN);
 }
 
-void SetSortReverse(BOOL reverse)
+void SetSortReverse(bool reverse)
 {
 	std::string error_string;
 	gui_opts.set_value(MUIOPTION_SORT_REVERSED, reverse, OPTION_PRIORITY_CMDLINE, error_string);
 	assert(error_string.empty());
 }
 
-BOOL GetSortReverse(void)
+bool GetSortReverse(void)
 {
 	return gui_opts.bool_value(MUIOPTION_SORT_REVERSED);
 }
@@ -1853,24 +1853,24 @@ void SetUIJoyHistoryDown(int joycodeIndex, int val)
 	SetUIJoy(MUIOPTION_UI_JOY_HISTORY_DOWN, joycodeIndex, val);
 }
 
-BOOL GetHideMouseOnStartup(void)
+bool GetHideMouseOnStartup(void)
 {
 	return gui_opts.bool_value(MUIOPTION_HIDE_MOUSE);
 }
 
-void SetHideMouseOnStartup(BOOL hide)
+void SetHideMouseOnStartup(bool hide)
 {
 	std::string error_string;
 	gui_opts.set_value(MUIOPTION_HIDE_MOUSE, hide, OPTION_PRIORITY_CMDLINE, error_string);
 	assert(error_string.empty());
 }
 
-BOOL GetRunFullScreen(void)
+bool GetRunFullScreen(void)
 {
 	return gui_opts.bool_value(MUIOPTION_FULL_SCREEN);
 }
 
-void SetRunFullScreen(BOOL fullScreen)
+void SetRunFullScreen(bool fullScreen)
 {
 	std::string error_string;
 	gui_opts.set_value(MUIOPTION_FULL_SCREEN, fullScreen, OPTION_PRIORITY_CMDLINE, error_string);
@@ -1885,7 +1885,7 @@ static void  CusColorEncodeString(const COLORREF *value, char* str)
 {
 	char tmpStr[256];
 
-	snprintf(tmpStr, ARRAY_LENGTH(tmpStr), "%u", (int) value[0]);
+	snprintf(tmpStr, ARRAY_LENGTH(tmpStr), "%u", (unsigned) value[0]);
 	strcpy(str, tmpStr);
 
 	for (int i = 1; i < 16; i++)
@@ -2529,7 +2529,7 @@ void LoadOptions(windows_options &opts, OPTIONS_TYPE opt_type, int game_num)
 			return;
 
 		// then parse "<sourcefile>.ini"
-		core_filename_extract_base(basename, driver->source_file, TRUE);
+		core_filename_extract_base(basename, driver->source_file, true);
 		std::string srcname = std::string("source").append(PATH_SEPARATOR).append(basename.c_str());
 		ParseIniFile(opts, srcname.c_str());
 
@@ -2583,7 +2583,7 @@ void SaveOptions(OPTIONS_TYPE opt_type, windows_options &opts, int game_num)
 		if (opt_type == OPTIONS_SOURCE)
 		{
 			// determine the <sourcefile>
-			core_filename_extract_base(basename, driver->source_file, TRUE);
+			core_filename_extract_base(basename, driver->source_file, true);
 			std::string srcname = std::string("source").append(PATH_SEPARATOR).append(basename.c_str());
 			filename.assign(srcname.c_str());
 		}
@@ -2616,27 +2616,27 @@ void SetDriverCache(int driver_index, int val)
 
 void SetRequiredDriverCacheStatus(void)
 {
-	static BOOL bFirst = TRUE;
+	static bool bFirst = true;
 
 	if (bFirst)
 	{
 		RequiredDriverCacheStatus = RequiredDriverCache(1);
-		bFirst = FALSE;
+		bFirst = false;
 	}
 }
-BOOL GetRequiredDriverCacheStatus(void)
+bool GetRequiredDriverCacheStatus(void)
 {
 	SetRequiredDriverCacheStatus();
 
 	return RequiredDriverCacheStatus;
 }
 
-BOOL RequiredDriverCache(int check)
+bool RequiredDriverCache(int check)
 {
-	BOOL ret = FALSE;
+	bool ret = false;
 
 	if (strcmp(gui_opts.value(MUIOPTION_VERSION), GetVersionString()) != 0)
-		ret = TRUE;
+		ret = true;
 
 	if (!check)
 	{

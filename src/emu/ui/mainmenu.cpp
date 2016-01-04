@@ -53,7 +53,7 @@ void ui_menu_main::populate()
 	strprintf(menu_text, "Input (this %s)", emulator_info::get_capstartgamenoun());
 	item_append(menu_text.c_str(), nullptr, 0, (void *)INPUT_SPECIFIC);
 
-	item_append("Autofire Settings", NULL, 0, (void *)AUTOFIRE_MENU);
+	item_append("Autofire Settings", nullptr, 0, (void *)AUTOFIRE_MENU);
 
 	/* add optional input-related menus */
 	if (machine().ioport().has_analog())

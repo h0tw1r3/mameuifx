@@ -48,11 +48,11 @@ struct tDatafileIndex
 	const game_driver *driver;
 };
 
-static struct tDatafileIndex *hist_idx = 0;
-static struct tDatafileIndex *mame_idx = 0;
-static struct tDatafileIndex *driv_idx = 0;
-static struct tDatafileIndex *cmd_idx = 0;
-static struct tDatafileIndex *score_idx = 0;
+static struct tDatafileIndex *hist_idx = NULL;
+static struct tDatafileIndex *mame_idx = NULL;
+static struct tDatafileIndex *driv_idx = NULL;
+static struct tDatafileIndex *cmd_idx = NULL;
+static struct tDatafileIndex *score_idx = NULL;
 
 /****************************************************************************
  *      ParseClose - Closes the existing opened file (if any)
@@ -67,21 +67,21 @@ static void ParseClose(void)
 /****************************************************************************
  *      ParseOpen - Open up file for reading
  ****************************************************************************/
-static BOOL ParseOpen(const char *pszFilename)
+static bool ParseOpen(const char *pszFilename)
 {
 	/* MAME core file parsing functions fail in recognizing UNICODE chars in UTF-8 without BOM, 
 	so it's better and faster use standard C fileio functions */
 	fp = fopen(pszFilename, "r");
 	
 	if (fp == NULL)
-		return FALSE;
+		return false;
 
 	/* Otherwise, prepare! */
 	dwFilePos = 0;
 	/* identify text file type first */
 	fgetc(fp);
 	fseek(fp, dwFilePos, SEEK_SET);
-	return TRUE;
+	return true;
 }
 
 /****************************************************************************
@@ -260,11 +260,10 @@ static int load_datafile_text(const game_driver *drv, char *buffer, int bufsize,
 		
 		if (mameinfo)
 		{
-			if (strtok(readbuf, "\r\n\r\n") != NULL)
-			{
-				char *temp = strtok(readbuf, "\r\n\r\n");
+			char *temp = strtok(readbuf, "\r\n\r\n");
+			
+			if (temp != NULL)
 				strcat(buffer, temp);
-			}
 			else
 				strcat(buffer, readbuf);
 		}
@@ -503,7 +502,7 @@ int load_driver_mameinfo(const game_driver *drv, char *buffer, int bufsize)
 		strcat(buffer,"Vector\n");
 	else
 	{
-		for (; screen != NULL; screen = screeniter.next())
+		for (; screen; screen = screeniter.next())
 		{
 			if (drv->flags & ORIENTATION_SWAP_XY)
 				snprintf(name, ARRAY_LENGTH(name), "%d x %d (V)", screen->visible_area().height(), screen->visible_area().width());
@@ -538,15 +537,19 @@ int load_driver_mameinfo(const game_driver *drv, char *buffer, int bufsize)
 					machine_config pconfig(*parent, MameUIGlobal());
 					device_iterator deviter(pconfig.root_device());
 
-					for (device_t *device = deviter.first(); device != NULL; device = deviter.next())
-						for (const rom_entry *pregion = rom_first_region(*device); pregion != NULL; pregion = rom_next_region(pregion))
-							for (const rom_entry *prom = rom_first_file(pregion); prom != NULL; prom = rom_next_file(prom))
+					for (device_t *device = deviter.first(); device; device = deviter.next())
+					{
+						for (const rom_entry *pregion = rom_first_region(*device); pregion; pregion = rom_next_region(pregion))
+						{
+							for (const rom_entry *prom = rom_first_file(pregion); prom; prom = rom_next_file(prom))
 							{
 								hash_collection phashes(ROM_GETHASHDATA(prom));
 
 								if (hashes == phashes)
 									break;
 							}
+						}
+					}
 				}
 
 				snprintf(name, ARRAY_LENGTH(name), "%-16s \t", ROM_GETNAME(rom));
@@ -562,7 +565,7 @@ int load_driver_mameinfo(const game_driver *drv, char *buffer, int bufsize)
 
 	samples_device_iterator samplesiter(config.root_device());
 
-	for (samples_device *device = samplesiter.first(); device != NULL; device = samplesiter.next())
+	for (samples_device *device = samplesiter.first(); device; device = samplesiter.next())
 	{
 		samples_iterator sampiter(*device);
 
@@ -572,12 +575,12 @@ int load_driver_mameinfo(const game_driver *drv, char *buffer, int bufsize)
 			strcat(buffer, name);
 		}
 
-		tagmap_t<int> already_printed;
+		std::unordered_set<std::string> already_printed;
 
-		for (const char *samplename = sampiter.first(); samplename != NULL; samplename = sampiter.next())
+		for (const char *samplename = sampiter.first(); samplename; samplename = sampiter.next())
 		{
 			// filter out duplicates
-			if (already_printed.add(samplename, 1) == TMERR_DUPLICATE)
+			if (!already_printed.insert(samplename).second)
 				continue;
 
 			// output the sample name
@@ -618,7 +621,7 @@ int load_driver_driverinfo(const game_driver *drv, char *buffer, int bufsize)
 	char tmp[100];
 	std::string temp;
 	
-	core_filename_extract_base(temp, drv->source_file, FALSE);
+	core_filename_extract_base(temp, drv->source_file, false);
 	strcpy(source_file, temp.c_str());
 
 	*buffer = 0;

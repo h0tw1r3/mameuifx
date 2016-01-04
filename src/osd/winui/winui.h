@@ -115,8 +115,8 @@ enum
 	FILETYPE_DEBUGSCRIPT_FILES
 };
 
-typedef BOOL (WINAPI *common_file_dialog_proc)(LPOPENFILENAME lpofn);
-BOOL CommonFileDialog(common_file_dialog_proc cfd, char *filename, int filetype);
+typedef int (WINAPI *common_file_dialog_proc)(LPOPENFILENAME lpofn);
+bool CommonFileDialog(common_file_dialog_proc cfd, char *filename, int filetype);
 HWND GetMainWindow(void);
 HWND GetTreeView(void);
 HWND GetProgressBar(void);
@@ -141,7 +141,7 @@ int GetSrcDriverIndex(const char *name);
 void SetStatusBarText(int part_index, const char *message);
 void SetStatusBarTextF(int part_index, const char *fmt, ...);
 int MameUIMain(HINSTANCE hInstance, LPWSTR lpCmdLine);
-BOOL MouseHasBeenMoved(void);
+bool MouseHasBeenMoved(void);
 const char * GetSearchText(void);
 
 #endif

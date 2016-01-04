@@ -259,7 +259,7 @@ static const char *const mmagic_sample_names[] =
 	"6",
 	"6-2",
 	"1",
-	0
+	nullptr
 };
 
 WRITE8_MEMBER( mmagic_state::audio_w )
