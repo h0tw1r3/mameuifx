@@ -206,7 +206,8 @@ static MACHINE_CONFIG_START( prehisle, prehisle_state )
 	/* video hardware */
 	MCFG_SCREEN_ADD("screen", RASTER)
 	// the screen parameters are guessed but should be accurate. They
-	// give a theoretical refresh rate of 59.1856Hz
+	// give a theoretical refresh rate of 59.1856Hz while the measured
+	// rate on a snk68.c with very similar hardware board is 59.16Hz.
 	MCFG_SCREEN_RAW_PARAMS(XTAL_24MHz/4, 384, 0, 256, 264, 16, 240)
 	MCFG_SCREEN_UPDATE_DRIVER(prehisle_state, screen_update_prehisle)
 	MCFG_SCREEN_PALETTE("palette")

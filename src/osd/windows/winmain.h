@@ -105,6 +105,7 @@
 #define WINOPTION_FULLSCREENGAMMA       "full_screen_gamma"
 
 // input options
+#define WINOPTION_GLOBAL_INPUTS         "global_inputs"
 #define WINOPTION_DUAL_LIGHTGUN         "dual_lightgun"
 #define WINOPTION_JOYSTICK_ID_1			"joystick_id_1"
 #define WINOPTION_JOYSTICK_ID_2			"joystick_id_2"
@@ -214,6 +215,7 @@ public:
 	float full_screen_gamma() const { return float_value(WINOPTION_FULLSCREENGAMMA); }
 
 	// input options
+	bool global_inputs() const { return bool_value(WINOPTION_GLOBAL_INPUTS); }
 	bool dual_lightgun() const { return bool_value(WINOPTION_DUAL_LIGHTGUN); }
 	int joystick_id_1() const { return int_value(WINOPTION_JOYSTICK_ID_1); }
 	int joystick_id_2() const { return int_value(WINOPTION_JOYSTICK_ID_2); }
